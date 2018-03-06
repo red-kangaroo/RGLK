@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import libtcodpy as libtcod
 
 ###############################################################################
@@ -270,13 +272,19 @@ def make_map():
 
             if map[x][y].name == 'door':
                 AdjacentWalls = 0
+                Fail = True
 
                 for m in range(max(0, x - 1), min(MapWight, x + 2)):
                     for n in range(max(0, y - 1), min(MapHeight, y + 2)):
                         if map[m][n].name == 'wall':
                             AdjacentWalls += 1
 
-                if AdjacentWalls < 3:
+                            if (m + 2 < MapWight and n + 2 < MapHeight):
+                                if (map[m + 2][n].name == 'wall' or
+                                    map[m][n + 2].name == 'wall'):
+                                    Fail = False
+
+                if (AdjacentWalls < 3 or Fail == True):
                     map[x][y].char = '.'
                     map[x][y].color = libtcod.grey
                     map[x][y].name = 'floor'
