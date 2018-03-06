@@ -172,8 +172,8 @@ def handle_keys():
     if Key.vk == libtcod.KEY_ENTER and Key.lalt:
         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 
-    # Exit game with Esc
-    if Key.vk == libtcod.KEY_ESCAPE:
+    # Exit game with Ctrl + Q
+    if (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('q'))):
         return True
 
 
@@ -206,19 +206,28 @@ def handle_keys():
     if (libtcod.console_is_key_pressed(libtcod.KEY_UP) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP8)):
         dy -= 1
-
     elif (libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
         dy += 1
-
     elif (libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
         dx -= 1
-
     elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
         dx += 1
-    # TODO: Diagonal movement
+    elif libtcod.console_is_key_pressed(libtcod.KEY_KP7):
+        dx -= 1
+        dy -= 1
+    elif libtcod.console_is_key_pressed(libtcod.KEY_KP9):
+        dx += 1
+        dy -= 1
+    elif libtcod.console_is_key_pressed(libtcod.KEY_KP1):
+        dx -= 1
+        dy += 1
+    elif libtcod.console_is_key_pressed(libtcod.KEY_KP3):
+        dx += 1
+        dy += 1
+
     Player.move(dx, dy)
 
     if (dx != 0 or dy != 0):
@@ -315,12 +324,27 @@ def make_map():
                     map[x][y].BlockMove = False
                     map[x][y].BlockSight = False
 
+            # TODO: Move all of those into script file.
             elif (map[x][y].name == 'floor' and rand_chance(5)):
                 map[x][y].char = '|'
                 map[x][y].color = libtcod.dark_green
-                map[x][y].name = 'vines'
+                map[x][y].name = 'hanging vines'
                 map[x][y].BlockMove = False
                 map[x][y].BlockSight = True
+
+            elif (map[x][y].name == 'floor' and rand_chance(5)):
+                map[x][y].char = '~'
+                map[x][y].color = libtcod.blue
+                map[x][y].name = 'puddle'
+                map[x][y].BlockMove = False
+                map[x][y].BlockSight = False
+
+            elif (map[x][y].name == 'floor' and rand_chance(2)):
+                map[x][y].char = '*'
+                map[x][y].color = libtcod.darker_grey
+                map[x][y].name = 'rock pile'
+                map[x][y].BlockMove = False
+                map[x][y].BlockSight = False
 
     # Make FOV map:
     for y in range(MapHeight):
