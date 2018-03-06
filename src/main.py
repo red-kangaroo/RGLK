@@ -18,6 +18,10 @@ RoomMinSize = 4
 RoomMaxSize = 10
 RoomMaxNumber = 99
 
+FOVDefault = 0 # Default algorithm
+FOVLightsWalls = True
+FOVRadius = 10 # TODO: This should depend on stats and equipment.
+
 WizModeNoClip = False
 WizModeTrueSight = False
 
@@ -35,8 +39,6 @@ class Entity(object):
         self.name = name
 
     def move(self, dx, dy):
-        global WizModeNoClip
-
         if (self.x + dx < 0 or self.x + dx > MapWight - 1 or
             self.y + dy < 0 or self.y + dy > MapHeight - 1):
             return
@@ -47,8 +49,12 @@ class Entity(object):
 
     def draw(self):
         # Set color and draw character on screen.
-        libtcod.console_set_default_foreground(Con, self.color)
-        libtcod.console_put_char(Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
+        if libtcod.map_is_in_fov(FOVMap, self.x, self.y):
+            libtcod.console_set_default_foreground(Con, self.color)
+            libtcod.console_put_char(Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
+
+    def UpdateFOV(self):
+        libtcod.map_compute_fov(FOVMap, self.x, self.y, FOVRadius, FOVLightsWalls, FOVDefault)
 
 # Map objects.
 class Terrain(object):
@@ -57,6 +63,7 @@ class Terrain(object):
         self.color = color
         self.name = name
         self.BlockMove = BlockMove
+        self.explored = False
 
         # By default, BlockMove also BlockSight
         if BlockSight == None:
@@ -64,8 +71,14 @@ class Terrain(object):
         self.BlockSight = BlockSight
 
     def draw(self, x, y):
-        # Set color and draw character on screen.
-        libtcod.console_set_default_foreground(Con, self.color)
+        if libtcod.map_is_in_fov(FOVMap, x, y):
+            libtcod.console_set_default_foreground(Con, self.color)
+            self.explored = True
+        elif (self.explored == True):
+            libtcod.console_set_default_foreground(Con, libtcod.darkest_grey)
+        else:
+            return
+            #libtcod.console_set_default_foreground(Con, libtcod.black)
         libtcod.console_put_char(Con, x, y, self.char, libtcod.BKGND_NONE)
 
 class Rect(object):
@@ -87,7 +100,7 @@ class Rect(object):
         for x in range(self.x1 + 1, self.x2):
             for y in range(self.y1 + 1, self.y2):
                 map[x][y].char = '.'
-                map[x][y].color = libtcod.grey
+                map[x][y].color = libtcod.light_grey
                 map[x][y].name = 'floor'
                 map[x][y].BlockMove = False
                 map[x][y].BlockSight = False
@@ -103,7 +116,7 @@ class Rect(object):
                 map[x][self.CenterY].BlockSight = True
             else:
                 map[x][self.CenterY].char = '.'
-                map[x][self.CenterY].color = libtcod.grey
+                map[x][self.CenterY].color = libtcod.light_grey
                 map[x][self.CenterY].name = 'floor'
                 map[x][self.CenterY].BlockMove = False
                 map[x][self.CenterY].BlockSight = False
@@ -119,7 +132,7 @@ class Rect(object):
                 map[self.CenterX][y].BlockSight = True
             else:
                 map[self.CenterX][y].char = '.'
-                map[self.CenterX][y].color = libtcod.grey
+                map[self.CenterX][y].color = libtcod.light_grey
                 map[self.CenterX][y].name = 'floor'
                 map[self.CenterX][y].BlockMove = False
                 map[self.CenterX][y].BlockSight = False
@@ -133,8 +146,9 @@ libtcod.console_set_custom_font('graphics/terminal.png',
 libtcod.console_init_root(ScreenWidth, ScreenHeight, 'RGLK', False)
 # Base console:
 Con = libtcod.console_new(ScreenWidth, ScreenHeight)
-
-# Player must be defined here, we work with him shortly. TODO?
+# Set FOV:
+FOVMap = libtcod.map_new(MapWight, MapHeight)
+# Player must be defined here, we work with him shortly.
 Player = Entity(1, 1, '@', libtcod.white, 'Player')
 Entities = [Player]
 
@@ -169,13 +183,19 @@ def handle_keys():
         global WizModeNoClip
         WizModeNoClip = not WizModeNoClip
 
-    # See whole map
+    # Magic map
     if Key.vk == libtcod.KEY_F2:
-        global WizModeTrueSight
-        WizModeTrueSight = not WizModeTrueSight
+        for y in range(MapHeight):
+            for x in range(MapWight):
+                map[x][y].explored = True
 
     # Regenerate map
     if Key.vk == libtcod.KEY_F12:
+        # Heh heh, if I don't clear the console, it looks quite trippy after
+        # redrawing a new map over the old one.
+        for y in range(MapHeight):
+            for x in range(MapWight):
+                libtcod.console_put_char_ex(Con, x, y, ' ', libtcod.black, libtcod.black)
         make_map()
 
 
@@ -198,8 +218,11 @@ def handle_keys():
     elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
         dx += 1
-
+    # TODO: Diagonal movement
     Player.move(dx, dy)
+
+    if (dx != 0 or dy != 0):
+        Player.UpdateFOV()
 
 def render_all():
     for y in range(MapHeight):
@@ -210,6 +233,7 @@ def render_all():
     for mob in Entities:
         if mob != Player:
             mob.draw()
+    # Draw player last, over everything else.
     Player.draw()
 
     libtcod.console_blit(Con, 0, 0, ScreenWidth, ScreenHeight, 0, 0, 0)
@@ -220,7 +244,7 @@ def make_map():
     global map
 
     # Fill map with walls.
-    map = [[ Terrain('#', libtcod.darkest_grey, 'wall', True)
+    map = [[ Terrain('#', libtcod.dark_grey, 'wall', True)
       for y in range(MapHeight) ]
         for x in range(MapWight) ]
 
@@ -286,7 +310,7 @@ def make_map():
 
                 if (AdjacentWalls < 3 or Fail == True):
                     map[x][y].char = '.'
-                    map[x][y].color = libtcod.grey
+                    map[x][y].color = libtcod.light_grey
                     map[x][y].name = 'floor'
                     map[x][y].BlockMove = False
                     map[x][y].BlockSight = False
@@ -297,6 +321,13 @@ def make_map():
                 map[x][y].name = 'vines'
                 map[x][y].BlockMove = False
                 map[x][y].BlockSight = True
+
+    # Make FOV map:
+    for y in range(MapHeight):
+        for x in range(MapWight):
+            libtcod.map_set_properties(FOVMap, x, y, not map[x][y].BlockSight, not map[x][y].BlockMove)
+
+    Player.UpdateFOV()
 
 ###############################################################################
 #  Main Loop
