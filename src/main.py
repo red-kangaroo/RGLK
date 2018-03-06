@@ -5,6 +5,7 @@ import libtcodpy as libtcod
 ###############################################################################
 
 # TODO: Most of this should be in a script file.
+# TODO: Also split it into multiple files.
 
 ScreenWidth = 80
 ScreenHeight = 50
@@ -16,11 +17,13 @@ RoomMaxSize = 10
 RoomMaxNumber = 99
 
 WizModeNoClip = False
+WizModeTrueSight = False
 
 ###############################################################################
 #  Objects
 ###############################################################################
 
+# Player, monsters...
 class Entity(object):
     def __init__(self, x, y, char, color, name):
         self.x = x
@@ -45,10 +48,7 @@ class Entity(object):
         libtcod.console_set_default_foreground(Con, self.color)
         libtcod.console_put_char(Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
-    #def clear(self):
-    #    # Erase self
-    #    libtcod.console_put_char_ex(Con, self.x, self.y, '.', ColorDarkFloor, libtcod.black)
-
+# Map objects.
 class Terrain(object):
     def __init__(self, char, color, name, BlockMove, BlockSight = None):
         self.char = char
@@ -72,15 +72,55 @@ class Rect(object):
         self.y1 = y
         self.x2 = x + width
         self.y2 = y + height
-
-    def center(self):
-        CenterX = (self.x1 + self.x2) / 2
-        CenterY = (self.y1 + self.y2) / 2
-        return (CenterX, CenterY)
+        self.CenterX = (self.x1 + self.x2) / 2
+        self.CenterY = (self.y1 + self.y2) / 2
 
     def intersect(self, other):
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and
                 self.y1 <= other.y2 and self.y2 >= other.y1)
+
+    # TODO: Move floor, wall etc. parameters into script files.
+    def create_room(self):
+        global map
+        for x in range(self.x1 + 1, self.x2):
+            for y in range(self.y1 + 1, self.y2):
+                map[x][y].char = '.'
+                map[x][y].color = libtcod.grey
+                map[x][y].name = 'floor'
+                map[x][y].BlockMove = False
+                map[x][y].BlockSight = False
+
+    def create_h_tunnel(self, OtherX):
+        global map
+        for x in range(min(self.CenterX, OtherX), max(self.CenterX, OtherX) + 1):
+            if (x == self.x1 or x == self.x2):
+                map[x][self.CenterY].char = '+'
+                map[x][self.CenterY].color = libtcod.darkest_orange
+                map[x][self.CenterY].name = 'door'
+                map[x][self.CenterY].BlockMove = False
+                map[x][self.CenterY].BlockSight = True
+            else:
+                map[x][self.CenterY].char = '.'
+                map[x][self.CenterY].color = libtcod.grey
+                map[x][self.CenterY].name = 'floor'
+                map[x][self.CenterY].BlockMove = False
+                map[x][self.CenterY].BlockSight = False
+
+    def create_v_tunnel(self, OtherY):
+        global map
+        for y in range(min(self.CenterY, OtherY), max(self.CenterY, OtherY) + 1):
+            if (y == self.y1 or y == self.y2):
+                map[self.CenterX][y].char = '+'
+                map[self.CenterX][y].color = libtcod.darkest_orange
+                map[self.CenterX][y].name = 'door'
+                map[self.CenterX][y].BlockMove = False
+                map[self.CenterX][y].BlockSight = True
+            else:
+                map[self.CenterX][y].char = '.'
+                map[self.CenterX][y].color = libtcod.grey
+                map[self.CenterX][y].name = 'floor'
+                map[self.CenterX][y].BlockMove = False
+                map[self.CenterX][y].BlockSight = False
 
 ###############################################################################
 #  Initialization
@@ -89,23 +129,25 @@ class Rect(object):
 libtcod.console_set_custom_font('graphics/terminal.png',
   libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
 libtcod.console_init_root(ScreenWidth, ScreenHeight, 'RGLK', False)
-
+# Base console:
 Con = libtcod.console_new(ScreenWidth, ScreenHeight)
 
+# Player must be defined here, we work with him shortly. TODO?
 Player = Entity(1, 1, '@', libtcod.white, 'Player')
-# NPC = Entity(ScreenWidth/2 - 5, ScreenHeight/2 - 5, '@', libtcod.yellow)
 Entities = [Player]
 
 ###############################################################################
 #  Functions
 ###############################################################################
 
+# Let's hope I didn't mess up the chances...
 def rand_chance(percent):
     if libtcod.random_get_int(0, 1, 101) > percent:
         return False
     else:
         return True
 
+# Player input
 def handle_keys():
 
     Key = libtcod.console_wait_for_keypress(True)
@@ -124,6 +166,11 @@ def handle_keys():
     if Key.vk == libtcod.KEY_F1:
         global WizModeNoClip
         WizModeNoClip = not WizModeNoClip
+
+    # See whole map
+    if Key.vk == libtcod.KEY_F2:
+        global WizModeTrueSight
+        WizModeTrueSight = not WizModeTrueSight
 
     # Regenerate map
     if Key.vk == libtcod.KEY_F12:
@@ -165,42 +212,12 @@ def render_all():
 
     libtcod.console_blit(Con, 0, 0, ScreenWidth, ScreenHeight, 0, 0, 0)
 
-# Dungeon:
-def create_room(room):
-    global map
-
-    for x in range(room.x1 + 1, room.x2):
-        for y in range(room.y1 + 1, room.y2):
-            map[x][y].char = '.'
-            map[x][y].color = libtcod.grey
-            map[x][y].name = 'floor'
-            map[x][y].BlockMove = False
-            map[x][y].BlockSight = False
-
-def create_h_tunnel(x1, x2, y):
-    global map
-
-    for x in range(min(x1, x2), max(x1, x2) + 1):
-        map[x][y].char = '.'
-        map[x][y].color = libtcod.grey
-        map[x][y].name = 'floor'
-        map[x][y].BlockMove = False
-        map[x][y].BlockSight = False
-
-
-def create_v_tunnel(y1, y2, x):
-    global map
-
-    for y in range(min(y1, y2), max(y1, y2) + 1):
-        map[x][y].char = '.'
-        map[x][y].color = libtcod.grey
-        map[x][y].name = 'floor'
-        map[x][y].BlockMove = False
-        map[x][y].BlockSight = False
-
+# Dungeon generation:
+# TODO: Move into Dungeon.py
 def make_map():
     global map
 
+    # Fill map with walls.
     map = [[ Terrain('#', libtcod.darkest_grey, 'wall', True)
       for y in range(MapHeight) ]
         for x in range(MapWight) ]
@@ -208,6 +225,7 @@ def make_map():
     Rooms = []
     RoomNo = 0
 
+    # Add rooms.
     for i in range(RoomMaxNumber):
         width = libtcod.random_get_int(0, RoomMinSize, RoomMaxSize)
         height = libtcod.random_get_int(0, RoomMinSize, RoomMaxSize)
@@ -223,29 +241,54 @@ def make_map():
                 Fail = True
                 break
 
+        # We want some rooms to overlap, it looks better.
         if (RoomNo < 20 and rand_chance(20)):
             Fail = False
 
         if not Fail:
-            create_room(NewRoom)
-
-            (NewX, NewY) = NewRoom.center()
+            NewRoom.create_room()
 
             if RoomNo == 0:
-                Player.x = NewX
-                Player.y = NewY
+                Player.x = NewRoom.CenterX
+                Player.y = NewRoom.CenterY
             else:
-                (PrevX, PrevY) = Rooms[RoomNo - 1].center()
+                PrevRoom = Rooms[RoomNo - 1]
 
                 if rand_chance(50):
-                    create_h_tunnel(PrevX, NewX, PrevY)
-                    create_v_tunnel(PrevY, NewY, NewX)
+                    NewRoom.create_h_tunnel(PrevRoom.CenterX)
+                    PrevRoom.create_v_tunnel(NewRoom.CenterY)
                 else:
-                    create_v_tunnel(PrevY, NewY, PrevX)
-                    create_h_tunnel(PrevX, NewX, NewY)
+                    NewRoom.create_v_tunnel(PrevRoom.CenterY)
+                    PrevRoom.create_h_tunnel(NewRoom.CenterX)
 
             Rooms.append(NewRoom)
             RoomNo += 1
+
+    # Clean door generation and add some decorations.
+    for y in range(MapHeight):
+        for x in range(MapWight):
+
+            if map[x][y].name == 'door':
+                AdjacentWalls = 0
+
+                for m in range(max(0, x - 1), min(MapWight, x + 2)):
+                    for n in range(max(0, y - 1), min(MapHeight, y + 2)):
+                        if map[m][n].name == 'wall':
+                            AdjacentWalls += 1
+
+                if AdjacentWalls < 3:
+                    map[x][y].char = '.'
+                    map[x][y].color = libtcod.grey
+                    map[x][y].name = 'floor'
+                    map[x][y].BlockMove = False
+                    map[x][y].BlockSight = False
+
+            elif (map[x][y].name == 'floor' and rand_chance(5)):
+                map[x][y].char = '|'
+                map[x][y].color = libtcod.dark_green
+                map[x][y].name = 'vines'
+                map[x][y].BlockMove = False
+                map[x][y].BlockSight = True
 
 ###############################################################################
 #  Main Loop
