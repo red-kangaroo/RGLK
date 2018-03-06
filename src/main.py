@@ -1,22 +1,15 @@
 import libtcodpy as libtcod
 
 ###############################################################################
-#  Initialization
+#  Global Variables
 ###############################################################################
+
+# TODO: Most of this should be in a script file.
 
 ScreenWidth = 80
 ScreenHeight = 50
 MapWight = 80
 MapHeight = 45
-
-libtcod.console_set_custom_font('graphics/terminal.png',
-  libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
-libtcod.console_init_root(ScreenWidth, ScreenHeight, 'RGLK', False)
-
-Con = libtcod.console_new(ScreenWidth, ScreenHeight)
-
-ColorDarkWall = libtcod.darkest_grey
-ColorDarkFloor = libtcod.grey
 
 RoomMinSize = 4
 RoomMaxSize = 10
@@ -28,12 +21,13 @@ WizModeNoClip = False
 #  Objects
 ###############################################################################
 
-class Object(object):
-    def __init__(self, x, y, char, color):
+class Entity(object):
+    def __init__(self, x, y, char, color, name):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
+        self.name = name
 
     def move(self, dx, dy):
         global WizModeNoClip
@@ -51,18 +45,26 @@ class Object(object):
         libtcod.console_set_default_foreground(Con, self.color)
         libtcod.console_put_char(Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
-    def clear(self):
-        # Erase self
-        libtcod.console_put_char_ex(Con, self.x, self.y, '.', ColorDarkFloor, libtcod.black)
+    #def clear(self):
+    #    # Erase self
+    #    libtcod.console_put_char_ex(Con, self.x, self.y, '.', ColorDarkFloor, libtcod.black)
 
-class Tile(object):
-    def __init__(self, BlockMove, BlockSight = None):
+class Terrain(object):
+    def __init__(self, char, color, name, BlockMove, BlockSight = None):
+        self.char = char
+        self.color = color
+        self.name = name
         self.BlockMove = BlockMove
 
         # By default, BlockMove also BlockSight
         if BlockSight == None:
             BlockSight = BlockMove
         self.BlockSight = BlockSight
+
+    def draw(self, x, y):
+        # Set color and draw character on screen.
+        libtcod.console_set_default_foreground(Con, self.color)
+        libtcod.console_put_char(Con, x, y, self.char, libtcod.BKGND_NONE)
 
 class Rect(object):
     def __init__(self, x, y, width, height):
@@ -80,9 +82,19 @@ class Rect(object):
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
-Player = Object(1, 1, '@', libtcod.white)
-# NPC = Object(ScreenWidth/2 - 5, ScreenHeight/2 - 5, '@', libtcod.yellow)
-Objects = [Player]
+###############################################################################
+#  Initialization
+###############################################################################
+
+libtcod.console_set_custom_font('graphics/terminal.png',
+  libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
+libtcod.console_init_root(ScreenWidth, ScreenHeight, 'RGLK', False)
+
+Con = libtcod.console_new(ScreenWidth, ScreenHeight)
+
+Player = Entity(1, 1, '@', libtcod.white, 'Player')
+# NPC = Entity(ScreenWidth/2 - 5, ScreenHeight/2 - 5, '@', libtcod.yellow)
+Entities = [Player]
 
 ###############################################################################
 #  Functions
@@ -106,16 +118,19 @@ def handle_keys():
     if Key.vk == libtcod.KEY_ESCAPE:
         return True
 
-    # Regenerate map
-    if Key.vk == libtcod.KEY_HOME:
-        make_map()
 
-    # Regenerate map
-    if Key.vk == libtcod.KEY_PAGEUP:
+    # WIZARD MODE:
+    # Walk through walls
+    if Key.vk == libtcod.KEY_F1:
         global WizModeNoClip
         WizModeNoClip = not WizModeNoClip
 
-    # Movement
+    # Regenerate map
+    if Key.vk == libtcod.KEY_F12:
+        make_map()
+
+
+    # MOVEMENT:
     dx = 0
     dy = 0
 
@@ -140,15 +155,13 @@ def handle_keys():
 def render_all():
     for y in range(MapHeight):
         for x in range(MapWight):
-            wall = map[x][y].BlockSight
+            tile = map[x][y]
+            tile.draw(x, y)
 
-            if wall:
-                libtcod.console_put_char_ex(Con, x, y, '#', ColorDarkWall, libtcod.black)
-            else:
-                libtcod.console_put_char_ex(Con, x, y, '.', ColorDarkFloor, libtcod.black)
-
-    for object in Objects:
-        object.draw()
+    for mob in Entities:
+        if mob != Player:
+            mob.draw()
+    Player.draw()
 
     libtcod.console_blit(Con, 0, 0, ScreenWidth, ScreenHeight, 0, 0, 0)
 
@@ -158,6 +171,9 @@ def create_room(room):
 
     for x in range(room.x1 + 1, room.x2):
         for y in range(room.y1 + 1, room.y2):
+            map[x][y].char = '.'
+            map[x][y].color = libtcod.grey
+            map[x][y].name = 'floor'
             map[x][y].BlockMove = False
             map[x][y].BlockSight = False
 
@@ -165,6 +181,9 @@ def create_h_tunnel(x1, x2, y):
     global map
 
     for x in range(min(x1, x2), max(x1, x2) + 1):
+        map[x][y].char = '.'
+        map[x][y].color = libtcod.grey
+        map[x][y].name = 'floor'
         map[x][y].BlockMove = False
         map[x][y].BlockSight = False
 
@@ -173,13 +192,16 @@ def create_v_tunnel(y1, y2, x):
     global map
 
     for y in range(min(y1, y2), max(y1, y2) + 1):
+        map[x][y].char = '.'
+        map[x][y].color = libtcod.grey
+        map[x][y].name = 'floor'
         map[x][y].BlockMove = False
         map[x][y].BlockSight = False
 
 def make_map():
     global map
 
-    map = [[ Tile(True)
+    map = [[ Terrain('#', libtcod.darkest_grey, 'wall', True)
       for y in range(MapHeight) ]
         for x in range(MapWight) ]
 
@@ -239,9 +261,9 @@ while not libtcod.console_is_window_closed():
     # Print screen:
     libtcod.console_flush()
 
-    # Clear old objects:
-    for object in Objects:
-        object.clear()
+    ## Clear old entities:
+    #for mob in Entities:
+    #    mob.clear()
 
     # Handle player input
     Exit = handle_keys()
