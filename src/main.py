@@ -2,36 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import libtcodpy as libtcod
-
-###############################################################################
-#  Global Variables
-###############################################################################
-
-# TODO: Most of this should be in a script file.
-# TODO: Also split it into multiple files.
-
-ScreenWidth = 100
-ScreenHeight = 55
-MapWight = 80
-MapHeight = 50
-
-RoomMinSize = 5
-RoomMaxSize = 10
-RoomMaxNumber = 99
-DrunkenSteps = 5000
-
-FOVDefault = 0 # Default algorithm
-FOVLightsWalls = True
-FOVRadius = 6 # TODO: This should depend on stats and equipment.
-
-MonsterMaxNumber = 30
-
-PlayerIsDead = False
-
-WizModeNoClip = False
-WizModeTrueSight = False
-
-Entities = []
+import var
 
 ###############################################################################
 #  Objects
@@ -49,8 +20,8 @@ class Entity(object):
         self.BlockMove = BlockMove
 
     def move(self, dx, dy):
-        if (self.x + dx < 0 or self.x + dx > MapWight - 1 or
-            self.y + dy < 0 or self.y + dy > MapHeight - 1):
+        if (self.x + dx < 0 or self.x + dx > var.MapWight - 1 or
+            self.y + dy < 0 or self.y + dy > var.MapHeight - 1):
             return
 
         self.x += dx
@@ -58,7 +29,7 @@ class Entity(object):
 
     def draw(self):
         # Set color and draw character on screen.
-        if (libtcod.map_is_in_fov(FOVMap, self.x, self.y) or WizModeTrueSight):
+        if (libtcod.map_is_in_fov(FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(Con, self.color)
             libtcod.console_put_char(Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
@@ -66,7 +37,7 @@ class Entity(object):
         if map[x][y].BlockMove:
             return True
 
-        for i in Entities:
+        for i in var.Entities:
             if (i.BlockMove and i.x == x and i.y == y):
                 return True
 
@@ -74,18 +45,19 @@ class Entity(object):
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name,
-                 Str, Dex, End, speed = 1.0):
+                 Str, Dex, End, speed = 1.0, FOVRadius = 6):
         self.Str = Str
         self.Dex = Dex
         self.End = End
         self.speed = speed
+        self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
 
         super(Mob, self).__init__(x, y, char, color, name, BlockMove)
 
     def UpdateFOV(self):
-        libtcod.map_compute_fov(FOVMap, self.x, self.y, FOVRadius, FOVLightsWalls, FOVDefault)
+        libtcod.map_compute_fov(FOVMap, self.x, self.y, self.FOVRadius, True, 0)
 
     # Actions:
     def actionAttack(self, dx, dy, victim):
@@ -97,7 +69,7 @@ class Mob(Entity):
         x = self.x + dx
         y = self.y + dy
 
-        for i in Entities:
+        for i in var.Entities:
             if i.x == x and i.y == y:
                 bumpee = i
                 break
@@ -106,7 +78,7 @@ class Mob(Entity):
             self.actionAttack(dx, dy, bumpee)
             return
 
-        if (x > 0 and x < MapWight and y > 0 and y < MapHeight):
+        if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
             if map[x][y].CanBeOpened == True:
                 if(self.actionOpen(x, y)):
                     return
@@ -114,7 +86,7 @@ class Mob(Entity):
         self.actionWalk(dx, dy)
 
     def actionOpen(self, x, y):
-        if (x > 0 and x < MapWight and y > 0 and y < MapHeight):
+        if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
             if map[x][y].CanBeOpened == True:
                 if map[x][y].name == 'door':
                     map[x][y].change(OpenDoor)
@@ -124,7 +96,7 @@ class Mob(Entity):
     def actionWalk(self, dx, dy):
         moved = False
 
-        if (not self.isBlocked(self.x + dx, self.y + dy) or WizModeNoClip):
+        if (not self.isBlocked(self.x + dx, self.y + dy) or var.WizModeNoClip):
             self.move(dx, dy)
             moved = True
 
@@ -145,7 +117,7 @@ class Terrain(object):
         self.explored = False
 
     def draw(self, x, y):
-        if (libtcod.map_is_in_fov(FOVMap, x, y) or WizModeTrueSight):
+        if (libtcod.map_is_in_fov(FOVMap, x, y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(Con, self.color)
             self.explored = True
         elif (self.explored == True):
@@ -202,22 +174,25 @@ class Room(object):
                 map[self.CenterX][y].change(RockFloor)
 
 class Builder(object):
-    def makeMap(self):
+    def makeMap(self, populate):
         global map
 
         # Fill map with walls.
         map = [[ Terrain('#', libtcod.dark_grey, 'wall', True, True, False)
-          for y in range(MapHeight) ]
-            for x in range(MapWight) ]
+          for y in range(var.MapHeight) ]
+            for x in range(var.MapWight) ]
 
         if rand_chance(50):
             self.buildTraditionalDungeon()
         else:
             self.buildDrunkenCave()
 
+        if populate:
+            self.populate()
+
         # Make FOV map:
-        for y in range(MapHeight):
-            for x in range(MapWight):
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
                 libtcod.map_set_properties(FOVMap, x, y, not map[x][y].BlockSight, not map[x][y].BlockMove)
 
         Player.UpdateFOV()
@@ -227,10 +202,10 @@ class Builder(object):
         StepsTaken = 0
         Fails = 0
 
-        x = libtcod.random_get_int(0, 1, MapWight - 2)
-        y = libtcod.random_get_int(0, 1, MapHeight - 2)
+        x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
-        while (StepsTaken < (DrunkenSteps / 4) and Fails < 2000):
+        while (StepsTaken < (var.DrunkenSteps / 4) and Fails < 2000):
             # Create water.
             map[x][y].change(liquid)
 
@@ -247,8 +222,8 @@ class Builder(object):
             elif step == 4:
                 dy += 1
 
-            if (x + dx > 0 and x + dx < MapWight - 1 and
-                y + dy > 0 and y + dy < MapHeight - 1):
+            if (x + dx > 0 and x + dx < var.MapWight - 1 and
+                y + dy > 0 and y + dy < var.MapHeight - 1):
                 x += dx
                 y += dy
 
@@ -261,12 +236,12 @@ class Builder(object):
         RoomNo = 0
 
         # Add rooms.
-        for i in range(RoomMaxNumber):
-            width = libtcod.random_get_int(0, RoomMinSize, RoomMaxSize)
-            height = libtcod.random_get_int(0, RoomMinSize, RoomMaxSize)
+        for i in range(var.RoomMaxNumber):
+            width = libtcod.random_get_int(0, var.RoomMinSize, var.RoomMaxSize)
+            height = libtcod.random_get_int(0, var.RoomMinSize, var.RoomMaxSize)
 
-            x = libtcod.random_get_int(0, 0, MapWight - width - 1)
-            y = libtcod.random_get_int(0, 0, MapHeight - height - 1)
+            x = libtcod.random_get_int(0, 0, var.MapWight - width - 1)
+            y = libtcod.random_get_int(0, 0, var.MapHeight - height - 1)
 
             NewRoom = Room(x, y, width, height)
             Fail = False
@@ -303,31 +278,21 @@ class Builder(object):
         self.postProcess() # Must be before door handling, or lakes will break
                            # our door placement.
 
-        for y in range(MapHeight):
-            for x in range(MapWight):
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
 
                 if map[x][y].name == 'door':
                     #AdjacentWalls = 0
                     Fail = True
 
-                    if (x - 1 > 0 and x + 1 < MapWight):
+                    if (x - 1 > 0 and x + 1 < var.MapWight):
                         if (map[x - 1][y].name == 'wall' and
                             map[x + 1][y].name == 'wall'):
                             Fail = False
-                    if (y - 1 > 0 and y + 1 < MapHeight):
+                    if (y - 1 > 0 and y + 1 < var.MapHeight):
                         if (map[x][y - 1].name == 'wall' and
                             map[x][y + 1].name == 'wall'):
                             Fail = False
-
-                    #for m in range(max(0, x - 1), min(MapWight, x + 2)):
-                    #    for n in range(max(0, y - 1), min(MapHeight, y + 2)):
-                    #        if map[m][n].name == 'wall':
-                    #            AdjacentWalls += 1
-                    #
-                    #            if (m + 2 < MapWight and n + 2 < MapHeight):
-                    #                if (map[m + 2][n].name == 'wall' or
-                    #                    map[m][n + 2].name == 'wall'):
-                    #                    Fail = False
 
                     if Fail == True:
                         map[x][y].change(RockFloor)
@@ -342,13 +307,13 @@ class Builder(object):
         StepsTaken = 0
         Fails = 0
 
-        x = libtcod.random_get_int(0, 1, MapWight - 2)
-        y = libtcod.random_get_int(0, 1, MapHeight - 2)
+        x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
         Player.x = x
         Player.y = y
 
-        while (StepsTaken < DrunkenSteps and Fails < 2000):
+        while (StepsTaken < var.DrunkenSteps and Fails < 2000):
             # Change wall into floor.
             if map[x][y].name == 'wall':
                 map[x][y].change(RockFloor)
@@ -378,8 +343,8 @@ class Builder(object):
                 dx += 1
                 dy += 1
 
-            if (x + dx > 0 and x + dx < MapWight - 1 and
-                y + dy > 0 and y + dy < MapHeight - 1):
+            if (x + dx > 0 and x + dx < var.MapWight - 1 and
+                y + dy > 0 and y + dy < var.MapHeight - 1):
                 x += dx
                 y += dy
 
@@ -396,8 +361,8 @@ class Builder(object):
         pass
 
     def postProcess(self):
-        for y in range(MapHeight):
-            for x in range(MapWight):
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
                 # TODO: Move all of those into script file.
                 if (map[x][y].name == 'floor' and rand_chance(3)):
                     map[x][y].change(Vines)
@@ -411,15 +376,13 @@ class Builder(object):
         if rand_chance(20):
             self.makeLake(ShallowWater)
 
-        self.populate()
-
     def populate(self):
         MonsterNo = 0
         NewMob = None
 
-        while MonsterNo < MonsterMaxNumber:
-            x = libtcod.random_get_int(0, 1, MapWight - 2)
-            y = libtcod.random_get_int(0, 1, MapHeight - 2)
+        while MonsterNo < var.MonsterMaxNumber:
+            x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+            y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
             # TODO: Rework.
             if rand_chance(80):
@@ -431,7 +394,7 @@ class Builder(object):
                 NewMob = None
 
             if NewMob != None:
-                Entities.append(NewMob)
+                var.Entities.append(NewMob)
                 MonsterNo += 1
 
             NewMob = None
@@ -442,17 +405,17 @@ class Builder(object):
 
 libtcod.console_set_custom_font('graphics/terminal.png',
   libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
-libtcod.console_init_root(ScreenWidth, ScreenHeight, 'RGLK', False)
+libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 
 # Base console:
-Con = libtcod.console_new(ScreenWidth, ScreenHeight)
+Con = libtcod.console_new(var.ScreenWidth, var.ScreenHeight)
 # Set FOV:
-FOVMap = libtcod.map_new(MapWight, MapHeight)
+FOVMap = libtcod.map_new(var.MapWight, var.MapHeight)
 
 # Player must be defined here, we work with him shortly.
 Player = Mob(1, 1, '@', libtcod.white, 'Player', 0, 0, 0)
-Entities.append(Player)
-
+var.Entities.append(Player)
+# TODO: All of this should go to a script file.
 RockWall = Terrain('#', libtcod.dark_grey, 'wall', True, True, False)
 RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False, False)
 WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True, True)
@@ -490,36 +453,44 @@ def handle_keys():
     # WIZARD MODE:
     # Walk through walls
     if Key.vk == libtcod.KEY_F1:
-        global WizModeNoClip
-        WizModeNoClip = not WizModeNoClip
+        var.WizModeNoClip
+        var.WizModeNoClip = not var.WizModeNoClip
 
     # Magic map
     if Key.vk == libtcod.KEY_F2:
-        for y in range(MapHeight):
-            for x in range(MapWight):
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
                 map[x][y].explored = True
 
     if Key.vk == libtcod.KEY_F3:
-        global WizModeTrueSight
-        WizModeTrueSight = not WizModeTrueSight
+        var.WizModeTrueSight
+        var.WizModeTrueSight = not var.WizModeTrueSight
 
     # Regenerate map
     if Key.vk == libtcod.KEY_F12:
         # Heh heh, if I don't clear the console, it looks quite trippy after
         # redrawing a new map over the old one.
-        for y in range(MapHeight):
-            for x in range(MapWight):
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
                 libtcod.console_put_char_ex(Con, x, y, ' ', libtcod.black, libtcod.black)
         # Does not work with monster generation, TODO?
-        for i in Entities:
-            if i != Player:
-                Entities.remove(i)
 
-        Dungeon.makeMap()
+        Dungeon.makeMap(False)
+
+        for i in var.Entities:
+            x = 0
+            y = 0
+
+            while i.isBlocked(x, y):
+                x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            i.x = x
+            i.y = y
 
 
     # MOVEMENT:
-    if not PlayerIsDead:
+    if not var.PlayerIsDead:
         dx = 0
         dy = 0
 
@@ -552,28 +523,28 @@ def handle_keys():
             Player.actionBump(dx, dy)
 
 def render_all():
-    for y in range(MapHeight):
-        for x in range(MapWight):
+    for y in range(var.MapHeight):
+        for x in range(var.MapWight):
             tile = map[x][y]
             tile.draw(x, y)
 
-    for mob in Entities:
+    for mob in var.Entities:
         if mob != Player:
             mob.draw()
     # Draw player last, over everything else.
     Player.draw()
 
-    libtcod.console_blit(Con, 0, 0, ScreenWidth, ScreenHeight, 0, 0, 0)
+    libtcod.console_blit(Con, 0, 0, var.ScreenWidth, var.ScreenHeight, 0, 0, 0)
 
 ###############################################################################
 #  Main Loop
 ###############################################################################
 
 Dungeon = Builder()
-Dungeon.makeMap()
+Dungeon.makeMap(True)
 
 while not libtcod.console_is_window_closed():
-    for i in Entities:
+    for i in var.Entities:
         # How else to check if entity has a speed variable?
         try:
             i.turn += i.speed
@@ -596,6 +567,6 @@ while not libtcod.console_is_window_closed():
         break
 
     # Monster turn
-    #for i in Entities:
+    #for i in var.Entities:
     #    while i.turn >= 1:
     #        handle_monsters(i)
