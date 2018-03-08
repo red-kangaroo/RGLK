@@ -27,7 +27,6 @@ Wizard mode:
 
 ```
  F1           toggle walking through walls
- F2           map the level
- F3           toggle seeing through walls
+ F2           toggle seeing through walls
  F12          generate new level
 ```

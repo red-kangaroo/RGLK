@@ -1,3 +1,19 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import libtcodpy as libtcod
+
+###############################################################################
+#  Functions
+###############################################################################
+
+# Let's hope I didn't mess up the chances...
+def rand_chance(percent):
+    if libtcod.random_get_int(0, 1, 100) > percent:
+        return False
+    else:
+        return True
+
 ###############################################################################
 #  Global Variables
 ###############################################################################
@@ -21,3 +37,8 @@ WizModeNoClip = False
 WizModeTrueSight = False
 
 Entities = []
+
+# Base console:
+Con = libtcod.console_new(ScreenWidth, ScreenHeight)
+# Set FOV:
+FOVMap = libtcod.map_new(MapWight, MapHeight)
