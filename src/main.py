@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import libtcodpy as libtcod
 
@@ -82,9 +83,16 @@ class Terrain(object):
             #libtcod.console_set_default_foreground(Con, libtcod.black)
         libtcod.console_put_char(Con, x, y, self.char, libtcod.BKGND_NONE)
 
+    def change(self, NewTerrain):
+        self.char = NewTerrain.char
+        self.color = NewTerrain.color
+        self.name = NewTerrain.name
+        self.BlockMove = NewTerrain.BlockMove
+        self.BlockSight = NewTerrain.BlockSight
+
 # Dungeon generation:
 # TODO: Move into Dungeon.py
-class Rect(object):
+class Room(object):
     def __init__(self, x, y, width, height):
         self.x1 = x
         self.y1 = y
@@ -98,50 +106,30 @@ class Rect(object):
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
     # TODO: Move floor, wall etc. parameters into script files.
-    def create_room(self):
-        global map
+    def create_square_room(self):
         for x in range(self.x1 + 1, self.x2):
             for y in range(self.y1 + 1, self.y2):
-                map[x][y].char = '.'
-                map[x][y].color = libtcod.light_grey
-                map[x][y].name = 'floor'
-                map[x][y].BlockMove = False
-                map[x][y].BlockSight = False
+                map[x][y].change(RockFloor)
+
+    def create_circular_room(self):
+        pass
 
     def create_h_tunnel(self, OtherX):
-        global map
         for x in range(min(self.CenterX, OtherX), max(self.CenterX, OtherX) + 1):
             if (x == self.x1 or x == self.x2):
-                map[x][self.CenterY].char = '+'
-                map[x][self.CenterY].color = libtcod.darkest_orange
-                map[x][self.CenterY].name = 'door'
-                map[x][self.CenterY].BlockMove = False
-                map[x][self.CenterY].BlockSight = True
+                map[x][self.CenterY].change(WoodDoor)
             else:
-                map[x][self.CenterY].char = '.'
-                map[x][self.CenterY].color = libtcod.light_grey
-                map[x][self.CenterY].name = 'floor'
-                map[x][self.CenterY].BlockMove = False
-                map[x][self.CenterY].BlockSight = False
+                map[x][self.CenterY].change(RockFloor)
 
     def create_v_tunnel(self, OtherY):
-        global map
         for y in range(min(self.CenterY, OtherY), max(self.CenterY, OtherY) + 1):
             if (y == self.y1 or y == self.y2):
-                map[self.CenterX][y].char = '+'
-                map[self.CenterX][y].color = libtcod.darkest_orange
-                map[self.CenterX][y].name = 'door'
-                map[self.CenterX][y].BlockMove = False
-                map[self.CenterX][y].BlockSight = True
+                map[self.CenterX][y].change(WoodDoor)
             else:
-                map[self.CenterX][y].char = '.'
-                map[self.CenterX][y].color = libtcod.light_grey
-                map[self.CenterX][y].name = 'floor'
-                map[self.CenterX][y].BlockMove = False
-                map[self.CenterX][y].BlockSight = False
+                map[self.CenterX][y].change(RockFloor)
 
 class Builder(object):
-    def make_map(self):
+    def makeMap(self):
         global map
 
         # Fill map with walls.
@@ -173,7 +161,7 @@ class Builder(object):
             x = libtcod.random_get_int(0, 0, MapWight - width - 1)
             y = libtcod.random_get_int(0, 0, MapHeight - height - 1)
 
-            NewRoom = Rect(x, y, width, height)
+            NewRoom = Room(x, y, width, height)
             Fail = False
 
             for OtherRoom in Rooms:
@@ -186,7 +174,7 @@ class Builder(object):
                 Fail = False
 
             if not Fail:
-                NewRoom.create_room()
+                NewRoom.create_square_room()
 
                 if RoomNo == 0:
                     Player.x = NewRoom.CenterX
@@ -223,11 +211,7 @@ class Builder(object):
                                         Fail = False
 
                     if (AdjacentWalls < 3 or Fail == True):
-                        map[x][y].char = '.'
-                        map[x][y].color = libtcod.light_grey
-                        map[x][y].name = 'floor'
-                        map[x][y].BlockMove = False
-                        map[x][y].BlockSight = False
+                        map[x][y].change(RockFloor)
 
         self.postProcess()
 
@@ -244,11 +228,7 @@ class Builder(object):
         while (StepsTaken < DrunkenSteps and Fails < 2000):
             # Change wall into floor.
             if map[x][y].name == 'wall':
-                map[x][y].char = '.'
-                map[x][y].color = libtcod.light_grey
-                map[x][y].name = 'floor'
-                map[x][y].BlockMove = False
-                map[x][y].BlockSight = False
+                map[x][y].change(RockFloor)
 
             step = libtcod.random_get_int(0, 1, 8)
             dx = 0
@@ -291,25 +271,13 @@ class Builder(object):
             for x in range(MapWight):
                 # TODO: Move all of those into script file.
                 if (map[x][y].name == 'floor' and rand_chance(3)):
-                    map[x][y].char = '|'
-                    map[x][y].color = libtcod.dark_green
-                    map[x][y].name = 'hanging vines'
-                    map[x][y].BlockMove = False
-                    map[x][y].BlockSight = True
+                    map[x][y].change(Vines)
 
                 elif (map[x][y].name == 'floor' and rand_chance(2)):
-                    map[x][y].char = '~'
-                    map[x][y].color = libtcod.blue
-                    map[x][y].name = 'puddle'
-                    map[x][y].BlockMove = False
-                    map[x][y].BlockSight = False
+                    map[x][y].change(ShallowWater)
 
                 elif (map[x][y].name == 'floor' and rand_chance(2)):
-                    map[x][y].char = '*'
-                    map[x][y].color = libtcod.darker_grey
-                    map[x][y].name = 'rock pile'
-                    map[x][y].BlockMove = False
-                    map[x][y].BlockSight = False
+                    map[x][y].change(RockPile)
 
 ###############################################################################
 #  Initialization
@@ -326,13 +294,20 @@ FOVMap = libtcod.map_new(MapWight, MapHeight)
 Player = Entity(1, 1, '@', libtcod.white, 'Player')
 Entities = [Player]
 
+RockWall = Terrain('#', libtcod.dark_grey, 'wall', True)
+RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False)
+WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True)
+Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True)
+ShallowWater = Terrain('~', libtcod.blue, 'water', False, False)
+RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False)
+
 ###############################################################################
 #  Functions
 ###############################################################################
 
 # Let's hope I didn't mess up the chances...
 def rand_chance(percent):
-    if libtcod.random_get_int(0, 1, 101) > percent:
+    if libtcod.random_get_int(0, 1, 100) > percent:
         return False
     else:
         return True
@@ -374,7 +349,7 @@ def handle_keys():
         for y in range(MapHeight):
             for x in range(MapWight):
                 libtcod.console_put_char_ex(Con, x, y, ' ', libtcod.black, libtcod.black)
-        Dungeon.make_map()
+        Dungeon.makeMap()
 
 
     # MOVEMENT:
@@ -430,7 +405,7 @@ def render_all():
 ###############################################################################
 
 Dungeon = Builder()
-Dungeon.make_map()
+Dungeon.makeMap()
 
 while not libtcod.console_is_window_closed():
 
