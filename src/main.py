@@ -15,7 +15,7 @@ ScreenHeight = 55
 MapWight = 80
 MapHeight = 50
 
-RoomMinSize = 4
+RoomMinSize = 5
 RoomMaxSize = 10
 RoomMaxNumber = 99
 DrunkenSteps = 5000
@@ -138,7 +138,7 @@ class Builder(object):
             for x in range(MapWight) ]
 
         if rand_chance(50):
-            self.buildDungeon()
+            self.buildTraditionalDungeon()
         else:
             self.buildDrunkenCave()
 
@@ -149,7 +149,41 @@ class Builder(object):
 
         Player.UpdateFOV()
 
-    def buildDungeon(self):
+    def makeLake(self, liquid):
+        # This is basically a bit changed drunken cave.
+        StepsTaken = 0
+        Fails = 0
+
+        x = libtcod.random_get_int(0, 1, MapWight - 2)
+        y = libtcod.random_get_int(0, 1, MapHeight - 2)
+
+        while (StepsTaken < (DrunkenSteps / 4) and Fails < 2000):
+            # Create water.
+            map[x][y].change(liquid)
+
+            step = libtcod.random_get_int(0, 1, 4)
+            dx = 0
+            dy = 0
+
+            if step == 1:
+                dy -=1
+            elif step == 2:
+                dx -= 1
+            elif step == 3:
+                dx += 1
+            elif step == 4:
+                dy += 1
+
+            if (x + dx > 0 and x + dx < MapWight - 1 and
+                y + dy > 0 and y + dy < MapHeight - 1):
+                x += dx
+                y += dy
+
+                StepsTaken += 1
+            else:
+                Fails += 1
+
+    def buildTraditionalDungeon(self):
         Rooms = []
         RoomNo = 0
 
@@ -193,27 +227,43 @@ class Builder(object):
                 RoomNo += 1
 
         # Clean door generation and add some decorations.
+        self.postProcess() # Must be before door handling, or lakes will break
+                           # our door placement.
+
         for y in range(MapHeight):
             for x in range(MapWight):
 
                 if map[x][y].name == 'door':
-                    AdjacentWalls = 0
+                    #AdjacentWalls = 0
                     Fail = True
 
-                    for m in range(max(0, x - 1), min(MapWight, x + 2)):
-                        for n in range(max(0, y - 1), min(MapHeight, y + 2)):
-                            if map[m][n].name == 'wall':
-                                AdjacentWalls += 1
+                    if (x - 1 > 0 and x + 1 < MapWight):
+                        if (map[x - 1][y].name == 'wall' and
+                            map[x + 1][y].name == 'wall'):
+                            Fail = False
+                    if (y - 1 > 0 and y + 1 < MapHeight):
+                        if (map[x][y - 1].name == 'wall' and
+                            map[x][y + 1].name == 'wall'):
+                            Fail = False
 
-                                if (m + 2 < MapWight and n + 2 < MapHeight):
-                                    if (map[m + 2][n].name == 'wall' or
-                                        map[m][n + 2].name == 'wall'):
-                                        Fail = False
+                    #for m in range(max(0, x - 1), min(MapWight, x + 2)):
+                    #    for n in range(max(0, y - 1), min(MapHeight, y + 2)):
+                    #        if map[m][n].name == 'wall':
+                    #            AdjacentWalls += 1
+                    #
+                    #            if (m + 2 < MapWight and n + 2 < MapHeight):
+                    #                if (map[m + 2][n].name == 'wall' or
+                    #                    map[m][n + 2].name == 'wall'):
+                    #                    Fail = False
 
-                    if (AdjacentWalls < 3 or Fail == True):
+                    if Fail == True:
                         map[x][y].change(RockFloor)
 
-        self.postProcess()
+    def buildBSPDungeon(self):
+        pass
+
+    def buildQIXDungeon(self):
+        pass
 
     def buildDrunkenCave(self):
         StepsTaken = 0
@@ -266,6 +316,12 @@ class Builder(object):
 
         self.postProcess()
 
+    def buildSewers(self):
+        pass
+
+    def buildMaze(self):
+        pass
+
     def postProcess(self):
         for y in range(MapHeight):
             for x in range(MapWight):
@@ -278,6 +334,9 @@ class Builder(object):
 
                 elif (map[x][y].name == 'floor' and rand_chance(2)):
                     map[x][y].change(RockPile)
+
+        if rand_chance(20):
+            self.makeLake(ShallowWater)
 
 ###############################################################################
 #  Initialization
@@ -299,6 +358,7 @@ RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False)
 WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True)
 Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True)
 ShallowWater = Terrain('~', libtcod.blue, 'water', False, False)
+Lava = Terrain('~', libtcod.dark_red, 'lava', False, False)
 RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False)
 
 ###############################################################################
