@@ -24,8 +24,14 @@ FOVDefault = 0 # Default algorithm
 FOVLightsWalls = True
 FOVRadius = 6 # TODO: This should depend on stats and equipment.
 
+MonsterMaxNumber = 30
+
+PlayerIsDead = False
+
 WizModeNoClip = False
 WizModeTrueSight = False
+
+Entities = []
 
 ###############################################################################
 #  Objects
@@ -33,21 +39,22 @@ WizModeTrueSight = False
 
 # Player, monsters...
 class Entity(object):
-    def __init__(self, x, y, char, color, name):
+    def __init__(self, x, y, char, color, name, BlockMove = False):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
         self.name = name
+        self.turn = 0.0 # Start with 0 turns to take.
+        self.BlockMove = BlockMove
 
     def move(self, dx, dy):
         if (self.x + dx < 0 or self.x + dx > MapWight - 1 or
             self.y + dy < 0 or self.y + dy > MapHeight - 1):
             return
 
-        if ((not map[self.x + dx][self.y + dy].BlockMove) or WizModeNoClip):
-            self.x += dx
-            self.y += dy
+        self.x += dx
+        self.y += dy
 
     def draw(self):
         # Set color and draw character on screen.
@@ -55,22 +62,87 @@ class Entity(object):
             libtcod.console_set_default_foreground(Con, self.color)
             libtcod.console_put_char(Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
+    def isBlocked(self, x, y):
+        if map[x][y].BlockMove:
+            return True
+
+        for i in Entities:
+            if (i.BlockMove and i.x == x and i.y == y):
+                return True
+
+        return False
+
+class Mob(Entity):
+    def __init__(self, x, y, char, color, name,
+                 Str, Dex, End, speed = 1.0):
+        self.Str = Str
+        self.Dex = Dex
+        self.End = End
+        self.speed = speed
+        BlockMove = True # All mobs block movement, but not all entities,
+                         # so pass this to Entity __init__
+
+        super(Mob, self).__init__(x, y, char, color, name, BlockMove)
+
     def UpdateFOV(self):
         libtcod.map_compute_fov(FOVMap, self.x, self.y, FOVRadius, FOVLightsWalls, FOVDefault)
 
+    # Actions:
+    def actionAttack(self, dx, dy, victim):
+        print "%s attacks %s." % (self.name, victim.name)
+        self.turn -= 1
+
+    def actionBump(self, dx, dy):
+        bumpee = None
+        x = self.x + dx
+        y = self.y + dy
+
+        for i in Entities:
+            if i.x == x and i.y == y:
+                bumpee = i
+                break
+
+        if bumpee != None:
+            self.actionAttack(dx, dy, bumpee)
+            return
+
+        if (x > 0 and x < MapWight and y > 0 and y < MapHeight):
+            if map[x][y].CanBeOpened == True:
+                if(self.actionOpen(x, y)):
+                    return
+
+        self.actionWalk(dx, dy)
+
+    def actionOpen(self, x, y):
+        if (x > 0 and x < MapWight and y > 0 and y < MapHeight):
+            if map[x][y].CanBeOpened == True:
+                if map[x][y].name == 'door':
+                    map[x][y].change(OpenDoor)
+                    return True
+        return False
+
+    def actionWalk(self, dx, dy):
+        moved = False
+
+        if (not self.isBlocked(self.x + dx, self.y + dy) or WizModeNoClip):
+            self.move(dx, dy)
+            moved = True
+
+        if moved == True:
+            self.UpdateFOV()
+
+        self.turn -= 1
+
 # Map objects.
 class Terrain(object):
-    def __init__(self, char, color, name, BlockMove, BlockSight = None):
+    def __init__(self, char, color, name, BlockMove, BlockSight, CanBeOpened):
         self.char = char
         self.color = color
         self.name = name
         self.BlockMove = BlockMove
-        self.explored = False
-
-        # By default, BlockMove also BlockSight
-        if BlockSight == None:
-            BlockSight = BlockMove
         self.BlockSight = BlockSight
+        self.CanBeOpened = CanBeOpened
+        self.explored = False
 
     def draw(self, x, y):
         if (libtcod.map_is_in_fov(FOVMap, x, y) or WizModeTrueSight):
@@ -89,6 +161,7 @@ class Terrain(object):
         self.name = NewTerrain.name
         self.BlockMove = NewTerrain.BlockMove
         self.BlockSight = NewTerrain.BlockSight
+        self.CanBeOpened = NewTerrain.CanBeOpened
 
 # Dungeon generation:
 # TODO: Move into Dungeon.py
@@ -133,7 +206,7 @@ class Builder(object):
         global map
 
         # Fill map with walls.
-        map = [[ Terrain('#', libtcod.dark_grey, 'wall', True)
+        map = [[ Terrain('#', libtcod.dark_grey, 'wall', True, True, False)
           for y in range(MapHeight) ]
             for x in range(MapWight) ]
 
@@ -338,6 +411,31 @@ class Builder(object):
         if rand_chance(20):
             self.makeLake(ShallowWater)
 
+        self.populate()
+
+    def populate(self):
+        MonsterNo = 0
+        NewMob = None
+
+        while MonsterNo < MonsterMaxNumber:
+            x = libtcod.random_get_int(0, 1, MapWight - 2)
+            y = libtcod.random_get_int(0, 1, MapHeight - 2)
+
+            # TODO: Rework.
+            if rand_chance(80):
+                NewMob = Mob(x, y, 'o', libtcod.desaturated_green, 'orc', 0, 0, 0)
+            else:
+                NewMob = Mob(x, y, 'T', libtcod.dark_green, 'troll', 2, -1, 3)
+
+            if NewMob.isBlocked(x, y):
+                NewMob = None
+
+            if NewMob != None:
+                Entities.append(NewMob)
+                MonsterNo += 1
+
+            NewMob = None
+
 ###############################################################################
 #  Initialization
 ###############################################################################
@@ -345,21 +443,24 @@ class Builder(object):
 libtcod.console_set_custom_font('graphics/terminal.png',
   libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
 libtcod.console_init_root(ScreenWidth, ScreenHeight, 'RGLK', False)
+
 # Base console:
 Con = libtcod.console_new(ScreenWidth, ScreenHeight)
 # Set FOV:
 FOVMap = libtcod.map_new(MapWight, MapHeight)
-# Player must be defined here, we work with him shortly.
-Player = Entity(1, 1, '@', libtcod.white, 'Player')
-Entities = [Player]
 
-RockWall = Terrain('#', libtcod.dark_grey, 'wall', True)
-RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False)
-WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True)
-Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True)
-ShallowWater = Terrain('~', libtcod.blue, 'water', False, False)
-Lava = Terrain('~', libtcod.dark_red, 'lava', False, False)
-RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False)
+# Player must be defined here, we work with him shortly.
+Player = Mob(1, 1, '@', libtcod.white, 'Player', 0, 0, 0)
+Entities.append(Player)
+
+RockWall = Terrain('#', libtcod.dark_grey, 'wall', True, True, False)
+RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False, False)
+WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True, True)
+OpenDoor = Terrain('\'', libtcod.darkest_orange, 'open door', False, False, False)
+Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True, False)
+ShallowWater = Terrain('~', libtcod.blue, 'water', False, False, False)
+Lava = Terrain('~', libtcod.dark_red, 'lava', False, False, False)
+RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False, False)
 
 ###############################################################################
 #  Functions
@@ -383,7 +484,7 @@ def handle_keys():
 
     # Exit game with Ctrl + Q
     if (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('q'))):
-        return True
+        return 'exit'
 
 
     # WIZARD MODE:
@@ -409,42 +510,46 @@ def handle_keys():
         for y in range(MapHeight):
             for x in range(MapWight):
                 libtcod.console_put_char_ex(Con, x, y, ' ', libtcod.black, libtcod.black)
+        # Does not work with monster generation, TODO?
+        for i in Entities:
+            if i != Player:
+                Entities.remove(i)
+
         Dungeon.makeMap()
 
 
     # MOVEMENT:
-    dx = 0
-    dy = 0
+    if not PlayerIsDead:
+        dx = 0
+        dy = 0
 
-    if (libtcod.console_is_key_pressed(libtcod.KEY_UP) or
-        libtcod.console_is_key_pressed(libtcod.KEY_KP8)):
-        dy -= 1
-    elif (libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or
-        libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
-        dy += 1
-    elif (libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or
-        libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
-        dx -= 1
-    elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
-        libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
-        dx += 1
-    elif libtcod.console_is_key_pressed(libtcod.KEY_KP7):
-        dx -= 1
-        dy -= 1
-    elif libtcod.console_is_key_pressed(libtcod.KEY_KP9):
-        dx += 1
-        dy -= 1
-    elif libtcod.console_is_key_pressed(libtcod.KEY_KP1):
-        dx -= 1
-        dy += 1
-    elif libtcod.console_is_key_pressed(libtcod.KEY_KP3):
-        dx += 1
-        dy += 1
+        if (libtcod.console_is_key_pressed(libtcod.KEY_UP) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP8)):
+            dy -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
+            dy += 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
+            dx -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
+            dx += 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP7):
+            dx -= 1
+            dy -= 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP9):
+            dx += 1
+            dy -= 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP1):
+            dx -= 1
+            dy += 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP3):
+            dx += 1
+            dy += 1
 
-    Player.move(dx, dy)
-
-    if (dx != 0 or dy != 0):
-        Player.UpdateFOV()
+        if (dx != 0 or dy != 0):
+            Player.actionBump(dx, dy)
 
 def render_all():
     for y in range(MapHeight):
@@ -468,18 +573,29 @@ Dungeon = Builder()
 Dungeon.makeMap()
 
 while not libtcod.console_is_window_closed():
+    for i in Entities:
+        # How else to check if entity has a speed variable?
+        try:
+            i.turn += i.speed
+        except:
+            i.turn += 1
 
-    # Draw screen:
-    render_all()
-
-    # Print screen:
-    libtcod.console_flush()
-
-    ## Clear old entities:
-    #for mob in Entities:
-    #    mob.clear()
-
-    # Handle player input
-    Exit = handle_keys()
-    if Exit:
+    # Player turn
+    while Player.turn >= 1:
+        # Redraw screen with each of the player's turns.
+        # Draw screen:
+        render_all()
+        # Print screen:
+        libtcod.console_flush()
+        # Handle player input
+        Exit = handle_keys()
+        if Exit == 'exit':
+            break
+    # This looks ugly...
+    if Exit == 'exit':
         break
+
+    # Monster turn
+    #for i in Entities:
+    #    while i.turn >= 1:
+    #        handle_monsters(i)
