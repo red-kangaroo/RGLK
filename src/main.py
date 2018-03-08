@@ -182,6 +182,140 @@ class Room(object):
             else:
                 map[self.CenterX][y].change(RockFloor)
 
+    def create_d_tunnels(self, OtherRooms):
+        # This must be possible in some easier way...
+        end = False
+        x = self.x1
+        y = self.y1
+        dx = -1
+        dy = -1
+
+        while (x + dx >= 0 and x + dx < var.MapWight and
+               y + dy >= 0 and y + dy < var.MapHeight):
+            if (x == self.x1 and y == self.y1):
+                map[x][y].change(WoodDoor)
+            elif len(OtherRooms) == 0:
+                if rand_chance(50):
+                    map[x][y].change(RockFloor)
+                else:
+                    map[x][y].change(ShallowWater)
+            else:
+                for room in OtherRooms:
+                    if (x <= room.x2 and x >= room.x1 and
+                        y <= room.y2 and y >= room.y2 and room != self):
+                        end = True
+                        break
+                    else:
+                        if rand_chance(50):
+                            map[x][y].change(RockFloor)
+                        else:
+                            map[x][y].change(ShallowWater)
+
+            if end:
+                break
+            else:
+                x = x + dx
+                y = y + dy
+
+        end = False
+        x = self.x2
+        y = self.y1
+        dx = 1
+        dy = -1
+
+        while (x + dx >= 0 and x + dx < var.MapWight and
+               y + dy >= 0 and y + dy < var.MapHeight):
+            if (x == self.x2 and y == self.y1):
+                map[x][y].change(WoodDoor)
+            elif len(OtherRooms) == 0:
+                if rand_chance(50):
+                    map[x][y].change(RockFloor)
+                else:
+                    map[x][y].change(ShallowWater)
+            else:
+                for room in OtherRooms:
+                    if (x <= room.x2 and x >= room.x1 and
+                        y <= room.y2 and y >= room.y2 and room != self):
+                        end = True
+                        break
+                    else:
+                        if rand_chance(50):
+                            map[x][y].change(RockFloor)
+                        else:
+                            map[x][y].change(ShallowWater)
+
+            if end:
+                break
+            else:
+                x = x + dx
+                y = y + dy
+
+        end = False
+        x = self.x1
+        y = self.y2
+        dx = -1
+        dy = 1
+
+        while (x + dx >= 0 and x + dx < var.MapWight and
+               y + dy >= 0 and y + dy < var.MapHeight):
+            if (x == self.x1 and y == self.y2):
+                map[x][y].change(WoodDoor)
+            elif len(OtherRooms) == 0:
+                if rand_chance(50):
+                    map[x][y].change(RockFloor)
+                else:
+                    map[x][y].change(ShallowWater)
+            else:
+                for room in OtherRooms:
+                    if (x <= room.x2 and x >= room.x1 and
+                        y <= room.y2 and y >= room.y2 and room != self):
+                        end = True
+                        break
+                    else:
+                        if rand_chance(50):
+                            map[x][y].change(RockFloor)
+                        else:
+                            map[x][y].change(ShallowWater)
+
+            if end:
+                break
+            else:
+                x = x + dx
+                y = y + dy
+
+        end = False
+        x = self.x2
+        y = self.y2
+        dx = 1
+        dy = 1
+
+        while (x + dx >= 0 and x + dx < var.MapWight and
+               y + dy >= 0 and y + dy < var.MapHeight):
+            if (x == self.x2 and y == self.y2):
+                map[x][y].change(WoodDoor)
+            elif len(OtherRooms) == 0:
+                if rand_chance(50):
+                    map[x][y].change(RockFloor)
+                else:
+                    map[x][y].change(ShallowWater)
+            else:
+                for room in OtherRooms:
+                    if (x <= room.x2 and x >= room.x1 and
+                        y <= room.y2 and y >= room.y2 and room != self):
+                        end = True
+                        break
+                    else:
+                        if rand_chance(50):
+                            map[x][y].change(RockFloor)
+                        else:
+                            map[x][y].change(ShallowWater)
+
+            if end:
+                break
+            else:
+                x = x + dx
+                y = y + dy
+
 class Builder(object):
     def makeMap(self, populate):
         global map
@@ -191,10 +325,12 @@ class Builder(object):
           for y in range(var.MapHeight) ]
             for x in range(var.MapWight) ]
 
+        # TODO: Dungeon levels.
         if rand_chance(50):
             self.buildTraditionalDungeon()
         else:
             self.buildDrunkenCave()
+        #self.buildSewers()
 
         if populate:
             self.populate()
@@ -265,7 +401,7 @@ class Builder(object):
                 Fail = False
 
             if not Fail:
-                if RoomNo > 20 and rand_chance(20):
+                if rand_chance(20):
                     NewRoom.create_circular_room()
                 else:
                     NewRoom.create_square_room()
@@ -367,9 +503,63 @@ class Builder(object):
         self.postProcess()
 
     def buildSewers(self):
-        pass
+        Rooms = []
+        RoomNo = 0
+
+        # Add rooms.
+        for i in range(6):
+            dim = libtcod.random_get_int(0, 4, 7)
+
+            # Increase space on sides for better corridor placement.
+            x = libtcod.random_get_int(0, 2, var.MapWight - dim - 3)
+            y = libtcod.random_get_int(0, 2, var.MapHeight - dim - 3)
+
+            NewRoom = Room(x, y, dim, dim)
+            Fail = False
+
+            for OtherRoom in Rooms:
+                if NewRoom.intersect(OtherRoom):
+                    Fail = True
+                    break
+
+            if not Fail:
+                NewRoom.create_square_room()
+                NewRoom.create_d_tunnels(Rooms)
+
+                if RoomNo == 0:
+                    Player.x = NewRoom.CenterX
+                    Player.y = NewRoom.CenterY
+
+                Rooms.append(NewRoom)
+                RoomNo += 1
+
+        # Clean door generation and add some decorations.
+        self.postProcess() # Must be before door handling, or lakes will break
+                           # our door placement.
+
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
+
+                if map[x][y].name == 'door':
+                    #AdjacentWalls = 0
+                    Fail = True
+
+                    if (x - 1 > 0 and x + 1 < var.MapWight):
+                        if (map[x - 1][y].name == 'wall' and
+                            map[x + 1][y].name == 'wall'):
+                            Fail = False
+                    if (y - 1 > 0 and y + 1 < var.MapHeight):
+                        if (map[x][y - 1].name == 'wall' and
+                            map[x][y + 1].name == 'wall'):
+                            Fail = False
+
+                    if Fail == True:
+                        map[x][y].change(RockFloor)
 
     def buildMaze(self):
+        pass
+
+    def buildPerlinForest(self):
         pass
 
     def postProcess(self):
