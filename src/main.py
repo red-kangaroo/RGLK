@@ -17,7 +17,7 @@ class Entity(object):
         self.char = char
         self.color = color
         self.name = name
-        self.turn = 0.0 # Start with 0 turns to take.
+        self.AP = 0.0 # Start with 0 turns to take.
         self.BlockMove = BlockMove
 
     def move(self, dx, dy):
@@ -63,7 +63,7 @@ class Mob(Entity):
     # Actions:
     def actionAttack(self, dx, dy, victim):
         print "%s attacks %s." % (self.name, victim.name)
-        self.turn -= 1
+        self.AP -= 1
 
     def actionBump(self, dx, dy):
         bumpee = None
@@ -82,6 +82,7 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
             if map[x][y].CanBeOpened == True:
                 if(self.actionOpen(x, y)):
+                    self.AP -= 1
                     return
 
         self.actionWalk(dx, dy)
@@ -104,7 +105,7 @@ class Mob(Entity):
         if moved == True:
             self.UpdateFOV()
 
-        self.turn -= 1
+        self.AP -= 1
 
 # Map objects.
 class Terrain(object):
@@ -334,11 +335,34 @@ class Builder(object):
 
         if populate:
             self.populate()
+        else:
+            for i in var.Entities:
+                x = 0
+                y = 0
+
+                while i.isBlocked(x, y):
+                    x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+                    y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+                i.x = x
+                i.y = y
 
         # Make FOV map:
         for y in range(var.MapHeight):
             for x in range(var.MapWight):
                 libtcod.map_set_properties(FOVMap, x, y, not map[x][y].BlockSight, not map[x][y].BlockMove)
+
+        # On the off-chance we trap the player:
+        if Player.isBlocked(Player.x, Player.y):
+            x = 0
+            y = 0
+
+            while Player.isBlocked(x, y):
+                x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            Player.x = x
+            Player.y = y
 
         Player.UpdateFOV()
 
@@ -406,10 +430,7 @@ class Builder(object):
                 else:
                     NewRoom.create_square_room()
 
-                if RoomNo == 0:
-                    Player.x = NewRoom.CenterX
-                    Player.y = NewRoom.CenterY
-                else:
+                if RoomNo != 0:
                     PrevRoom = Rooms[RoomNo - 1]
 
                     if rand_chance(50):
@@ -457,9 +478,6 @@ class Builder(object):
 
         x = libtcod.random_get_int(0, 1, var.MapWight - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
-
-        Player.x = x
-        Player.y = y
 
         while (StepsTaken < var.DrunkenSteps and Fails < 2000):
             # Change wall into floor.
@@ -526,10 +544,6 @@ class Builder(object):
                 NewRoom.create_square_room()
                 NewRoom.create_d_tunnels(Rooms)
 
-                if RoomNo == 0:
-                    Player.x = NewRoom.CenterX
-                    Player.y = NewRoom.CenterY
-
                 Rooms.append(NewRoom)
                 RoomNo += 1
 
@@ -560,7 +574,15 @@ class Builder(object):
         pass
 
     def buildPerlinForest(self):
-        pass
+        noise = libtcod.noise_new(2)
+
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
+                tile = libtcod.noise_get_fbm(noise, [x, y], 32.0)
+
+                # TODO
+
+        libtcod.noise_delete(noise)
 
     def postProcess(self):
         for y in range(var.MapHeight):
@@ -679,17 +701,6 @@ def handle_keys():
 
         Dungeon.makeMap(False)
 
-        for i in var.Entities:
-            x = 0
-            y = 0
-
-            while i.isBlocked(x, y):
-                x = libtcod.random_get_int(0, 1, var.MapWight - 2)
-                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
-
-            i.x = x
-            i.y = y
-
 
     # MOVEMENT:
     if not var.PlayerIsDead:
@@ -749,12 +760,12 @@ while not libtcod.console_is_window_closed():
     for i in var.Entities:
         # How else to check if entity has a speed variable?
         try:
-            i.turn += i.speed
+            i.AP += i.speed
         except:
-            i.turn += 1
+            i.AP += 1
 
     # Player turn
-    while Player.turn >= 1:
+    while Player.AP >= 1:
         # Redraw screen with each of the player's turns.
         # Draw screen:
         render_all()
@@ -770,5 +781,5 @@ while not libtcod.console_is_window_closed():
 
     # Monster turn
     #for i in var.Entities:
-    #    while i.turn >= 1:
+    #    while i.AP >= 1:
     #        handle_monsters(i)
