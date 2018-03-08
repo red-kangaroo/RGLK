@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import libtcodpy as libtcod
+import math
 import var
 
 ###############################################################################
@@ -143,6 +144,8 @@ class Room(object):
         self.y1 = y
         self.x2 = x + width
         self.y2 = y + height
+        self.width = width
+        self.height = height
         self.CenterX = (self.x1 + self.x2) / 2
         self.CenterY = (self.y1 + self.y2) / 2
 
@@ -157,7 +160,13 @@ class Room(object):
                 map[x][y].change(RockFloor)
 
     def create_circular_room(self):
-        pass
+        r = min(self.width / 2, self.height / 2)
+
+        for x in range(self.x1 + 1, self.x2):
+            for y in range(self.y1 + 1, self.y2):
+                if math.sqrt((x - self.CenterX) ** 2 +
+                             (y - self.CenterY) ** 2) <= r:
+                    map[x][y].change(RockFloor)
 
     def create_h_tunnel(self, OtherX):
         for x in range(min(self.CenterX, OtherX), max(self.CenterX, OtherX) + 1):
@@ -256,7 +265,10 @@ class Builder(object):
                 Fail = False
 
             if not Fail:
-                NewRoom.create_square_room()
+                if RoomNo > 20 and rand_chance(20):
+                    NewRoom.create_circular_room()
+                else:
+                    NewRoom.create_square_room()
 
                 if RoomNo == 0:
                     Player.x = NewRoom.CenterX
@@ -373,7 +385,7 @@ class Builder(object):
                 elif (map[x][y].name == 'floor' and rand_chance(2)):
                     map[x][y].change(RockPile)
 
-        if rand_chance(20):
+        while rand_chance(15):
             self.makeLake(ShallowWater)
 
     def populate(self):
