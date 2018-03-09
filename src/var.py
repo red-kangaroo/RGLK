@@ -31,14 +31,15 @@ RoomMaxNumber = 99
 DrunkenSteps = 5000
 
 MonsterMaxNumber = 30 # Should depend on dungeon level.
+
 PlayerIsDead = False
+ExitGame = False
 
 WizModeNoClip = False
 WizModeTrueSight = False
+WizModeNewMap = False
 
 Entities = []
 
 # Base console:
 Con = libtcod.console_new(ScreenWidth, ScreenHeight)
-# Set FOV:
-FOVMap = libtcod.map_new(MapWight, MapHeight)

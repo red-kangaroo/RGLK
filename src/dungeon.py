@@ -21,7 +21,7 @@ class Terrain(object):
         self.explored = False
 
     def draw(self, x, y):
-        if (libtcod.map_is_in_fov(var.FOVMap, x, y) or var.WizModeTrueSight):
+        if (libtcod.map_is_in_fov(self.FOVMap, x, y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.Con, self.color)
             self.explored = True
         elif (self.explored == True):
@@ -253,7 +253,7 @@ class Builder(object):
         # Make FOV map:
         for y in range(var.MapHeight):
             for x in range(var.MapWight):
-                libtcod.map_set_properties(var.FOVMap, x, y, not map[x][y].BlockSight, not map[x][y].BlockMove)
+                libtcod.map_set_properties(self.FOVMap, x, y, not map[x][y].BlockSight, not map[x][y].BlockMove)
 
     def makeLake(self, liquid):
         # This is basically a bit changed drunken cave.
@@ -499,9 +499,9 @@ class Builder(object):
 
             # TODO: Rework.
             if var.rand_chance(80):
-                NewMob = entity.Mob(x, y, 'o', libtcod.desaturated_green, 'orc', 0, 0, 0)
+                NewMob = entity.spawn(x, y, entity.Orc)
             else:
-                NewMob = entity.Mob(x, y, 'T', libtcod.dark_green, 'troll', 2, -1, 3)
+                NewMob = entity.spawn(x, y, entity.Troll)
 
             if NewMob.isBlocked(x, y):
                 NewMob = None

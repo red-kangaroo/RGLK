@@ -3,12 +3,18 @@
 
 import libtcodpy as libtcod
 
+import ai
 import dungeon
 import var
 
 ###############################################################################
 #  Entities
 ###############################################################################
+
+def spawn(x, y, BluePrint):
+    NewMob = Mob(x, y, BluePrint.char, BluePrint.color, BluePrint.name,
+                 BluePrint.Str, BluePrint.Dex, BluePrint.End, BluePrint.speed)
+    return NewMob
 
 # Player, monsters...
 class Entity(object):
@@ -31,9 +37,15 @@ class Entity(object):
 
     def draw(self):
         # Set color and draw character on screen.
-        if (libtcod.map_is_in_fov(var.FOVMap, self.x, self.y) or var.WizModeTrueSight):
+        if (libtcod.map_is_in_fov(self.FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.Con, self.color)
             libtcod.console_put_char(var.Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
+
+    def range(self, Other):
+        dx = Other.x - self.x
+        dy = Other.y - self.y
+
+        return math.sqrt(dx ** 2 + dy ** 2)
 
     def isBlocked(self, x, y):
         if dungeon.map[x][y].BlockMove:
@@ -46,23 +58,38 @@ class Entity(object):
         return False
 
 class Mob(Entity):
-    def __init__(self, x, y, char, color, name,
-                 Str, Dex, End, speed = 1.0, FOVRadius = 6):
+    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
+                 Str, Dex, End, speed = 1.0, FOVRadius = 6, isAvatar = False):
+        # Attributes:
         self.Str = Str
         self.Dex = Dex
         self.End = End
         self.speed = speed
+        # FOV:
         self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
+        self.FOVMap = libtcod.map_new(MapWight, MapHeight)
+        self.recalculateFOV()
+        # General:
+        self.isAvatar = isAvatar # Flag the player.
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
+        self.goal = None
+        # Calculate health:
+        self.bonusHP = 0
+        self.maxHP = self.recalculateHealth()
+        self.HP = self.maxHP
 
         super(Mob, self).__init__(x, y, char, color, name, BlockMove)
 
-    def UpdateFOV(self):
-        libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
+    def recalculateFOV(self):
+        libtcod.map_compute_fov(self.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
+
+    def recalculateHealth(self):
+        return (20 * (1.2 ** self.End)) + self.bonusHP
 
     # Actions:
     def actionAttack(self, dx, dy, victim):
+        # TODO
         print "%s attacks %s." % (self.name, victim.name)
         self.AP -= 1
 
@@ -83,7 +110,6 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
             if dungeon.map[x][y].CanBeOpened == True:
                 if(self.actionOpen(x, y)):
-                    self.AP -= 1
                     return
 
         self.actionWalk(dx, dy)
@@ -92,9 +118,14 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
             if dungeon.map[x][y].CanBeOpened == True:
                 if dungeon.map[x][y].name == 'door':
-                    dungeon.map[x][y].change(OpenDoor)
+                    dungeon.map[x][y].change(dungeon.OpenDoor)
+                    self.AP -= 1
                     return True
         return False
+
+    def actionWait(self):
+        print "%s waits." % self.name
+        self.AP -= 1
 
     def actionWalk(self, dx, dy):
         moved = False
@@ -103,7 +134,15 @@ class Mob(Entity):
             self.move(dx, dy)
             moved = True
 
-        if moved == True:
-            self.UpdateFOV()
+        if moved:
+            self.recalculateFOV()
 
+        # Take a turn even if we walk into a wall.
         self.AP -= 1
+
+###############################################################################
+#  Tiles
+###############################################################################
+
+Orc = Mob(0, 0, 'o', libtcod.desaturated_green, 'orc', 0, 0, 0)
+Troll = Mob(0, 0, 'T', libtcod.dark_green, 'troll', 2, -1, 3)
