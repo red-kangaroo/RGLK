@@ -46,7 +46,7 @@ RoomMaxSize = 10
 RoomMaxNumber = 99
 DrunkenSteps = 5000
 
-MonsterMaxNumber = 30 # Should depend on dungeon level.
+MonsterMaxNumber = 10 # Should depend on dungeon level.
 
 PlayerIsDead = False
 ExitGame = False

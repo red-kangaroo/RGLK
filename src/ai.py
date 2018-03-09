@@ -19,7 +19,8 @@ def getAICommand(Mob):
         Target = None
         # Check for enemies:
         for enemy in var.Entities:
-            if (enemy.isAvatar == True and libtcod.map_is_in_fov(Mob.FOVMap, enemy.x, enemy.y)):
+            if (Mob.getRelation(enemy) < 1 and
+                libtcod.map_is_in_fov(Mob.FOVMap, enemy.x, enemy.y)):
                 Target = enemy
                 Mob.goal = [enemy.x, enemy.y]
                 break
@@ -28,7 +29,7 @@ def getAICommand(Mob):
             if Mob.range(Target) > 1:
                 aiMoveAStar(Mob, Target)
                 return
-            elif Mob.range(Target) == 1:
+            elif Mob.range(Target) < 2:
                 dx = Target.x - Mob.x
                 dy = Target.y - Mob.y
 
@@ -138,7 +139,7 @@ def aiMoveAStar(Me, Target):
             dx = x - Me.x
             dy = y - Me.y
 
-            Me.actionWalk(dx, dy)
+            Me.actionBump(dx, dy)
 
     else:
         aiMoveBase(Me, Target.x, Target.y)
@@ -159,7 +160,7 @@ def aiMoveBase(Me, x, y):
         dx = int(round(dx / distance))
         dy = int(round(dy / distance))
 
-        if not Me.actionWalk(dx, dy):
+        if not Me.actionBump(dx, dy):
             Me.goal = None
 
 def aiWander(Me):

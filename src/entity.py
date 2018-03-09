@@ -88,6 +88,13 @@ class Mob(Entity):
     def recalculateHealth(self):
         return (20 * (1.2 ** self.End)) + self.bonusHP
 
+    def getRelation(self, Other):
+        # TODO
+        if (self.isAvatar or Other.isAvatar):
+            return 0
+        else:
+            return 1
+
     # Actions:
     def actionAttack(self, dx, dy, victim):
         # TODO
@@ -105,15 +112,22 @@ class Mob(Entity):
                 break
 
         if bumpee != None:
-            self.actionAttack(dx, dy, bumpee)
-            return
+            if self.getRelation(bumpee) < 1:
+                self.actionAttack(dx, dy, bumpee)
+                return True
+            else:
+                self.actionSwap(bumpee)
+                return True
 
         if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
             if dungeon.map[x][y].CanBeOpened == True:
                 if(self.actionOpen(x, y)):
-                    return
+                    return True
 
-        self.actionWalk(dx, dy)
+        if self.actionWalk(dx, dy):
+            return True
+        else:
+            return False
 
     def actionOpen(self, x, y):
         if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
@@ -125,6 +139,19 @@ class Mob(Entity):
                     self.AP -= 1
                     return True
         return False
+
+    def actionSwap(self, Other):
+        x1 = self.x
+        y1 = self.y
+        x2 = Other.x
+        y2 = Other.y
+
+        self.x = x2
+        self.y = y2
+        Other.x = x1
+        Other.y = y1
+
+        self.AP -= 1
 
     def actionWait(self):
         print "%s waits." % self.name
