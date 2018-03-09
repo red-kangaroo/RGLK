@@ -3,6 +3,8 @@
 
 import libtcodpy as libtcod
 
+import dungeon
+
 ###############################################################################
 #  Functions
 ###############################################################################
@@ -13,6 +15,20 @@ def rand_chance(percent):
         return False
     else:
         return True
+
+# Call it from here, or BAD THINGS (tm) happen.
+# This is slow... TODO?
+def calculateFOVMap():
+    for i in Entities:
+        for y in range(MapHeight):
+            for x in range(MapWight):
+                libtcod.map_set_properties(i.FOVMap, x, y, not dungeon.map[x][y].BlockSight,
+                                           not dungeon.map[x][y].BlockMove)
+
+def changeFOVMap(x, y):
+    for i in Entities:
+        libtcod.map_set_properties(i.FOVMap, x, y, not dungeon.map[x][y].BlockSight,
+                                   not dungeon.map[x][y].BlockMove)
 
 ###############################################################################
 #  Global Variables

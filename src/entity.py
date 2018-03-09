@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import libtcodpy as libtcod
+import math
 
 import ai
 import dungeon
@@ -35,9 +36,9 @@ class Entity(object):
         self.x += dx
         self.y += dy
 
-    def draw(self):
+    def draw(self, Player):
         # Set color and draw character on screen.
-        if (libtcod.map_is_in_fov(self.FOVMap, self.x, self.y) or var.WizModeTrueSight):
+        if (libtcod.map_is_in_fov(Player.FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.Con, self.color)
             libtcod.console_put_char(var.Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
@@ -60,6 +61,10 @@ class Entity(object):
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, #These are base Entity arguments.
                  Str, Dex, End, speed = 1.0, FOVRadius = 6, isAvatar = False):
+        BlockMove = True # All mobs block movement, but not all entities,
+                         # so pass this to Entity __init__
+        super(Mob, self).__init__(x, y, char, color, name, BlockMove)
+
         # Attributes:
         self.Str = Str
         self.Dex = Dex
@@ -67,19 +72,15 @@ class Mob(Entity):
         self.speed = speed
         # FOV:
         self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
-        self.FOVMap = libtcod.map_new(MapWight, MapHeight)
+        self.FOVMap = libtcod.map_new(var.MapWight, var.MapHeight)
         self.recalculateFOV()
-        # General:
-        self.isAvatar = isAvatar # Flag the player.
-        BlockMove = True # All mobs block movement, but not all entities,
-                         # so pass this to Entity __init__
-        self.goal = None
         # Calculate health:
         self.bonusHP = 0
         self.maxHP = self.recalculateHealth()
         self.HP = self.maxHP
-
-        super(Mob, self).__init__(x, y, char, color, name, BlockMove)
+        # General:
+        self.isAvatar = isAvatar # Flag the player.
+        self.goal = None
 
     def recalculateFOV(self):
         libtcod.map_compute_fov(self.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
@@ -119,6 +120,8 @@ class Mob(Entity):
             if dungeon.map[x][y].CanBeOpened == True:
                 if dungeon.map[x][y].name == 'door':
                     dungeon.map[x][y].change(dungeon.OpenDoor)
+                    var.changeFOVMap(x, y)
+                    self.recalculateFOV()
                     self.AP -= 1
                     return True
         return False
@@ -139,6 +142,7 @@ class Mob(Entity):
 
         # Take a turn even if we walk into a wall.
         self.AP -= 1
+        return moved
 
 ###############################################################################
 #  Tiles

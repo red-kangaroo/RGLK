@@ -4,6 +4,7 @@
 import libtcodpy as libtcod
 import math
 
+import dungeon
 import entity
 import var
 
@@ -13,28 +14,34 @@ import var
 
 def getAICommand(Mob):
     if Mob.isAvatar == True:
-        handle_keys(Mob)
+        handleKeys(Mob)
     else:
+        Target = None
         # Check for enemies:
         for enemy in var.Entities:
-            if (enemy.isAvatar == True and libtcod.map_is_in_fov(self.FOVMap, enemy.x, enemy.y)):
-                if Mob.range(enemy) > 1:
-                    aiMove(Mob, enemy)
-                    return
-                elif Mob.range(enemy) == 1:
-                    dx = enemy.x - Mob.x
-                    dy = enemy.y - Mob.y
+            if (enemy.isAvatar == True and libtcod.map_is_in_fov(Mob.FOVMap, enemy.x, enemy.y)):
+                Target = enemy
+                Mob.goal = [enemy.x, enemy.y]
+                break
 
-                    Mob.actionAttack(dx, dy, enemy)
-                    return
+        if Target != None:
+            if Mob.range(Target) > 1:
+                aiMoveAStar(Mob, Target)
+                return
+            elif Mob.range(Target) == 1:
+                dx = Target.x - Mob.x
+                dy = Target.y - Mob.y
 
-        if Mob.goal != None:
-            aiMove(Mob, goal)
-        Mob.actionWait()
-        return
+                Mob.actionAttack(dx, dy, enemy)
+                return
+        elif Mob.goal != None:
+            aiMoveBase(Mob, Mob.goal[0], Mob.goal[1])
+            return
+        else:
+            aiWander(Mob)
 
 # Player input
-def handle_keys(Player):
+def handleKeys(Player):
 
     Key = libtcod.console_wait_for_keypress(True)
 
@@ -105,7 +112,7 @@ def handle_keys(Player):
             Player.actionBump(dx, dy)
 
 # Monster Actions
-def aiMove(Me, Target):
+def aiMoveAStar(Me, Target):
     # Create a FOV map that has the dimensions of the map.
     MoveMap = libtcod.map_new(var.MapWight, var.MapHeight)
 
@@ -132,3 +139,35 @@ def aiMove(Me, Target):
             dy = y - Me.y
 
             Me.actionWalk(dx, dy)
+
+    else:
+        aiMoveBase(Me, Target.x, Target.y)
+
+    libtcod.path_delete(path)
+
+def aiMoveBase(Me, x, y):
+    if (Me.x == x and Me.y == y):
+        Me.goal = None
+        return
+    else:
+        dx = x - Me.x
+        dy = y - Me.y
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+
+        # Normalize it to length 1 (preserving direction), then round it and
+        # convert to integer.
+        dx = int(round(dx / distance))
+        dy = int(round(dy / distance))
+
+        if not Me.actionWalk(dx, dy):
+            Me.goal = None
+
+def aiWander(Me):
+    x = 0
+    y = 0
+
+    while Me.isBlocked(x, y):
+        x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+    Me.goal = [x, y]

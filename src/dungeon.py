@@ -20,8 +20,8 @@ class Terrain(object):
         self.CanBeOpened = CanBeOpened
         self.explored = False
 
-    def draw(self, x, y):
-        if (libtcod.map_is_in_fov(self.FOVMap, x, y) or var.WizModeTrueSight):
+    def draw(self, x, y, Player):
+        if (libtcod.map_is_in_fov(Player.FOVMap, x, y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.Con, self.color)
             self.explored = True
         elif (self.explored == True):
@@ -237,8 +237,9 @@ class Builder(object):
 
         if populate:
             self.populate()
-        # On the off-chance we trap someone in dungeon generatoi:
+
         for i in var.Entities:
+            # On the off-chance we trap someone in dungeon generation:
             if i.isBlocked(i.x, i.y):
                 x = 0
                 y = 0
@@ -250,10 +251,7 @@ class Builder(object):
                 i.x = x
                 i.y = y
 
-        # Make FOV map:
-        for y in range(var.MapHeight):
-            for x in range(var.MapWight):
-                libtcod.map_set_properties(self.FOVMap, x, y, not map[x][y].BlockSight, not map[x][y].BlockMove)
+        var.calculateFOVMap()
 
     def makeLake(self, liquid):
         # This is basically a bit changed drunken cave.

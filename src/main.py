@@ -34,13 +34,13 @@ def render_all():
     for y in range(var.MapHeight):
         for x in range(var.MapWight):
             tile = dungeon.map[x][y]
-            tile.draw(x, y)
+            tile.draw(x, y, Player)
 
     for mob in var.Entities:
         if mob != Player:
-            mob.draw()
+            mob.draw(Player)
     # Draw player last, over everything else.
-    Player.draw()
+    Player.draw(Player)
 
     libtcod.console_blit(var.Con, 0, 0, var.ScreenWidth, var.ScreenHeight, 0, 0, 0)
 
