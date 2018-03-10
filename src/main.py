@@ -50,6 +50,9 @@ def render_all():
     # Draw player last, over everything else.
     Player.draw(Player)
 
+    libtcod.console_print_ex(var.Con, var.ScreenWidth - 19, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+                             Player.displayHP())
+
     libtcod.console_blit(var.Con, 0, 0, var.ScreenWidth, var.ScreenHeight, 0, 0, 0)
 
 ###############################################################################

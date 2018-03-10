@@ -25,7 +25,7 @@ def getAICommand(Mob):
         Target = None
         # Check for enemies:
         for enemy in var.Entities:
-            if (Mob.getRelation(enemy) < 1 and
+            if (Mob.getRelation(enemy) < 1 and (not enemy.hasFlag('DEAD')) and
                 libtcod.map_is_in_fov(Mob.FOVMap, enemy.x, enemy.y)):
                 Target = enemy
                 Mob.goal = [enemy.x, enemy.y]
@@ -50,7 +50,7 @@ def getAICommand(Mob):
             aiWander(Mob)
     else:
         # Even some items and features will be able to take turns, but not now.
-        pass
+        Mob.AP -= 1
 
 ###############################################################################
 #  Player Input

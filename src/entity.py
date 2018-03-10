@@ -111,6 +111,12 @@ class Mob(Entity):
     def recalculateHealth(self):
         return (20 * (1.2 ** self.End)) + self.bonusHP
 
+    def displayHP(self):
+        HP = int(math.floor(self.HP))
+        maxHP = int(math.floor(self.maxHP))
+        display = 'HP: ' + str(HP) + '/' + str(maxHP)
+        return display
+
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
         if (self.hasFlag('AVATAR') or Other.hasFlag('AVATAR')):
@@ -130,8 +136,14 @@ class Mob(Entity):
 
     def checkDeath(self):
         if self.HP <= 0:
-            self.flags.append('DEAD')
             print "%s dies." % self.name
+            self.flags.remove('MOB')
+            self.flags.append('ITEM')
+            self.flags.append('DEAD')
+            self.char = '%'
+            self.color = libtcod.red
+            self.name = str(self.name + ' corpse')
+            self.BlockMove = False
             return True
         else:
             return False
@@ -139,6 +151,10 @@ class Mob(Entity):
     # Actions:
     def actionAttack(self, dx, dy, victim):
         # TODO
+        if not victim.hasFlag('MOB'):
+            print "You can only attack creatures."
+            return
+
         print "%s attacks %s." % (self.name, victim.name)
 
         forcedHit = False
@@ -174,7 +190,7 @@ class Mob(Entity):
         y = self.y + dy
 
         for i in var.Entities:
-            if i.x == x and i.y == y:
+            if i.x == x and i.y == y and i.hasFlag('MOB'):
                 bumpee = i
                 break
 
