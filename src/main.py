@@ -23,22 +23,30 @@ libtcod.console_set_custom_font('graphics/terminal.png',
 libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 
 # Player must be defined here, we work with him shortly.
-Player = entity.Mob(1, 1, '@', libtcod.white, 'Player', 0, 0, 0, 1.0, 6, True)
+Player = entity.Mob(1, 1, '@', libtcod.white, 'Player', 2, 2, 2)
 var.Entities.append(Player)
+Player.flags.append('AVATAR')
 
 ###############################################################################
 #  Functions
 ###############################################################################
 
 def render_all():
+    # Draw map.
     for y in range(var.MapHeight):
         for x in range(var.MapWight):
             tile = dungeon.map[x][y]
             tile.draw(x, y, Player)
-
-    for mob in var.Entities:
-        if mob != Player:
-            mob.draw(Player)
+    # Draw first features, then items, then mobs.
+    for i in var.Entities:
+        if i.hasFlag('FEATURE'):
+            i.draw(Player)
+    for i in var.Entities:
+        if i.hasFlag('ITEM'):
+            i.draw(Player)
+    for i in var.Entities:
+        if i.hasFlag('MOB'):
+            i.draw(Player)
     # Draw player last, over everything else.
     Player.draw(Player)
 
@@ -55,16 +63,12 @@ Player.recalculateFOV()
 while not libtcod.console_is_window_closed():
     # Heartbeat
     for i in var.Entities:
-        # How else to check if entity has a speed variable?
-        try:
-            i.AP += i.speed
-        except:
-            i.AP += 1
+        i.Be()
 
     # Mob turns, including player
     for i in var.Entities:
         while i.AP >= 1:
-            if i == Player:
+            if i.hasFlag('AVATAR'):
                 # Redraw screen with each of the player's turns.
                 # Draw screen:
                 render_all()
@@ -78,6 +82,7 @@ while not libtcod.console_is_window_closed():
                 var.WizModeNewMap = False
 
             # This looks ugly...
+            # Maybe soemthing like sys.exit?
             if var.ExitGame:
                 break
         if var.ExitGame:

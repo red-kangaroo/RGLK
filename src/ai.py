@@ -9,13 +9,19 @@ import entity
 import var
 
 ###############################################################################
-#  AI
+#  AI Handling
 ###############################################################################
 
 def getAICommand(Mob):
-    if Mob.isAvatar == True:
+    if Mob.hasFlag('AVATAR'):
         handleKeys(Mob)
-    else:
+    elif Mob.hasFlag('MOB'):
+        if Mob.hasFlag('DEAD'):
+            # TODO
+            print "%s is too dead to do anything." % Mob.name
+            Mob.AP -= 100
+            return
+
         Target = None
         # Check for enemies:
         for enemy in var.Entities:
@@ -27,8 +33,8 @@ def getAICommand(Mob):
 
         if Target != None:
             if Mob.range(Target) > 1:
-                aiMoveAStar(Mob, Target)
-                return
+                if aiMoveAStar(Mob, Target):
+                    return
             elif Mob.range(Target) < 2:
                 dx = Target.x - Mob.x
                 dy = Target.y - Mob.y
@@ -36,32 +42,45 @@ def getAICommand(Mob):
                 Mob.actionAttack(dx, dy, enemy)
                 return
         elif Mob.goal != None:
-            aiMoveBase(Mob, Mob.goal[0], Mob.goal[1])
-            return
+            if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]):
+                return
+            else:
+                Mob.actionWait()
         else:
             aiWander(Mob)
+    else:
+        # Even some items and features will be able to take turns, but not now.
+        pass
 
-# Player input
+###############################################################################
+#  Player Input
+###############################################################################
 def handleKeys(Player):
 
     Key = libtcod.console_wait_for_keypress(True)
 
+
+    # NON-TURN ACTIONS:
     # Alt+Enter goes fullscreen
     if Key.vk == libtcod.KEY_ENTER and Key.lalt:
         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
+        return
 
     # Exit game with Ctrl + Q
     if (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('q'))):
         var.ExitGame = True
+        return
 
 
     # WIZARD MODE:
     # Walk through walls
     if Key.vk == libtcod.KEY_F1:
         var.WizModeNoClip = not var.WizModeNoClip
+        return
 
     if Key.vk == libtcod.KEY_F2:
         var.WizModeTrueSight = not var.WizModeTrueSight
+        return
 
     # Regenerate map
     if Key.vk == libtcod.KEY_F12:
@@ -72,10 +91,39 @@ def handleKeys(Player):
                 libtcod.console_put_char_ex(var.Con, x, y, ' ', libtcod.black, libtcod.black)
 
         var.WizModeNewMap = True
+        return
 
 
-    # MOVEMENT:
-    if not var.PlayerIsDead:
+    # Following actions can only be performed by living player:
+    if not Player.hasFlag('DEAD'):
+        # GENERAL ACTIONS:
+        # Jump
+        if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j'))):
+            where = askForDirection()
+            if where != None:
+                Player.actionJump(where)
+                return
+            else:
+                # This should not take a turn.
+                print "You decide not to jump."
+
+        # Swap places
+        if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('x'))):
+            where = askForDirection()
+            if where != None:
+                x = Player.x + where[0]
+                y = Player.y + where[1]
+
+                for i in var.Entities:
+                    if i.x == x and i.y == y and i.hasFlag('MOB'):
+                        Player.actionSwap(i)
+                        return
+                print "No one to swap with."
+            else:
+                # This should not take a turn.
+                print "You decide not to exchange places."
+
+        # MOVEMENT:
         if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
             libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
             Player.actionWait()
@@ -111,8 +159,56 @@ def handleKeys(Player):
 
         if (dx != 0 or dy != 0):
             Player.actionBump(dx, dy)
+            return
 
-# Monster Actions
+def askForDirection():
+    print "Select a direction."
+    while True:
+        Key = libtcod.console_wait_for_keypress(True)
+
+        if Key.vk == libtcod.KEY_ESCAPE:
+            return None
+
+        #if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
+        #    libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
+        #    return self TODO
+
+        dx = 0
+        dy = 0
+        dz = 0
+
+        if (libtcod.console_is_key_pressed(libtcod.KEY_UP) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP8)):
+            dy -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
+            dy += 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
+            dx -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
+            dx += 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP7):
+            dx -= 1
+            dy -= 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP9):
+            dx += 1
+            dy -= 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP1):
+            dx -= 1
+            dy += 1
+        elif libtcod.console_is_key_pressed(libtcod.KEY_KP3):
+            dx += 1
+            dy += 1
+        # TODO: Up and down.
+
+        if (dx != 0 or dy != 0 or dz != 0):
+            return [dx, dy, dz]
+
+###############################################################################
+#  Monster Actions
+###############################################################################
 def aiMoveAStar(Me, Target):
     # Create a FOV map that has the dimensions of the map.
     MoveMap = libtcod.map_new(var.MapWight, var.MapHeight)
@@ -132,6 +228,7 @@ def aiMoveAStar(Me, Target):
     # Check if the path exists, and in this case, also the path is shorter than 25 tiles.
     # The path size matters for alternative longer paths (for example through other rooms
     # if the player is in a corridor).
+    moved = False
     if not libtcod.path_is_empty(path) and libtcod.path_size(path) < 50:
         x, y = libtcod.path_walk(path, True)
 
@@ -139,17 +236,19 @@ def aiMoveAStar(Me, Target):
             dx = x - Me.x
             dy = y - Me.y
 
-            Me.actionBump(dx, dy)
+            if Me.actionBump(dx, dy):
+                moved = True
 
-    else:
-        aiMoveBase(Me, Target.x, Target.y)
+    elif aiMoveBase(Me, Target.x, Target.y):
+        moved = True
 
     libtcod.path_delete(path)
+    return moved
 
 def aiMoveBase(Me, x, y):
     if (Me.x == x and Me.y == y):
         Me.goal = None
-        return
+        return False
     else:
         dx = x - Me.x
         dy = y - Me.y
@@ -162,6 +261,16 @@ def aiMoveBase(Me, x, y):
 
         if not Me.actionBump(dx, dy):
             Me.goal = None
+            return False
+        else:
+            return True
+
+def aiSpite(Me, Enemy):
+    pass
+    # break weapon, spit at Enemy
+
+def aiSuicide(Me, Enemy):
+    pass
 
 def aiWander(Me):
     x = 0

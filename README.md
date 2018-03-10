@@ -21,6 +21,9 @@ General:
 ```
  Alt + Enter  toggle full screen
  Ctrl + Q     close game
+
+ J            jump
+ X            swamp places
 ```
 
 Wizard mode:

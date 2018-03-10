@@ -16,6 +16,11 @@ def rand_chance(percent):
     else:
         return True
 
+def rand_gaussian_d20():
+    roll1 = libtcod.random_get_int(0, 1, 20)
+    roll2 = libtcod.random_get_int(0, 1, 20)
+    return (roll1 + roll2) / 2
+
 # Call it from here, or BAD THINGS (tm) happen.
 # This is slow... TODO?
 def calculateFOVMap():
@@ -48,7 +53,6 @@ DrunkenSteps = 5000
 
 MonsterMaxNumber = 10 # Should depend on dungeon level.
 
-PlayerIsDead = False
 ExitGame = False
 
 WizModeNoClip = False
