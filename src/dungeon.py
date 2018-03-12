@@ -306,8 +306,28 @@ class Builder(object):
             else:
                 Fails += 1
 
-    def makeBetterRoom(Rooms):
-        pass
+    def makeBetterRoom(self, Rooms):
+        for room in Rooms:
+            if var.rand_chance(2):
+                which = libtcod.random_get_int(0, 1, 2)
+                # TODO: Add so much more rooms.
+
+                # Wooden room:
+                if which == 1:
+                    for x in range(room.x1, room.x2 + 1):
+                        for y in range(room.y1, room.y2 + 1):
+                            if map[x][y].hasFlag('WALL'):
+                                map[x][y].change(WoodWall)
+                            elif not map[x][y].hasFlag('DOOR'):
+                                map[x][y].change(WoodFloor)
+                # Icy room:
+                elif which == 2:
+                    for x in range(room.x1, room.x2 + 1):
+                        for y in range(room.y1, room.y2 + 1):
+                            if map[x][y].hasFlag('WALL'):
+                                map[x][y].change(IceWall)
+                            else:
+                                map[x][y].change(IceFloor)
 
     def buildTraditionalDungeon(self):
         Rooms = []
@@ -375,7 +395,7 @@ class Builder(object):
                     if Fail == True:
                         map[x][y].change(RockFloor)
 
-        #self.makeBetterRoom(Rooms)
+        self.makeBetterRoom(Rooms)
 
     def buildBSPDungeon(self):
         pass
@@ -541,11 +561,20 @@ class Builder(object):
 ###############################################################################
 
 # TODO: All of this should go to a script file.
-RockWall = Terrain('#', libtcod.dark_grey, 'wall', True, True, flags = ['WALL'])
-RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False, flags = ['GROUND'])
-WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True, flags = ['CAN_BE_OPENED', 'DOOR'])
+# Walls:
+RockWall = Terrain('#', libtcod.dark_grey, 'rock wall', True, True, flags = ['WALL'])
+WoodWall = Terrain('#', libtcod.darkest_orange, 'wooden wall', True, True, flags = ['WALL'])
+IceWall = Terrain('#', libtcod.dark_cyan, 'ice wall', True, True, flags = ['WALL'])
+# Floors:
+RockFloor = Terrain('.', libtcod.light_grey, 'rock floor', False, False, flags = ['GROUND'])
+WoodFloor = Terrain('.', libtcod.dark_orange, 'parquet', False, False, flags = ['GROUND'])
+IceFloor = Terrain('.', libtcod.cyan, 'ice floor', False, False, flags = ['GROUND'])
+# Doors:
+WoodDoor = Terrain('+', libtcod.darkest_orange, 'wooden door', False, True, flags = ['CAN_BE_OPENED', 'DOOR'])
 OpenDoor = Terrain('\'', libtcod.darkest_orange, 'open door', False, False, flags = ['DOOR'])
+# Decorations:
 Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True)
-ShallowWater = Terrain('~', libtcod.blue, 'water', False, False, flags = ['LIQUID'])
-Lava = Terrain('~', libtcod.dark_red, 'lava', False, False, flags = ['LIQUID'])
 RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False)
+# Liquids:
+ShallowWater = Terrain('~', libtcod.blue, 'shallow water', False, False, flags = ['LIQUID'])
+Lava = Terrain('~', libtcod.dark_red, 'lava', False, False, flags = ['LIQUID'])

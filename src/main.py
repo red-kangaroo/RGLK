@@ -19,7 +19,7 @@ libtcod.console_set_custom_font('graphics/terminal.png',
 libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 
 # Player must be defined here, we work with him shortly.
-Player = entity.Mob(1, 1, '@', libtcod.white, 'Player', 2, 2, 4)
+Player = entity.Mob(1, 1, '@', libtcod.white, 'Player', 2, 2, 4, 1.2)
 var.Entities.append(Player)
 Player.flags.append('AVATAR')
 

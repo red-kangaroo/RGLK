@@ -77,6 +77,7 @@ class Entity(object):
         # How else to check if entity has a speed variable?
         try:
             self.AP += self.speed
+            self.regainHealth()
         except:
             self.AP += 1
         # TODO: Check terrain for special effects.
@@ -112,6 +113,10 @@ class Mob(Entity):
     def recalculateHealth(self):
         return (20 * (1.2 ** self.End)) + self.bonusHP
 
+    def regainHealth(self):
+        if not self.hasFlag('DEAD') and self.HP < self.maxHP:
+            self.HP += 0.2
+
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
         if (self.hasFlag('AVATAR') or Other.hasFlag('AVATAR')):
@@ -121,6 +126,12 @@ class Mob(Entity):
 
     def hasIntrinsic(self, intrinsic):
         pass
+
+    def receiveHeal(self, amount):
+        if amount > 0:
+            self.HP += amount
+        if self.HP > self.maxHP:
+            self.HP = self.maxHP
 
     def receiveDamage(self, damage, type = None):
         # TODO
