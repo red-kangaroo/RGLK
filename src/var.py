@@ -9,6 +9,8 @@ import dungeon
 #  General Functions
 ###############################################################################
 
+# Random functions:
+# -----------------
 # Let's hope I didn't mess up the chances...
 def rand_chance(percent):
     if libtcod.random_get_int(0, 1, 100) > percent:
@@ -21,38 +23,38 @@ def rand_gaussian_d20():
     roll2 = libtcod.random_get_int(0, 1, 20)
     return (roll1 + roll2) / 2
 
+
+# FOV and rendering:
+# ------------------
 # Call it from here, or BAD THINGS (tm) happen.
-# This is slow... TODO?
 def calculateFOVMap():
-    for i in Entities:
-        for y in range(MapHeight):
-            for x in range(MapWight):
-                libtcod.map_set_properties(i.FOVMap, x, y, not dungeon.map[x][y].BlockSight,
-                                           not dungeon.map[x][y].BlockMove)
+    for y in range(MapHeight):
+        for x in range(MapWight):
+            libtcod.map_set_properties(FOVMap, x, y, not dungeon.map[x][y].BlockSight,
+                                       not dungeon.map[x][y].BlockMove)
 
 def changeFOVMap(x, y):
-    for i in Entities:
-        libtcod.map_set_properties(i.FOVMap, x, y, not dungeon.map[x][y].BlockSight,
-                                   not dungeon.map[x][y].BlockMove)
+    libtcod.map_set_properties(FOVMap, x, y, not dungeon.map[x][y].BlockSight,
+                               not dungeon.map[x][y].BlockMove)
 
 def render_all(Player):
     # Draw map.
     for y in range(MapHeight):
         for x in range(MapWight):
             tile = dungeon.map[x][y]
-            tile.draw(x, y, Player)
+            tile.draw(x, y)
     # Draw first features, then items, then mobs.
     for i in Entities:
         if i.hasFlag('FEATURE'):
-            i.draw(Player)
+            i.draw()
     for i in Entities:
         if i.hasFlag('ITEM'):
-            i.draw(Player)
+            i.draw()
     for i in Entities:
         if i.hasFlag('MOB'):
-            i.draw(Player)
+            i.draw()
     # Draw player last, over everything else.
-    Player.draw(Player)
+    Player.draw()
 
     # Hack in primitive GUI:
     libtcod.console_print_ex(MapConsole, ScreenWidth - 19, 1, libtcod.BKGND_NONE, libtcod.LEFT,
@@ -89,3 +91,5 @@ Entities = []
 
 # Base console:
 MapConsole = libtcod.console_new(ScreenWidth, ScreenHeight)
+# FOV map:
+FOVMap = libtcod.map_new(MapWight, MapHeight)

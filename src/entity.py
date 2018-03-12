@@ -38,9 +38,9 @@ class Entity(object):
         self.x += dx
         self.y += dy
 
-    def draw(self, Player):
+    def draw(self):
         # Set color and draw character on screen.
-        if (libtcod.map_is_in_fov(Player.FOVMap, self.x, self.y) or var.WizModeTrueSight):
+        if (libtcod.map_is_in_fov(var.FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.MapConsole, self.color)
             libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
@@ -94,7 +94,6 @@ class Mob(Entity):
         self.speed = speed
         # FOV:
         self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
-        self.FOVMap = libtcod.map_new(var.MapWight, var.MapHeight)
         self.recalculateFOV()
         # Calculate health:
         self.bonusHP = 0
@@ -106,7 +105,7 @@ class Mob(Entity):
         self.flags.append('MOB')
 
     def recalculateFOV(self):
-        libtcod.map_compute_fov(self.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
+        libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
 
     def recalculateHealth(self):
         return (20 * (1.2 ** self.End)) + self.bonusHP
@@ -229,8 +228,6 @@ class Mob(Entity):
         if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny)):
             self.move(dx * 2, dy * 2)
             moved = True
-        if moved:
-            self.recalculateFOV()
 
         self.AP -= 1
         return moved
@@ -241,7 +238,6 @@ class Mob(Entity):
                 if dungeon.map[x][y].name == 'door':
                     dungeon.map[x][y].change(dungeon.OpenDoor)
                     var.changeFOVMap(x, y)
-                    self.recalculateFOV()
                     self.AP -= 1
                     return True
         return False
@@ -270,9 +266,6 @@ class Mob(Entity):
            (self.hasFlag('AVATAR') and var.WizModeNoClip)):
             self.move(dx, dy)
             moved = True
-
-        if moved:
-            self.recalculateFOV()
 
         # Take a turn even if we walk into a wall.
         self.AP -= 1

@@ -26,7 +26,7 @@ def getAICommand(Mob):
         # Check for enemies:
         for enemy in var.Entities:
             if (Mob.getRelation(enemy) < 1 and (not enemy.hasFlag('DEAD')) and
-                libtcod.map_is_in_fov(Mob.FOVMap, enemy.x, enemy.y)):
+                libtcod.map_is_in_fov(var.FOVMap, enemy.x, enemy.y)):
                 Target = enemy
                 Mob.goal = [enemy.x, enemy.y]
                 break
@@ -101,6 +101,12 @@ def handleKeys(Player):
         return
 
 
+    # You can wait even when dead:
+    if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
+        libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
+        Player.actionWait()
+        return
+
     # Following actions can only be performed by living player:
     if not Player.hasFlag('DEAD'):
         # GENERAL ACTIONS:
@@ -131,11 +137,6 @@ def handleKeys(Player):
                 print "You decide not to exchange places."
 
         # MOVEMENT:
-        if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
-            libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
-            Player.actionWait()
-            return
-
         dx = 0
         dy = 0
 

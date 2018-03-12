@@ -28,16 +28,18 @@ Player.flags.append('AVATAR')
 
 Dungeon = dungeon.Builder()
 Dungeon.makeMap(True)
-Player.recalculateFOV()
 
 while not libtcod.console_is_window_closed():
-    # Heartbeat
+    # Heartbeat of all entities.
     for i in var.Entities:
         i.Be()
 
-    # Mob turns, including player
+    # Mob turns, including the player.
     for i in var.Entities:
         while i.AP >= 1:
+            # Calculate FOV for the current actor.
+            i.recalculateFOV()
+
             if i.hasFlag('AVATAR'):
                 # Redraw screen with each of the player's turns.
                 # Draw screen:
@@ -45,8 +47,10 @@ while not libtcod.console_is_window_closed():
                 # Print screen:
                 libtcod.console_flush()
 
+            # Now get the command, keyboard for player and AI for monsters.
             ai.getAICommand(i)
 
+            # Some wizard mode handling:
             if var.WizModeNewMap:
                 Dungeon.makeMap(False)
                 var.WizModeNewMap = False

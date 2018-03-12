@@ -20,8 +20,8 @@ class Terrain(object):
         self.CanBeOpened = CanBeOpened
         self.explored = False
 
-    def draw(self, x, y, Player):
-        if (libtcod.map_is_in_fov(Player.FOVMap, x, y) or var.WizModeTrueSight):
+    def draw(self, x, y):
+        if (libtcod.map_is_in_fov(var.FOVMap, x, y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.MapConsole, self.color)
             self.explored = True
         elif (self.explored == True):
