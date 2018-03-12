@@ -10,11 +10,6 @@ import entity
 import var
 
 ###############################################################################
-#  Objects
-###############################################################################
-
-
-###############################################################################
 #  Initialization
 ###############################################################################
 
@@ -23,37 +18,9 @@ libtcod.console_set_custom_font('graphics/terminal.png',
 libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 
 # Player must be defined here, we work with him shortly.
-Player = entity.Mob(1, 1, '@', libtcod.white, 'Player', 2, 2, 2)
+Player = entity.Mob(1, 1, '@', libtcod.white, 'Player', 2, 2, 4)
 var.Entities.append(Player)
 Player.flags.append('AVATAR')
-
-###############################################################################
-#  Functions
-###############################################################################
-
-def render_all():
-    # Draw map.
-    for y in range(var.MapHeight):
-        for x in range(var.MapWight):
-            tile = dungeon.map[x][y]
-            tile.draw(x, y, Player)
-    # Draw first features, then items, then mobs.
-    for i in var.Entities:
-        if i.hasFlag('FEATURE'):
-            i.draw(Player)
-    for i in var.Entities:
-        if i.hasFlag('ITEM'):
-            i.draw(Player)
-    for i in var.Entities:
-        if i.hasFlag('MOB'):
-            i.draw(Player)
-    # Draw player last, over everything else.
-    Player.draw(Player)
-
-    libtcod.console_print_ex(var.Con, var.ScreenWidth - 19, 1, libtcod.BKGND_NONE, libtcod.LEFT,
-                             Player.displayHP())
-
-    libtcod.console_blit(var.Con, 0, 0, var.ScreenWidth, var.ScreenHeight, 0, 0, 0)
 
 ###############################################################################
 #  Main Loop
@@ -74,7 +41,7 @@ while not libtcod.console_is_window_closed():
             if i.hasFlag('AVATAR'):
                 # Redraw screen with each of the player's turns.
                 # Draw screen:
-                render_all()
+                var.render_all(i)
                 # Print screen:
                 libtcod.console_flush()
 

@@ -6,7 +6,7 @@ import libtcodpy as libtcod
 import dungeon
 
 ###############################################################################
-#  Functions
+#  General Functions
 ###############################################################################
 
 # Let's hope I didn't mess up the chances...
@@ -35,6 +35,31 @@ def changeFOVMap(x, y):
         libtcod.map_set_properties(i.FOVMap, x, y, not dungeon.map[x][y].BlockSight,
                                    not dungeon.map[x][y].BlockMove)
 
+def render_all(Player):
+    # Draw map.
+    for y in range(MapHeight):
+        for x in range(MapWight):
+            tile = dungeon.map[x][y]
+            tile.draw(x, y, Player)
+    # Draw first features, then items, then mobs.
+    for i in Entities:
+        if i.hasFlag('FEATURE'):
+            i.draw(Player)
+    for i in Entities:
+        if i.hasFlag('ITEM'):
+            i.draw(Player)
+    for i in Entities:
+        if i.hasFlag('MOB'):
+            i.draw(Player)
+    # Draw player last, over everything else.
+    Player.draw(Player)
+
+    # Hack in primitive GUI:
+    libtcod.console_print_ex(MapConsole, ScreenWidth - 19, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+                             Player.displayHP())
+
+    libtcod.console_blit(MapConsole, 0, 0, ScreenWidth, ScreenHeight, 0, 0, 0)
+
 ###############################################################################
 #  Global Variables
 ###############################################################################
@@ -55,6 +80,7 @@ MonsterMaxNumber = 10 # Should depend on dungeon level.
 
 ExitGame = False
 
+WizModeActivated = False
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
@@ -62,4 +88,4 @@ WizModeNewMap = False
 Entities = []
 
 # Base console:
-Con = libtcod.console_new(ScreenWidth, ScreenHeight)
+MapConsole = libtcod.console_new(ScreenWidth, ScreenHeight)

@@ -41,8 +41,8 @@ class Entity(object):
     def draw(self, Player):
         # Set color and draw character on screen.
         if (libtcod.map_is_in_fov(Player.FOVMap, self.x, self.y) or var.WizModeTrueSight):
-            libtcod.console_set_default_foreground(var.Con, self.color)
-            libtcod.console_put_char(var.Con, self.x, self.y, self.char, libtcod.BKGND_NONE)
+            libtcod.console_set_default_foreground(var.MapConsole, self.color)
+            libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
     def range(self, Other):
         dx = Other.x - self.x
@@ -114,7 +114,7 @@ class Mob(Entity):
     def displayHP(self):
         HP = int(math.floor(self.HP))
         maxHP = int(math.floor(self.maxHP))
-        display = 'HP: ' + str(HP) + '/' + str(maxHP)
+        display = 'HP: ' + str(HP) + '/' + str(maxHP) + '    ' # Yeah, that's lazy.
         return display
 
     def getRelation(self, Other):
@@ -137,6 +137,7 @@ class Mob(Entity):
     def checkDeath(self):
         if self.HP <= 0:
             print "%s dies." % self.name
+
             self.flags.remove('MOB')
             self.flags.append('ITEM')
             self.flags.append('DEAD')

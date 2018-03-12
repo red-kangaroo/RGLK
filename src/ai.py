@@ -82,13 +82,20 @@ def handleKeys(Player):
         var.WizModeTrueSight = not var.WizModeTrueSight
         return
 
+    # TODO: Instakill all.
+    #if Key.vk == libtcod.KEY_F3:
+    #    for i in var.Entities:
+    #        if not i.hasFlag('AVATAR'):
+    #            del i
+    #    return
+
     # Regenerate map
     if Key.vk == libtcod.KEY_F12:
         # Heh heh, if I don't clear the console, it looks quite trippy after
         # redrawing a new map over the old one.
         for y in range(var.MapHeight):
             for x in range(var.MapWight):
-                libtcod.console_put_char_ex(var.Con, x, y, ' ', libtcod.black, libtcod.black)
+                libtcod.console_put_char_ex(var.MapConsole, x, y, ' ', libtcod.black, libtcod.black)
 
         var.WizModeNewMap = True
         return

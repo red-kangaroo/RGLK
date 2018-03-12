@@ -22,14 +22,14 @@ class Terrain(object):
 
     def draw(self, x, y, Player):
         if (libtcod.map_is_in_fov(Player.FOVMap, x, y) or var.WizModeTrueSight):
-            libtcod.console_set_default_foreground(var.Con, self.color)
+            libtcod.console_set_default_foreground(var.MapConsole, self.color)
             self.explored = True
         elif (self.explored == True):
-            libtcod.console_set_default_foreground(var.Con, libtcod.darkest_grey)
+            libtcod.console_set_default_foreground(var.MapConsole, libtcod.darkest_grey)
         else:
             return
             #libtcod.console_set_default_foreground(var.Con, libtcod.black)
-        libtcod.console_put_char(var.Con, x, y, self.char, libtcod.BKGND_NONE)
+        libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_NONE)
 
     def change(self, NewTerrain):
         self.char = NewTerrain.char
