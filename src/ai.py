@@ -79,18 +79,18 @@ def handleKeys(Player):
         var.WizModeNoClip = not var.WizModeNoClip
 
         if var.WizModeNoClip == True:
-            ui.message("Walking through walls activated.", actor = Player)
+            ui.message("Walking through walls activated.")
         else:
-            ui.message("Walking through walls deactivated.", actor = Player)
+            ui.message("Walking through walls deactivated.")
         return
 
     if Key.vk == libtcod.KEY_F2:
         var.WizModeTrueSight = not var.WizModeTrueSight
 
         if var.WizModeNoClip == True:
-            ui.message("True sight activated.", actor = Player)
+            ui.message("True sight activated.")
         else:
-            ui.message("True sight deactivated.", actor = Player)
+            ui.message("True sight deactivated.")
         return
 
     # TODO: Instakill all.
@@ -123,17 +123,17 @@ def handleKeys(Player):
         # GENERAL ACTIONS:
         # Jump
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j'))):
-            where = askForDirection()
+            where = askForDirection(Player)
             if where != None:
                 Player.actionJump(where)
                 return
             else:
                 # This should not take a turn.
-                ui.message("You decide not to jump.", actor = Player)
+                ui.message("You decide not to jump.")
 
         # Swap places
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('x'))):
-            where = askForDirection()
+            where = askForDirection(Player)
             if where != None:
                 x = Player.x + where[0]
                 y = Player.y + where[1]
@@ -142,10 +142,10 @@ def handleKeys(Player):
                     if i.x == x and i.y == y and i.hasFlag('MOB'):
                         Player.actionSwap(i)
                         return
-                ui.message("There is no one to swap with.", actor = Player)
+                ui.message("There is no one to swap with.")
             else:
                 # This should not take a turn.
-                ui.message("You decide not to swap with anyone.", actor = Player)
+                ui.message("You decide not to swap with anyone.")
 
         # MOVEMENT:
         dx = 0
@@ -180,8 +180,9 @@ def handleKeys(Player):
             Player.actionBump(dx, dy)
             return
 
-def askForDirection():
-    ui.message("Select a direction. [dir keys]", actor = Player)
+def askForDirection(Player):
+    ui.message("Select a direction. [dir keys]")
+    ui.render_all(Player)
     while True:
         Key = libtcod.console_wait_for_keypress(True)
 

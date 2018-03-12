@@ -24,6 +24,9 @@ def render_all(Player):
     render_map(Player)
     render_UI(Player)
     render_messages(Player)
+    
+    # And draw it all on the screen:
+    libtcod.console_flush()
 
 def render_map(Player):
     # Draw map.
@@ -60,7 +63,7 @@ def render_messages(Player):
 
     y = 0
     for (line, color, turn) in messagesToPrint:
-        if turn == (var.TurnCount - 1): # Turn count increases before redrawing
+        if turn >= (var.TurnCount - 1): # Turn count increases before redrawing
                                         # screen, so here we chance for T - 1.
             libtcod.console_set_default_foreground(var.MessagePanel, color)
         else:

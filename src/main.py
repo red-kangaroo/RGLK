@@ -49,8 +49,6 @@ while not libtcod.console_is_window_closed():
                 # Redraw screen with each of the player's turns.
                 # Draw screen:
                 ui.render_all(i)
-                # Print screen:
-                libtcod.console_flush()
 
             # Now get the command, keyboard for player and AI for monsters.
             ai.getAICommand(i)
