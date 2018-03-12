@@ -1,0 +1,36 @@
+
+Entity
+======
+
+General:
+MOB                Any creature.
+ITEM               Any item.
+FEATURE            Any dungeon feature (altar, chair, ...)
+
+Type:
+BEAST
+ELEMENTAL
+FEY
+HUMANOID
+
+AI:
+AI_PREDATOR        Attacks anything with flag BEAST and without AI_PREDATOR.
+
+Special:
+AVATAR             Player-controlled entity.
+DEAD               A creature that died.
+SEEN               Whether player can currently see the entity.
+
+
+
+Terrain
+=======
+
+Type:
+WALL
+GROUND
+DOOR
+LIQUID
+
+Special:
+CAN_BE_OPENED      Can have actionOpen applied to self.
