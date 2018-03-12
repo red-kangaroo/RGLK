@@ -6,6 +6,7 @@ import math
 
 import ai
 import dungeon
+import ui
 import var
 
 ###############################################################################
@@ -129,7 +130,7 @@ class Mob(Entity):
 
     def checkDeath(self):
         if self.HP <= 0:
-            print "%s dies." % self.name
+            ui.message("%s dies." % str.capitalize(self.name), libtcod.red)
 
             self.flags.remove('MOB')
             self.flags.append('ITEM')
@@ -146,10 +147,10 @@ class Mob(Entity):
     def actionAttack(self, dx, dy, victim):
         # TODO
         if not victim.hasFlag('MOB'):
-            print "You can only attack creatures."
+            ui.message("You can only attack creatures.")
             return
 
-        print "%s attacks %s." % (self.name, victim.name)
+        #ui.message("%s attacks %s." % (str.capitalize(self.name), victim.name))
 
         forcedHit = False
         forcedMiss = False
@@ -167,14 +168,14 @@ class Mob(Entity):
 
             if (forcedHit or toHit > toDodge):
                 # For now:
-                print "%s hits %s." % (self.name, victim.name)
+                ui.message("%s hits %s." % (str.capitalize(self.name), victim.name))
 
                 damage = libtcod.random_get_int(0, 1, 6) + self.Str
                 victim.receiveDamage(damage)
             else:
-                print "%s misses %s." % (self.name, victim.name)
+                ui.message("%s misses %s." % (str.capitalize(self.name), victim.name))
         else:
-            print "%s completely misses %s." % (self.name, victim.name)
+            ui.message("%s completely misses %s." % (str.capitalize(self.name), victim.name))
 
         self.AP -= 1
 
@@ -220,8 +221,11 @@ class Mob(Entity):
         # TODO: Leap attack, stamina cost, jumping out of pits with dz
 
         if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny)):
+            ui.message("%s leaps." % str.capitalize(self.name))
             self.move(dx * 2, dy * 2)
             moved = True
+        else:
+            ui.message("%s balks at the leap." % str.capitalize(self.name))
 
         self.AP -= 1
         return moved
@@ -232,10 +236,11 @@ class Mob(Entity):
                 if dungeon.map[x][y].hasFlag('DOOR'):
                     dungeon.map[x][y].change(dungeon.OpenDoor)
                     var.changeFOVMap(x, y)
+                    ui.message("%s opens the door." % str.capitalize(self.name))
                     self.AP -= 1
                     return True
                 else:
-                    print "Bug: Unhandled openable terrain."
+                    print "BUG: Unhandled openable terrain."
         return False
 
     def actionSwap(self, Other):
@@ -248,6 +253,8 @@ class Mob(Entity):
         self.y = y2
         Other.x = x1
         Other.y = y1
+
+        ui.message("%s swaps places with %s." % (str.capitalize(self.name), Other.name))
 
         self.AP -= 1
 
@@ -262,6 +269,9 @@ class Mob(Entity):
            (self.hasFlag('AVATAR') and var.WizModeNoClip)):
             self.move(dx, dy)
             moved = True
+        else:
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot go there.")
 
         # Take a turn even if we walk into a wall.
         self.AP -= 1

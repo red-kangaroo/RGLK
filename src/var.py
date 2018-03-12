@@ -57,15 +57,16 @@ DrunkenSteps = 5000
 
 MonsterMaxNumber = 10 # Should depend on dungeon level.
 
-TextColor = libtcod.white
-ExitGame = False
-
 WizModeActivated = False
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
 
 Entities = []
+MessageHistory = []
+TurnCount = 0
+TextColor = libtcod.white
+ExitGame = False
 
 # FOV map:
 FOVMap = libtcod.map_new(MapWidth, MapHeight)

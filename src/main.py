@@ -29,8 +29,12 @@ Player.flags.append('AVATAR')
 
 Dungeon = dungeon.Builder()
 Dungeon.makeMap(True)
+ui.message("Welcome to the Realm of the Lich King!", libtcod.dark_violet)
+# TODO: Better welcoming message.
 
 while not libtcod.console_is_window_closed():
+    var.TurnCount += 1
+
     # Heartbeat of all entities.
     for i in var.Entities:
         i.Be()
@@ -55,6 +59,7 @@ while not libtcod.console_is_window_closed():
             if var.WizModeNewMap:
                 Dungeon.makeMap(False)
                 var.WizModeNewMap = False
+                ui.message("You call upon the great powers of wizard mode to create a whole new dungeon level!")
 
             # This looks ugly...
             # Maybe soemthing like sys.exit?

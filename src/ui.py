@@ -3,6 +3,7 @@
 
 import libtcodpy as libtcod
 import math
+import textwrap
 
 import dungeon
 import var
@@ -43,6 +44,23 @@ def render_messages(Player):
     libtcod.console_set_default_background(var.MessagePanel, libtcod.black)
     libtcod.console_clear(var.MessagePanel)
 
+    messagesToPrint = var.MessageHistory
+
+    while len(messagesToPrint) > var.PanelHeight:
+        del messagesToPrint[0]
+
+    y = 0
+    for (line, color, turn) in messagesToPrint:
+        if turn == (var.TurnCount - 1): # Turn count increases before redrawing
+                                        # screen, so here we chance for T - 1.
+            libtcod.console_set_default_foreground(var.MessagePanel, color)
+        else:
+            libtcod.console_set_default_foreground(var.MessagePanel, libtcod.darker_grey)
+
+        libtcod.console_print_ex(var.MessagePanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 line)
+        y += 1
+
     # Render messages:
     libtcod.console_blit(var.MessagePanel, 0, 0, var.ScreenWidth - var.PanelWidth, var.PanelHeight, 0,
                          0, var.ScreenHeight - var.PanelHeight)
@@ -70,6 +88,19 @@ def render_UI(Player):
     libtcod.console_print_ex(var.UIPanel, 9, 5, libtcod.BKGND_NONE, libtcod.LEFT,
                              'Spd: ' + str(int(Player.speed * 100)))
 
+    libtcod.console_print_ex(var.UIPanel, 1, 9, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'T: ' + str(var.TurnCount))
+
+    # Effects:
+    if Player.hasFlag('DEAD'):
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_red)
+        libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Dead')
+    elif Player.HP < 1:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.red)
+        libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Dying')
+
     # Render UI:
     libtcod.console_blit(var.UIPanel, 0, 0, var.PanelWidth, var.ScreenHeight, 0,
                          var.ScreenWidth - var.PanelWidth, 0)
@@ -88,3 +119,11 @@ def render_bar(x, y, totalWidth, name, value, maxValue, barColor, backColor):
 
     libtcod.console_print_ex(var.UIPanel, x, y, libtcod.BKGND_NONE, libtcod.LEFT,
                              name + ': ' + str(value) + '/'+ str(maxValue))
+
+def message(text, color = var.TextColor):
+    textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
+    turn = var.TurnCount
+
+    # Save message as a tuple:
+    for i in textWrapped:
+        var.MessageHistory.append((i, color, turn))

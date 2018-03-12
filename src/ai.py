@@ -6,6 +6,7 @@ import math
 
 import dungeon
 import entity
+import ui
 import var
 
 ###############################################################################
@@ -18,7 +19,7 @@ def getAICommand(Mob):
     elif Mob.hasFlag('MOB'):
         if Mob.hasFlag('DEAD'):
             # TODO
-            print "%s is too dead to do anything." % Mob.name
+            print "BUG: %s is too dead to do anything." % Mob.name
             Mob.AP -= 100
             return
 
@@ -76,10 +77,20 @@ def handleKeys(Player):
     # Walk through walls
     if Key.vk == libtcod.KEY_F1:
         var.WizModeNoClip = not var.WizModeNoClip
+
+        if var.WizModeNoClip == True:
+            ui.message("Walking through walls activated.")
+        else:
+            ui.message("Walking through walls deactivated.")
         return
 
     if Key.vk == libtcod.KEY_F2:
         var.WizModeTrueSight = not var.WizModeTrueSight
+
+        if var.WizModeNoClip == True:
+            ui.message("True sight activated.")
+        else:
+            ui.message("True sight deactivated.")
         return
 
     # TODO: Instakill all.
@@ -118,7 +129,7 @@ def handleKeys(Player):
                 return
             else:
                 # This should not take a turn.
-                print "You decide not to jump."
+                ui.message("You decide not to jump.")
 
         # Swap places
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('x'))):
@@ -131,10 +142,10 @@ def handleKeys(Player):
                     if i.x == x and i.y == y and i.hasFlag('MOB'):
                         Player.actionSwap(i)
                         return
-                print "No one to swap with."
+                ui.message("There is no one to swap with.")
             else:
                 # This should not take a turn.
-                print "You decide not to exchange places."
+                ui.message("You decide not to swap with anyone.")
 
         # MOVEMENT:
         dx = 0
@@ -170,7 +181,7 @@ def handleKeys(Player):
             return
 
 def askForDirection():
-    print "Select a direction."
+    ui.message("Select a direction. [dir keys]")
     while True:
         Key = libtcod.console_wait_for_keypress(True)
 
