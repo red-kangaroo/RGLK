@@ -11,14 +11,14 @@ import var
 #  Dungeon Generation
 ###############################################################################
 class Terrain(object):
-    def __init__(self, char, color, name, BlockMove, BlockSight, CanBeOpened):
+    def __init__(self, char, color, name, BlockMove, BlockSight, flags = []):
         self.char = char
         self.color = color
         self.name = name
         self.BlockMove = BlockMove
         self.BlockSight = BlockSight
-        self.CanBeOpened = CanBeOpened
         self.explored = False
+        self.flags = flags
 
     def draw(self, x, y):
         if (libtcod.map_is_in_fov(var.FOVMap, x, y) or var.WizModeTrueSight):
@@ -37,7 +37,19 @@ class Terrain(object):
         self.name = NewTerrain.name
         self.BlockMove = NewTerrain.BlockMove
         self.BlockSight = NewTerrain.BlockSight
-        self.CanBeOpened = NewTerrain.CanBeOpened
+        # Clear all flags. This way works, otherwise strange errors in dungeon
+        # generation crop up from time to time.
+        try:
+            del self.flags
+        except:
+            print "Failed to clear flags from %s." % self.name
+        self.flags = NewTerrain.flags
+
+    def hasFlag(self, flag):
+        if flag in self.flags:
+            return True
+        else:
+            return False
 
 class Room(object):
     def __init__(self, x, y, width, height):
@@ -221,18 +233,25 @@ class Builder(object):
     def makeMap(self, populate):
         global map
 
-        # Fill map with walls.
-        map = [[ Terrain('#', libtcod.dark_grey, 'wall', True, True, False)
+        # First create map of dummy terrain:
+        map = [[ Terrain('.', libtcod.white, 'dummy terrain', False, False)
           for y in range(var.MapHeight) ]
             for x in range(var.MapWight) ]
+        # Then fill map with walls:
+        for y in range(var.MapHeight):
+            for x in range(var.MapWight):
+                map[x][y].change(RockWall)
 
         # TODO: Dungeon levels.
         which = libtcod.random_get_int(0, 1, 5)
         if which in range(1, 4):
+            print "Building traditional dungeon."
             self.buildTraditionalDungeon()
         elif which == 4:
+            print "Building sewers."
             self.buildSewers()
         else:
+            print "Building a cave."
             self.buildDrunkenCave()
 
         if populate:
@@ -287,6 +306,9 @@ class Builder(object):
             else:
                 Fails += 1
 
+    def makeBetterRoom(Rooms):
+        pass
+
     def buildTraditionalDungeon(self):
         Rooms = []
         RoomNo = 0
@@ -337,21 +359,23 @@ class Builder(object):
         for y in range(var.MapHeight):
             for x in range(var.MapWight):
 
-                if map[x][y].name == 'door':
+                if map[x][y].hasFlag('DOOR'):
                     #AdjacentWalls = 0
                     Fail = True
 
                     if (x - 1 > 0 and x + 1 < var.MapWight):
-                        if (map[x - 1][y].name == 'wall' and
-                            map[x + 1][y].name == 'wall'):
+                        if (map[x - 1][y].hasFlag('WALL') and
+                            map[x + 1][y].hasFlag('WALL')):
                             Fail = False
                     if (y - 1 > 0 and y + 1 < var.MapHeight):
-                        if (map[x][y - 1].name == 'wall' and
-                            map[x][y + 1].name == 'wall'):
+                        if (map[x][y - 1].hasFlag('WALL') and
+                            map[x][y + 1].hasFlag('WALL')):
                             Fail = False
 
                     if Fail == True:
                         map[x][y].change(RockFloor)
+
+        #self.makeBetterRoom(Rooms)
 
     def buildBSPDungeon(self):
         pass
@@ -368,7 +392,7 @@ class Builder(object):
 
         while (StepsTaken < var.DrunkenSteps and Fails < 2000):
             # Change wall into floor.
-            if map[x][y].name == 'wall':
+            if map[x][y].hasFlag('WALL'):
                 map[x][y].change(RockFloor)
 
             step = libtcod.random_get_int(0, 1, 8)
@@ -441,17 +465,17 @@ class Builder(object):
         for y in range(var.MapHeight):
             for x in range(var.MapWight):
 
-                if map[x][y].name == 'door':
+                if map[x][y].hasFlag('DOOR'):
                     #AdjacentWalls = 0
                     Fail = True
 
                     if (x - 1 > 0 and x + 1 < var.MapWight):
-                        if (map[x - 1][y].name == 'wall' and
-                            map[x + 1][y].name == 'wall'):
+                        if (map[x - 1][y].hasFlag('WALL') and
+                            map[x + 1][y].hasFlag('WALL')):
                             Fail = False
                     if (y - 1 > 0 and y + 1 < var.MapHeight):
-                        if (map[x][y - 1].name == 'wall' and
-                            map[x][y + 1].name == 'wall'):
+                        if (map[x][y - 1].hasFlag('WALL') and
+                            map[x][y + 1].hasFlag('WALL')):
                             Fail = False
 
                     if Fail == True:
@@ -472,19 +496,21 @@ class Builder(object):
         libtcod.noise_delete(noise)
 
     def postProcess(self):
+        print "Starting post-processing dungeon."
         for y in range(var.MapHeight):
             for x in range(var.MapWight):
                 # TODO: Move all of those into script file.
-                if (map[x][y].name == 'floor' and var.rand_chance(3)):
+                if (map[x][y].hasFlag('GROUND') and var.rand_chance(3)):
                     map[x][y].change(Vines)
 
-                elif (map[x][y].name == 'floor' and var.rand_chance(2)):
+                elif (map[x][y].hasFlag('GROUND') and var.rand_chance(2)):
                     map[x][y].change(ShallowWater)
 
-                elif (map[x][y].name == 'floor' and var.rand_chance(2)):
+                elif (map[x][y].hasFlag('GROUND') and var.rand_chance(2)):
                     map[x][y].change(RockPile)
 
         while var.rand_chance(15):
+            print "Making a lake."
             self.makeLake(ShallowWater)
 
     def populate(self):
@@ -515,11 +541,11 @@ class Builder(object):
 ###############################################################################
 
 # TODO: All of this should go to a script file.
-RockWall = Terrain('#', libtcod.dark_grey, 'wall', True, True, False)
-RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False, False)
-WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True, True)
-OpenDoor = Terrain('\'', libtcod.darkest_orange, 'open door', False, False, False)
-Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True, False)
-ShallowWater = Terrain('~', libtcod.blue, 'water', False, False, False)
-Lava = Terrain('~', libtcod.dark_red, 'lava', False, False, False)
-RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False, False)
+RockWall = Terrain('#', libtcod.dark_grey, 'wall', True, True, flags = ['WALL'])
+RockFloor = Terrain('.', libtcod.light_grey, 'floor', False, False, flags = ['GROUND'])
+WoodDoor = Terrain('+', libtcod.darkest_orange, 'door', False, True, flags = ['CAN_BE_OPENED', 'DOOR'])
+OpenDoor = Terrain('\'', libtcod.darkest_orange, 'open door', False, False, flags = ['DOOR'])
+Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True)
+ShallowWater = Terrain('~', libtcod.blue, 'water', False, False, flags = ['LIQUID'])
+Lava = Terrain('~', libtcod.dark_red, 'lava', False, False, flags = ['LIQUID'])
+RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False)

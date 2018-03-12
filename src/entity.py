@@ -204,7 +204,7 @@ class Mob(Entity):
                     return True
 
         if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
-            if dungeon.map[x][y].CanBeOpened == True:
+            if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if(self.actionOpen(x, y)):
                     return True
 
@@ -234,12 +234,14 @@ class Mob(Entity):
 
     def actionOpen(self, x, y):
         if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
-            if dungeon.map[x][y].CanBeOpened == True:
-                if dungeon.map[x][y].name == 'door':
+            if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
+                if dungeon.map[x][y].hasFlag('DOOR'):
                     dungeon.map[x][y].change(dungeon.OpenDoor)
                     var.changeFOVMap(x, y)
                     self.AP -= 1
                     return True
+                else:
+                    print "Bug: Unhandled openable terrain."
         return False
 
     def actionSwap(self, Other):
