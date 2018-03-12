@@ -3,6 +3,7 @@
 
 import libtcodpy as libtcod
 import math
+import sys
 
 import dungeon
 import entity
@@ -69,8 +70,8 @@ def handleKeys(Player):
 
     # Exit game with Ctrl + Q
     if (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('q'))):
-        var.ExitGame = True
-        return
+        sys.exit("You cowardly quit the game.")
+        return # Not that it's needed here...
 
 
     # WIZARD MODE:

@@ -58,12 +58,3 @@ while not libtcod.console_is_window_closed():
                 Dungeon.makeMap(False)
                 var.WizModeNewMap = False
                 ui.message("You call upon the great powers of wizard mode to create a whole new dungeon level!")
-
-            # This looks ugly...
-            # Maybe soemthing like sys.exit?
-            if var.ExitGame:
-                break
-        if var.ExitGame:
-            break
-    if var.ExitGame:
-        break

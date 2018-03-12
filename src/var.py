@@ -66,7 +66,6 @@ Entities = []
 MessageHistory = []
 TurnCount = 0
 TextColor = libtcod.white
-ExitGame = False
 
 # FOV map:
 FOVMap = libtcod.map_new(MapWidth, MapHeight)
