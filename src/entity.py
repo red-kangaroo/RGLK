@@ -44,6 +44,7 @@ class Entity(object):
         if (libtcod.map_is_in_fov(var.FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.MapConsole, self.color)
             libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_NONE)
+            self.flags.append('SEEN')
 
     def range(self, Other):
         dx = Other.x - self.x
@@ -130,7 +131,7 @@ class Mob(Entity):
 
     def checkDeath(self):
         if self.HP <= 0:
-            ui.message("%s dies." % str.capitalize(self.name), libtcod.red)
+            ui.message("%s dies." % str.capitalize(self.name), libtcod.red, self)
 
             self.flags.remove('MOB')
             self.flags.append('ITEM')
@@ -147,7 +148,8 @@ class Mob(Entity):
     def actionAttack(self, dx, dy, victim):
         # TODO
         if not victim.hasFlag('MOB'):
-            ui.message("You can only attack creatures.")
+            if self.hasFlag('AVATAR'):
+                ui.message("You can only attack creatures.")
             return
 
         #ui.message("%s attacks %s." % (str.capitalize(self.name), victim.name))
@@ -168,14 +170,14 @@ class Mob(Entity):
 
             if (forcedHit or toHit > toDodge):
                 # For now:
-                ui.message("%s hits %s." % (str.capitalize(self.name), victim.name))
+                ui.message("%s hits %s." % (str.capitalize(self.name), victim.name), actor = self)
 
                 damage = libtcod.random_get_int(0, 1, 6) + self.Str
                 victim.receiveDamage(damage)
             else:
-                ui.message("%s misses %s." % (str.capitalize(self.name), victim.name))
+                ui.message("%s misses %s." % (str.capitalize(self.name), victim.name), actor = self)
         else:
-            ui.message("%s completely misses %s." % (str.capitalize(self.name), victim.name))
+            ui.message("%s completely misses %s." % (str.capitalize(self.name), victim.name), actor = self)
 
         self.AP -= 1
 
@@ -221,11 +223,11 @@ class Mob(Entity):
         # TODO: Leap attack, stamina cost, jumping out of pits with dz
 
         if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny)):
-            ui.message("%s leaps." % str.capitalize(self.name))
+            ui.message("%s leaps." % str.capitalize(self.name), actor = self)
             self.move(dx * 2, dy * 2)
             moved = True
         else:
-            ui.message("%s balks at the leap." % str.capitalize(self.name))
+            ui.message("%s balks at the leap." % str.capitalize(self.name), actor = self)
 
         self.AP -= 1
         return moved
@@ -236,7 +238,7 @@ class Mob(Entity):
                 if dungeon.map[x][y].hasFlag('DOOR'):
                     dungeon.map[x][y].change(dungeon.OpenDoor)
                     var.changeFOVMap(x, y)
-                    ui.message("%s opens the door." % str.capitalize(self.name))
+                    ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
                     self.AP -= 1
                     return True
                 else:
@@ -254,7 +256,7 @@ class Mob(Entity):
         Other.x = x1
         Other.y = y1
 
-        ui.message("%s swaps places with %s." % (str.capitalize(self.name), Other.name))
+        ui.message("%s swaps places with %s." % (str.capitalize(self.name), Other.name), actor = self)
 
         self.AP -= 1
 

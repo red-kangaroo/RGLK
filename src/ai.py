@@ -79,18 +79,18 @@ def handleKeys(Player):
         var.WizModeNoClip = not var.WizModeNoClip
 
         if var.WizModeNoClip == True:
-            ui.message("Walking through walls activated.")
+            ui.message("Walking through walls activated.", actor = Player)
         else:
-            ui.message("Walking through walls deactivated.")
+            ui.message("Walking through walls deactivated.", actor = Player)
         return
 
     if Key.vk == libtcod.KEY_F2:
         var.WizModeTrueSight = not var.WizModeTrueSight
 
         if var.WizModeNoClip == True:
-            ui.message("True sight activated.")
+            ui.message("True sight activated.", actor = Player)
         else:
-            ui.message("True sight deactivated.")
+            ui.message("True sight deactivated.", actor = Player)
         return
 
     # TODO: Instakill all.
@@ -129,7 +129,7 @@ def handleKeys(Player):
                 return
             else:
                 # This should not take a turn.
-                ui.message("You decide not to jump.")
+                ui.message("You decide not to jump.", actor = Player)
 
         # Swap places
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('x'))):
@@ -142,10 +142,10 @@ def handleKeys(Player):
                     if i.x == x and i.y == y and i.hasFlag('MOB'):
                         Player.actionSwap(i)
                         return
-                ui.message("There is no one to swap with.")
+                ui.message("There is no one to swap with.", actor = Player)
             else:
                 # This should not take a turn.
-                ui.message("You decide not to swap with anyone.")
+                ui.message("You decide not to swap with anyone.", actor = Player)
 
         # MOVEMENT:
         dx = 0
@@ -181,7 +181,7 @@ def handleKeys(Player):
             return
 
 def askForDirection():
-    ui.message("Select a direction. [dir keys]")
+    ui.message("Select a direction. [dir keys]", actor = Player)
     while True:
         Key = libtcod.console_wait_for_keypress(True)
 

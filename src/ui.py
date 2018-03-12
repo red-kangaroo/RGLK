@@ -13,6 +13,14 @@ import var
 ###############################################################################
 
 def render_all(Player):
+    # Remove SEEN flag from entities.
+    for i in var.Entities:
+        if i.hasFlag('SEEN'):
+            try:
+                i.flags.remove('SEEN')
+            except:
+                print "Failed to remove SEEN flag."
+
     render_map(Player)
     render_UI(Player)
     render_messages(Player)
@@ -34,7 +42,8 @@ def render_map(Player):
         if i.hasFlag('MOB'):
             i.draw()
     # Draw player last, over everything else.
-    Player.draw()
+    if not Player.hasFlag('DEAD'):
+        Player.draw()
 
     # Render map:
     libtcod.console_blit(var.MapConsole, 0, 0, var.MapWidth, var.MapHeight, 0, 0, 0)
@@ -120,10 +129,18 @@ def render_bar(x, y, totalWidth, name, value, maxValue, barColor, backColor):
     libtcod.console_print_ex(var.UIPanel, x, y, libtcod.BKGND_NONE, libtcod.LEFT,
                              name + ': ' + str(value) + '/'+ str(maxValue))
 
-def message(text, color = var.TextColor):
-    textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
-    turn = var.TurnCount
+def message(text, color = var.TextColor, actor = None):
+    seen = True
+    if actor != None:
+        try:
+            if not actor.hasFlag('SEEN'):
+                seen = False
+        except:
+            pass # No need for special message here.
+    if seen == True:
+        textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
+        turn = var.TurnCount
 
-    # Save message as a tuple:
-    for i in textWrapped:
-        var.MessageHistory.append((i, color, turn))
+        # Save message as a tuple:
+        for i in textWrapped:
+            var.MessageHistory.append((i, color, turn))
