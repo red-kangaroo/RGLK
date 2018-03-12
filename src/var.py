@@ -24,43 +24,18 @@ def rand_gaussian_d20():
     return (roll1 + roll2) / 2
 
 
-# FOV and rendering:
-# ------------------
+# FOV:
+# ----
 # Call it from here, or BAD THINGS (tm) happen.
 def calculateFOVMap():
     for y in range(MapHeight):
-        for x in range(MapWight):
+        for x in range(MapWidth):
             libtcod.map_set_properties(FOVMap, x, y, not dungeon.map[x][y].BlockSight,
                                        not dungeon.map[x][y].BlockMove)
 
 def changeFOVMap(x, y):
     libtcod.map_set_properties(FOVMap, x, y, not dungeon.map[x][y].BlockSight,
                                not dungeon.map[x][y].BlockMove)
-
-def render_all(Player):
-    # Draw map.
-    for y in range(MapHeight):
-        for x in range(MapWight):
-            tile = dungeon.map[x][y]
-            tile.draw(x, y)
-    # Draw first features, then items, then mobs.
-    for i in Entities:
-        if i.hasFlag('FEATURE'):
-            i.draw()
-    for i in Entities:
-        if i.hasFlag('ITEM'):
-            i.draw()
-    for i in Entities:
-        if i.hasFlag('MOB'):
-            i.draw()
-    # Draw player last, over everything else.
-    Player.draw()
-
-    # Hack in primitive GUI:
-    libtcod.console_print_ex(MapConsole, ScreenWidth - 19, 1, libtcod.BKGND_NONE, libtcod.LEFT,
-                             Player.displayHP())
-
-    libtcod.console_blit(MapConsole, 0, 0, ScreenWidth, ScreenHeight, 0, 0, 0)
 
 ###############################################################################
 #  Global Variables
@@ -70,8 +45,10 @@ def render_all(Player):
 
 ScreenWidth = 100
 ScreenHeight = 55
-MapWight = 80
+MapWidth = 80
 MapHeight = 50
+PanelWidth = 20
+PanelHeight = 5
 
 RoomMinSize = 5
 RoomMaxSize = 10
@@ -80,6 +57,7 @@ DrunkenSteps = 5000
 
 MonsterMaxNumber = 10 # Should depend on dungeon level.
 
+TextColor = libtcod.white
 ExitGame = False
 
 WizModeActivated = False
@@ -89,7 +67,9 @@ WizModeNewMap = False
 
 Entities = []
 
-# Base console:
-MapConsole = libtcod.console_new(ScreenWidth, ScreenHeight)
 # FOV map:
-FOVMap = libtcod.map_new(MapWight, MapHeight)
+FOVMap = libtcod.map_new(MapWidth, MapHeight)
+# Consoles:
+MapConsole = libtcod.console_new(MapWidth, MapHeight)
+UIPanel = libtcod.console_new(PanelWidth, ScreenHeight)
+MessagePanel = libtcod.console_new(ScreenWidth - PanelWidth, PanelHeight)

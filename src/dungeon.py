@@ -103,7 +103,7 @@ class Room(object):
         dx = -1
         dy = -1
 
-        while (x + dx >= 0 and x + dx < var.MapWight and
+        while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x1 and y == self.y1):
                 map[x][y].change(WoodDoor)
@@ -136,7 +136,7 @@ class Room(object):
         dx = 1
         dy = -1
 
-        while (x + dx >= 0 and x + dx < var.MapWight and
+        while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x2 and y == self.y1):
                 map[x][y].change(WoodDoor)
@@ -169,7 +169,7 @@ class Room(object):
         dx = -1
         dy = 1
 
-        while (x + dx >= 0 and x + dx < var.MapWight and
+        while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x1 and y == self.y2):
                 map[x][y].change(WoodDoor)
@@ -202,7 +202,7 @@ class Room(object):
         dx = 1
         dy = 1
 
-        while (x + dx >= 0 and x + dx < var.MapWight and
+        while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x2 and y == self.y2):
                 map[x][y].change(WoodDoor)
@@ -234,12 +234,12 @@ class Builder(object):
         global map
 
         # First create map of dummy terrain:
-        map = [[ Terrain('.', libtcod.white, 'dummy terrain', False, False)
+        map = [[ Terrain('.', libtcod.white, 'bug: dummy terrain', False, False)
           for y in range(var.MapHeight) ]
-            for x in range(var.MapWight) ]
+            for x in range(var.MapWidth) ]
         # Then fill map with walls:
         for y in range(var.MapHeight):
-            for x in range(var.MapWight):
+            for x in range(var.MapWidth):
                 map[x][y].change(RockWall)
 
         # TODO: Dungeon levels.
@@ -264,7 +264,7 @@ class Builder(object):
                 y = 0
 
                 while i.isBlocked(x, y):
-                    x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+                    x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
                     y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
                 i.x = x
@@ -277,7 +277,7 @@ class Builder(object):
         StepsTaken = 0
         Fails = 0
 
-        x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
         while (StepsTaken < (var.DrunkenSteps / 4) and Fails < 2000):
@@ -297,7 +297,7 @@ class Builder(object):
             elif step == 4:
                 dy += 1
 
-            if (x + dx > 0 and x + dx < var.MapWight - 1 and
+            if (x + dx > 0 and x + dx < var.MapWidth - 1 and
                 y + dy > 0 and y + dy < var.MapHeight - 1):
                 x += dx
                 y += dy
@@ -318,7 +318,7 @@ class Builder(object):
             width = libtcod.random_get_int(0, var.RoomMinSize, var.RoomMaxSize)
             height = libtcod.random_get_int(0, var.RoomMinSize, var.RoomMaxSize)
 
-            x = libtcod.random_get_int(0, 0, var.MapWight - width - 1)
+            x = libtcod.random_get_int(0, 0, var.MapWidth - width - 1)
             y = libtcod.random_get_int(0, 0, var.MapHeight - height - 1)
 
             NewRoom = Room(x, y, width, height)
@@ -357,13 +357,13 @@ class Builder(object):
                            # our door placement.
 
         for y in range(var.MapHeight):
-            for x in range(var.MapWight):
+            for x in range(var.MapWidth):
 
                 if map[x][y].hasFlag('DOOR'):
                     #AdjacentWalls = 0
                     Fail = True
 
-                    if (x - 1 > 0 and x + 1 < var.MapWight):
+                    if (x - 1 > 0 and x + 1 < var.MapWidth):
                         if (map[x - 1][y].hasFlag('WALL') and
                             map[x + 1][y].hasFlag('WALL')):
                             Fail = False
@@ -387,7 +387,7 @@ class Builder(object):
         StepsTaken = 0
         Fails = 0
 
-        x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
         while (StepsTaken < var.DrunkenSteps and Fails < 2000):
@@ -420,7 +420,7 @@ class Builder(object):
                 dx += 1
                 dy += 1
 
-            if (x + dx > 0 and x + dx < var.MapWight - 1 and
+            if (x + dx > 0 and x + dx < var.MapWidth - 1 and
                 y + dy > 0 and y + dy < var.MapHeight - 1):
                 x += dx
                 y += dy
@@ -440,7 +440,7 @@ class Builder(object):
             dim = libtcod.random_get_int(0, 4, 7)
 
             # Increase space on sides for better corridor placement.
-            x = libtcod.random_get_int(0, 2, var.MapWight - dim - 3)
+            x = libtcod.random_get_int(0, 2, var.MapWidth - dim - 3)
             y = libtcod.random_get_int(0, 2, var.MapHeight - dim - 3)
 
             NewRoom = Room(x, y, dim, dim)
@@ -463,13 +463,13 @@ class Builder(object):
                            # our door placement.
 
         for y in range(var.MapHeight):
-            for x in range(var.MapWight):
+            for x in range(var.MapWidth):
 
                 if map[x][y].hasFlag('DOOR'):
                     #AdjacentWalls = 0
                     Fail = True
 
-                    if (x - 1 > 0 and x + 1 < var.MapWight):
+                    if (x - 1 > 0 and x + 1 < var.MapWidth):
                         if (map[x - 1][y].hasFlag('WALL') and
                             map[x + 1][y].hasFlag('WALL')):
                             Fail = False
@@ -488,7 +488,7 @@ class Builder(object):
         noise = libtcod.noise_new(2)
 
         for y in range(var.MapHeight):
-            for x in range(var.MapWight):
+            for x in range(var.MapWidth):
                 tile = libtcod.noise_get_fbm(noise, [x, y], 32.0)
 
                 # TODO
@@ -498,7 +498,7 @@ class Builder(object):
     def postProcess(self):
         print "Starting post-processing dungeon."
         for y in range(var.MapHeight):
-            for x in range(var.MapWight):
+            for x in range(var.MapWidth):
                 # TODO: Move all of those into script file.
                 if (map[x][y].hasFlag('GROUND') and var.rand_chance(3)):
                     map[x][y].change(Vines)
@@ -518,7 +518,7 @@ class Builder(object):
         NewMob = None
 
         while MonsterNo < var.MonsterMaxNumber:
-            x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+            x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
             y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
             # TODO: Rework.

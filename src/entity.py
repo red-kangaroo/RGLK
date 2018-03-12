@@ -31,7 +31,7 @@ class Entity(object):
         self.flags = []
 
     def move(self, dx, dy):
-        if (self.x + dx < 0 or self.x + dx > var.MapWight - 1 or
+        if (self.x + dx < 0 or self.x + dx > var.MapWidth - 1 or
             self.y + dy < 0 or self.y + dy > var.MapHeight - 1):
             return
 
@@ -51,7 +51,7 @@ class Entity(object):
         return math.sqrt(dx ** 2 + dy ** 2)
 
     def isBlocked(self, x, y):
-        if (x < 0 or x > var.MapWight - 1 or
+        if (x < 0 or x > var.MapWidth - 1 or
             y < 0 or y > var.MapHeight - 1):
             return True
 
@@ -109,12 +109,6 @@ class Mob(Entity):
 
     def recalculateHealth(self):
         return (20 * (1.2 ** self.End)) + self.bonusHP
-
-    def displayHP(self):
-        HP = int(math.floor(self.HP))
-        maxHP = int(math.floor(self.maxHP))
-        display = 'HP: ' + str(HP) + '/' + str(maxHP) + '    ' # Yeah, that's lazy.
-        return display
 
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
@@ -203,7 +197,7 @@ class Mob(Entity):
                     self.actionSwap(bumpee)
                     return True
 
-        if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
+        if (x > 0 and x < var.MapWidth and y > 0 and y < var.MapHeight):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if(self.actionOpen(x, y)):
                     return True
@@ -233,7 +227,7 @@ class Mob(Entity):
         return moved
 
     def actionOpen(self, x, y):
-        if (x > 0 and x < var.MapWight and y > 0 and y < var.MapHeight):
+        if (x > 0 and x < var.MapWidth and y > 0 and y < var.MapHeight):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if dungeon.map[x][y].hasFlag('DOOR'):
                     dungeon.map[x][y].change(dungeon.OpenDoor)

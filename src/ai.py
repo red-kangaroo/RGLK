@@ -94,7 +94,7 @@ def handleKeys(Player):
         # Heh heh, if I don't clear the console, it looks quite trippy after
         # redrawing a new map over the old one.
         for y in range(var.MapHeight):
-            for x in range(var.MapWight):
+            for x in range(var.MapWidth):
                 libtcod.console_put_char_ex(var.MapConsole, x, y, ' ', libtcod.black, libtcod.black)
 
         var.WizModeNewMap = True
@@ -219,11 +219,11 @@ def askForDirection():
 ###############################################################################
 def aiMoveAStar(Me, Target):
     # Create a FOV map that has the dimensions of the map.
-    MoveMap = libtcod.map_new(var.MapWight, var.MapHeight)
+    MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
 
     # Set non-walkable spaces:
     for y in range(var.MapHeight):
-        for x in range(var.MapWight):
+        for x in range(var.MapWidth):
             libtcod.map_set_properties(MoveMap, x, y, not dungeon.map[x][y].BlockSight,
                                        not dungeon.map[x][y].BlockMove)
     for i in var.Entities:
@@ -285,7 +285,7 @@ def aiWander(Me):
     y = 0
 
     while Me.isBlocked(x, y):
-        x = libtcod.random_get_int(0, 1, var.MapWight - 2)
+        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
     Me.goal = [x, y]

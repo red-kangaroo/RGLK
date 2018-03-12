@@ -7,6 +7,7 @@ import math
 import ai
 import dungeon
 import entity
+import ui
 import var
 
 ###############################################################################
@@ -43,7 +44,7 @@ while not libtcod.console_is_window_closed():
             if i.hasFlag('AVATAR'):
                 # Redraw screen with each of the player's turns.
                 # Draw screen:
-                var.render_all(i)
+                ui.render_all(i)
                 # Print screen:
                 libtcod.console_flush()
 
