@@ -122,6 +122,17 @@ def handleKeys(Player):
     # Following actions can only be performed by living player:
     if not Player.hasFlag('DEAD'):
         # GENERAL ACTIONS:
+        # Interact
+        if Key.vk == libtcod.KEY_SPACE:
+            where = askForDirection(Player)
+            if where != None:
+                Player.actionInteract(where)
+                return
+            else:
+                # This should not take a turn.
+                ui.message("Never mind.")
+                return
+
         # Jump
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j'))):
             where = askForDirection(Player)
@@ -131,6 +142,7 @@ def handleKeys(Player):
             else:
                 # This should not take a turn.
                 ui.message("You decide not to jump.")
+                return # We need to return here, or we fall through to vi keys...
 
         # Swap places
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('x'))):
@@ -147,33 +159,42 @@ def handleKeys(Player):
             else:
                 # This should not take a turn.
                 ui.message("You decide not to swap with anyone.")
+                return
 
         # MOVEMENT:
         dx = 0
         dy = 0
 
         if (libtcod.console_is_key_pressed(libtcod.KEY_UP) or
+            (Key.vk == libtcod.KEY_CHAR and Key.c == ord('k')) or
             libtcod.console_is_key_pressed(libtcod.KEY_KP8)):
             dy -= 1
         elif (libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or
-            libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
             dy += 1
         elif (libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or
-            libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('h')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
             dx -= 1
         elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
-            libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('l')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
             dx += 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP7):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP7) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('y'))):
             dx -= 1
             dy -= 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP9):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP9) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('u'))):
             dx += 1
             dy -= 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP1):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP1) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('b'))):
             dx -= 1
             dy += 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP3):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP3) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('n'))):
             dx += 1
             dy += 1
 
@@ -182,7 +203,7 @@ def handleKeys(Player):
             return
 
 def askForDirection(Player):
-    ui.message("Select a direction. [dir keys]")
+    ui.message("Select a direction. [dir keys or Esc]")
     ui.render_all(Player)
     while True:
         Key = libtcod.console_wait_for_keypress(True)
@@ -199,33 +220,55 @@ def askForDirection(Player):
         dz = 0
 
         if (libtcod.console_is_key_pressed(libtcod.KEY_UP) or
+            (Key.vk == libtcod.KEY_CHAR and Key.c == ord('k')) or
             libtcod.console_is_key_pressed(libtcod.KEY_KP8)):
             dy -= 1
         elif (libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or
-            libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
             dy += 1
         elif (libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or
-            libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('h')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
             dx -= 1
         elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
-            libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('l')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
             dx += 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP7):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP7) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('y'))):
             dx -= 1
             dy -= 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP9):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP9) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('u'))):
             dx += 1
             dy -= 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP1):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP1) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('b'))):
             dx -= 1
             dy += 1
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP3):
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP3) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('n'))):
             dx += 1
             dy += 1
         # TODO: Up and down.
 
         if (dx != 0 or dy != 0 or dz != 0):
             return [dx, dy, dz]
+
+def askForConfirmation(Player, prompt = "Really?"):
+    ui.message(prompt + " [Y/n]")
+    ui.render_all(Player)
+    while True:
+        Key = libtcod.console_wait_for_keypress(True)
+
+        if (Key.vk == libtcod.KEY_ESCAPE or
+            (Key.vk == libtcod.KEY_CHAR and Key.c == ord('n'))):
+            return False
+
+        if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('y'))):
+            # Requires capital Y to avoid fat-fingering with vi keys.
+            return True
 
 ###############################################################################
 #  Monster Actions

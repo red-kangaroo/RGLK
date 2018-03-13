@@ -1,0 +1,19 @@
+List of things to do and include:
+
+BSPDungeon:
+http://www.roguebasin.com/index.php?title=Complete_Roguelike_Tutorial,_using_Python%2Blibtcod,_extras#BSP_Dungeon_Generator
+
+Rivers:
+http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
+
+Maze:
+http://code.activestate.com/recipes/252127-maze-generator/
+http://pcg.wdfiles.com/local--files/pcg-algorithm%3Amaze/growingtree.py
+http://pcg.wikidot.com/pcg-algorithm:maze
+
+Hallways:
+https://www.reddit.com/r/roguelikedev/comments/552hd5/method_for_randomly_generating_a_map_with_rooms/d870l0v/
+https://imgur.com/a/AnB4T#14
+
+Noise forest:
+http://roguecentral.org/doryen/data/libtcod/doc/1.5.1/html2/noise_get.html?c=false&cpp=false&cs=false&py=true&lua=false

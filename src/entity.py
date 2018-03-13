@@ -221,6 +221,13 @@ class Mob(Entity):
         else:
             return False
 
+    def actionInteract(self, where):
+        dx = where[0]
+        dy = where[1]
+
+        # TODO
+        pass
+
     def actionJump(self, where):
         dx = where[0]
         dy = where[1]

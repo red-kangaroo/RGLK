@@ -326,7 +326,7 @@ class Builder(object):
                         for y in range(room.y1, room.y2 + 1):
                             if map[x][y].hasFlag('WALL'):
                                 map[x][y].change(IceWall)
-                            else:
+                            elif not map[x][y].hasFlag('LIQUID'):
                                 map[x][y].change(IceFloor)
 
     def buildTraditionalDungeon(self):

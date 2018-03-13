@@ -9,11 +9,14 @@ Simple roguelike in python + libtcod.
 Movement:
 
 ```
- 7  8  9  or  arrow keys
-  \ | /
- 4     6
-  / | \
- 1  2  3
+ KeyPad  or  vi keys  or  arrow keys
+  7  8  9     y  k  u
+   \ | /       \ | /
+  4     6     h     l
+   / | \       / | \
+  1  2  3     b  j  n
+
+ 5  .         wait a turn
 ```
 
 General:
