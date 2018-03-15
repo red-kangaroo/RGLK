@@ -88,7 +88,7 @@ class Entity(object):
         # Set color and draw character on screen.
         if (libtcod.map_is_in_fov(var.FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.MapConsole, self.color)
-            libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_NONE)
+            libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_SCREEN)
             self.flags.append('SEEN')
 
     def range(self, Other):
@@ -256,7 +256,7 @@ class Mob(Entity):
                     self.actionSwap(bumpee)
                     return True
 
-        if (x > 0 and x < var.MapWidth and y > 0 and y < var.MapHeight):
+        if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if(self.actionOpen(x, y)):
                     return True
@@ -266,12 +266,49 @@ class Mob(Entity):
         else:
             return False
 
+    def actionClose(self, x, y):
+        if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
+            blocked = False
+
+            for i in var.Entities:
+                if i.x == x and i.y == y:
+                    blocked = True
+                    break
+
+            if not blocked == True and dungeon.map[x][y].hasFlag('CAN_BE_CLOSED'):
+                if dungeon.map[x][y].hasFlag('DOOR'):
+                    dungeon.map[x][y].change(ter.WoodDoor)
+                    var.changeFOVMap(x, y)
+                    ui.message("%s closes the door." % str.capitalize(self.name), actor = self)
+                    self.AP -= 1
+                    return True
+                else:
+                    print "BUG: Unhandled closeable terrain."
+            elif dungeon.map[x][y].hasFlag('CAN_BE_CLOSED') and self.hasFlag('AVATAR'):
+                ui.message("There is something in the way.")
+        return False
+
     def actionInteract(self, where):
         dx = where[0]
         dy = where[1]
 
-        # TODO
-        pass
+        x = self.x + dx
+        y = self.y + dy
+
+        # No interactions beyond the map.
+        if (x < 0 or x > var.MapWidth - 1 or y < 0):
+            if self.hasFlag('AVATAR'):
+                ui.message("Be careful or you will break the backlight.")
+                return False
+        elif (y > var.MapHeight - 1):
+            if self.hasFlag('AVATAR'):
+                ui.message("You hear someone mashing buttons.")
+                return False
+
+        if dungeon.map[x][y].hasFlag('CAN_BE_CLOSED'):
+            self.actionClose(x, y)
+
+        # TODO: More actions.
 
     def actionJump(self, where):
         dx = where[0]
@@ -296,7 +333,7 @@ class Mob(Entity):
         return moved
 
     def actionOpen(self, x, y):
-        if (x > 0 and x < var.MapWidth and y > 0 and y < var.MapHeight):
+        if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if dungeon.map[x][y].hasFlag('DOOR'):
                     dungeon.map[x][y].change(ter.OpenDoor)

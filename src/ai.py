@@ -113,10 +113,19 @@ def handleKeys(Player):
         return
 
 
-    # You can wait even when dead:
+    # You can do some stuff even when dead:
+    # Wait
     if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
         Player.actionWait()
+        return
+
+    # Look
+    if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('l'))):
+        examined = askForTarget(Player, "Look around.")
+        if examined != None:
+            # TODO: Descriptions.
+            pass
         return
 
     # Following actions can only be performed by living player:
@@ -203,7 +212,7 @@ def handleKeys(Player):
             return
 
 def askForDirection(Player):
-    ui.message("Select a direction. [dir keys or Esc]")
+    ui.message("Select a direction. [dir keys, Esc to exit]")
     ui.render_all(Player)
     while True:
         Key = libtcod.console_wait_for_keypress(True)
@@ -269,6 +278,121 @@ def askForConfirmation(Player, prompt = "Really?"):
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('y'))):
             # Requires capital Y to avoid fat-fingering with vi keys.
             return True
+
+def askForTarget(Player, prompt = "Select a target."):
+    ui.message(prompt + " [dir keys, Enter or . to confirm, Esc to exit]")
+    ui.render_all(Player)
+
+    x = Player.x
+    y = Player.y
+
+    origBack = libtcod.console_get_char_background(var.MapConsole, x, y)
+
+    while True:
+        Key = libtcod.console_wait_for_keypress(True)
+
+        dx = 0
+        dy = 0
+
+        if (libtcod.console_is_key_pressed(libtcod.KEY_UP) or
+            (Key.vk == libtcod.KEY_CHAR and Key.c == ord('k')) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP8)):
+            dy -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP2)):
+            dy += 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('h')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP4)):
+            dx -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('l')) or
+              libtcod.console_is_key_pressed(libtcod.KEY_KP6)):
+            dx += 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP7) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('y'))):
+            dx -= 1
+            dy -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP9) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('u'))):
+            dx += 1
+            dy -= 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP1) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('b'))):
+            dx -= 1
+            dy += 1
+        elif (libtcod.console_is_key_pressed(libtcod.KEY_KP3) or
+              (Key.vk == libtcod.KEY_CHAR and Key.c == ord('n'))):
+            dx += 1
+            dy += 1
+
+        if (dx != 0 or dy != 0):
+            # Move the colored cursor:
+            if (x + dx > 0 or x + dx < var.MapWidth - 1 or
+                y + dy > 0 or y + dy < var.MapHeight - 1):
+                x = x + dx
+                y = y + dy
+
+            libtcod.console_set_char_background(var.MapConsole, x, y, libtcod.light_grey,
+                                                libtcod.BKGND_SET)
+
+            # Print what's there:
+            if dungeon.map[x][y].explored == True:
+                square = dungeon.map[x][y].name
+            else:
+                square = None
+
+            mob = None
+            stuff = []
+
+            for i in var.Entities:
+                if i.hasFlag('MOB') and i.hasFlag('SEEN') and i.x == x and i.y == y:
+                    mob = i.name
+                elif i.hasFlag('ITEM') and i.x == x and i.y == y:
+                    stuff.append(i.name)
+
+            if len(stuff) < 1:
+                names = None
+            elif len(stuff) == 1:
+                names = stuff[0]
+            elif len(stuff) < 3:
+                names = ', '.join(stuff)
+            else:
+                names = 'many items'
+
+            describeTile = ""
+            describeMob = ""
+            describeItems = ""
+
+            if libtcod.map_is_in_fov(var.FOVMap, x, y):
+                describeTile = "You see here %s. " % square
+            elif square != None:
+                describeTile = "You remember here %s. " % square
+
+            if mob != None:
+                describeMob = "There is a %s. " % mob
+
+            if names != None:
+                if libtcod.map_is_in_fov(var.FOVMap, x, y):
+                    describeItems = "You see here %s." % names
+                else:
+                    describeItems = "You remember here %s." % names
+
+            if square != None or mob != None or names != None:
+                ui.message(describeTile + describeMob + describeItems)
+
+            # And draw it:
+            ui.render_all(Player)
+
+        libtcod.console_set_char_background(var.MapConsole, x, y, libtcod.black,
+                                            libtcod.BKGND_SET)
+
+        if Key.vk == libtcod.KEY_ESCAPE:
+            return None
+        elif (Key.vk == libtcod.KEY_ENTER or
+            (Key.vk == libtcod.KEY_CHAR and Key.c == ord('.'))):
+            return [x, y]
 
 ###############################################################################
 #  Monster Actions

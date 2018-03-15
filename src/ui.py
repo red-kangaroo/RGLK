@@ -24,11 +24,13 @@ def render_all(Player):
     render_map(Player)
     render_UI(Player)
     render_messages(Player)
-    
+
     # And draw it all on the screen:
     libtcod.console_flush()
 
 def render_map(Player):
+    libtcod.console_set_default_background(var.MapConsole, libtcod.black)
+
     # Draw map.
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):

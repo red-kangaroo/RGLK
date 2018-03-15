@@ -31,7 +31,7 @@ class Terrain(object):
         else:
             return
             #libtcod.console_set_default_foreground(var.Con, libtcod.black)
-        libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_NONE)
+        libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_SCREEN)
 
     def change(self, NewTerrain):
         try:
@@ -551,7 +551,7 @@ class Builder(object):
 
         while var.rand_chance(15):
             print "Making a lake."
-            self.makeLake(ShallowWater)
+            self.makeLake(ter.ShallowWater)
 
     def populate(self):
         MonsterNo = 0
