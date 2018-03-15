@@ -34,3 +34,4 @@ LIQUID
 
 Special:
 CAN_BE_OPENED      Can have actionOpen applied to self.
+CAN_BE_CLOSED

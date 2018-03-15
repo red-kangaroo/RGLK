@@ -5,6 +5,8 @@ import libtcodpy as libtcod
 import math
 
 import entity
+import monster as mon
+import terrain as ter
 import var
 
 ###############################################################################
@@ -32,18 +34,36 @@ class Terrain(object):
         libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_NONE)
 
     def change(self, NewTerrain):
-        self.char = NewTerrain.char
-        self.color = NewTerrain.color
-        self.name = NewTerrain.name
-        self.BlockMove = NewTerrain.BlockMove
-        self.BlockSight = NewTerrain.BlockSight
+        try:
+            self.char = NewTerrain['char']
+        except:
+            print "Failed to change %s" % self.name
+        try:
+            self.color = NewTerrain['color']
+        except:
+            print "Failed to change %s" % self.name
+        try:
+            self.name = NewTerrain['name']
+        except:
+            print "Failed to change %s" % self.name
+        try:
+            self.BlockMove = NewTerrain['BlockMove']
+        except:
+            print "Failed to change %s" % self.name
+        try:
+            self.BlockSight = NewTerrain['BlockSight']
+        except:
+            print "Failed to change %s" % self.name
         # Clear all flags. This way works, otherwise strange errors in dungeon
         # generation crop up from time to time.
         try:
             del self.flags
         except:
             print "Failed to clear flags from %s." % self.name
-        self.flags = NewTerrain.flags
+        try:
+            self.flags = NewTerrain['flags']
+        except:
+            self.flags = []
 
     def hasFlag(self, flag):
         if flag in self.flags:
@@ -70,7 +90,7 @@ class Room(object):
     def create_square_room(self):
         for x in range(self.x1 + 1, self.x2):
             for y in range(self.y1 + 1, self.y2):
-                map[x][y].change(RockFloor)
+                map[x][y].change(ter.RockFloor)
 
     def create_circular_room(self):
         r = min(self.width / 2, self.height / 2)
@@ -79,21 +99,21 @@ class Room(object):
             for y in range(self.y1 + 1, self.y2):
                 if math.sqrt((x - self.CenterX) ** 2 +
                              (y - self.CenterY) ** 2) <= r:
-                    map[x][y].change(RockFloor)
+                    map[x][y].change(ter.RockFloor)
 
     def create_h_tunnel(self, OtherX):
         for x in range(min(self.CenterX, OtherX), max(self.CenterX, OtherX) + 1):
             if (x == self.x1 or x == self.x2):
-                map[x][self.CenterY].change(WoodDoor)
+                map[x][self.CenterY].change(ter.WoodDoor)
             else:
-                map[x][self.CenterY].change(RockFloor)
+                map[x][self.CenterY].change(ter.RockFloor)
 
     def create_v_tunnel(self, OtherY):
         for y in range(min(self.CenterY, OtherY), max(self.CenterY, OtherY) + 1):
             if (y == self.y1 or y == self.y2):
-                map[self.CenterX][y].change(WoodDoor)
+                map[self.CenterX][y].change(ter.WoodDoor)
             else:
-                map[self.CenterX][y].change(RockFloor)
+                map[self.CenterX][y].change(ter.RockFloor)
 
     def create_d_tunnels(self, OtherRooms):
         # This must be possible in some easier way...
@@ -106,12 +126,12 @@ class Room(object):
         while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x1 and y == self.y1):
-                map[x][y].change(WoodDoor)
+                map[x][y].change(ter.WoodDoor)
             elif len(OtherRooms) == 0:
                 if var.rand_chance(50):
-                    map[x][y].change(RockFloor)
+                    map[x][y].change(ter.RockFloor)
                 else:
-                    map[x][y].change(ShallowWater)
+                    map[x][y].change(ter.ShallowWater)
             else:
                 for room in OtherRooms:
                     if (x <= room.x2 and x >= room.x1 and
@@ -120,9 +140,9 @@ class Room(object):
                         break
                     else:
                         if var.rand_chance(50):
-                            map[x][y].change(RockFloor)
+                            map[x][y].change(ter.RockFloor)
                         else:
-                            map[x][y].change(ShallowWater)
+                            map[x][y].change(ter.ShallowWater)
 
             if end:
                 break
@@ -139,12 +159,12 @@ class Room(object):
         while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x2 and y == self.y1):
-                map[x][y].change(WoodDoor)
+                map[x][y].change(ter.WoodDoor)
             elif len(OtherRooms) == 0:
                 if var.rand_chance(50):
-                    map[x][y].change(RockFloor)
+                    map[x][y].change(ter.RockFloor)
                 else:
-                    map[x][y].change(ShallowWater)
+                    map[x][y].change(ter.ShallowWater)
             else:
                 for room in OtherRooms:
                     if (x <= room.x2 and x >= room.x1 and
@@ -153,9 +173,9 @@ class Room(object):
                         break
                     else:
                         if var.rand_chance(50):
-                            map[x][y].change(RockFloor)
+                            map[x][y].change(ter.RockFloor)
                         else:
-                            map[x][y].change(ShallowWater)
+                            map[x][y].change(ter.ShallowWater)
 
             if end:
                 break
@@ -172,12 +192,12 @@ class Room(object):
         while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x1 and y == self.y2):
-                map[x][y].change(WoodDoor)
+                map[x][y].change(ter.WoodDoor)
             elif len(OtherRooms) == 0:
                 if var.rand_chance(50):
-                    map[x][y].change(RockFloor)
+                    map[x][y].change(ter.RockFloor)
                 else:
-                    map[x][y].change(ShallowWater)
+                    map[x][y].change(ter.ShallowWater)
             else:
                 for room in OtherRooms:
                     if (x <= room.x2 and x >= room.x1 and
@@ -186,9 +206,9 @@ class Room(object):
                         break
                     else:
                         if var.rand_chance(50):
-                            map[x][y].change(RockFloor)
+                            map[x][y].change(ter.RockFloor)
                         else:
-                            map[x][y].change(ShallowWater)
+                            map[x][y].change(ter.ShallowWater)
 
             if end:
                 break
@@ -205,12 +225,12 @@ class Room(object):
         while (x + dx >= 0 and x + dx < var.MapWidth and
                y + dy >= 0 and y + dy < var.MapHeight):
             if (x == self.x2 and y == self.y2):
-                map[x][y].change(WoodDoor)
+                map[x][y].change(ter.WoodDoor)
             elif len(OtherRooms) == 0:
                 if var.rand_chance(50):
-                    map[x][y].change(RockFloor)
+                    map[x][y].change(ter.RockFloor)
                 else:
-                    map[x][y].change(ShallowWater)
+                    map[x][y].change(ter.ShallowWater)
             else:
                 for room in OtherRooms:
                     if (x <= room.x2 and x >= room.x1 and
@@ -219,9 +239,9 @@ class Room(object):
                         break
                     else:
                         if var.rand_chance(50):
-                            map[x][y].change(RockFloor)
+                            map[x][y].change(ter.RockFloor)
                         else:
-                            map[x][y].change(ShallowWater)
+                            map[x][y].change(ter.ShallowWater)
 
             if end:
                 break
@@ -240,7 +260,7 @@ class Builder(object):
         # Then fill map with walls:
         for y in range(var.MapHeight):
             for x in range(var.MapWidth):
-                map[x][y].change(RockWall)
+                map[x][y].change(ter.RockWall)
 
         # TODO: Dungeon levels.
         which = libtcod.random_get_int(0, 1, 5)
@@ -317,17 +337,17 @@ class Builder(object):
                     for x in range(room.x1, room.x2 + 1):
                         for y in range(room.y1, room.y2 + 1):
                             if map[x][y].hasFlag('WALL'):
-                                map[x][y].change(WoodWall)
+                                map[x][y].change(ter.WoodWall)
                             elif not map[x][y].hasFlag('DOOR'):
-                                map[x][y].change(WoodFloor)
+                                map[x][y].change(ter.WoodFloor)
                 # Icy room:
                 elif which == 2:
                     for x in range(room.x1, room.x2 + 1):
                         for y in range(room.y1, room.y2 + 1):
                             if map[x][y].hasFlag('WALL'):
-                                map[x][y].change(IceWall)
+                                map[x][y].change(ter.IceWall)
                             elif not map[x][y].hasFlag('LIQUID'):
-                                map[x][y].change(IceFloor)
+                                map[x][y].change(ter.IceFloor)
 
     def buildTraditionalDungeon(self):
         Rooms = []
@@ -393,7 +413,7 @@ class Builder(object):
                             Fail = False
 
                     if Fail == True:
-                        map[x][y].change(RockFloor)
+                        map[x][y].change(ter.RockFloor)
 
         self.makeBetterRoom(Rooms)
 
@@ -413,7 +433,7 @@ class Builder(object):
         while (StepsTaken < var.DrunkenSteps and Fails < 2000):
             # Change wall into floor.
             if map[x][y].hasFlag('WALL'):
-                map[x][y].change(RockFloor)
+                map[x][y].change(ter.RockFloor)
 
             step = libtcod.random_get_int(0, 1, 8)
             dx = 0
@@ -499,7 +519,7 @@ class Builder(object):
                             Fail = False
 
                     if Fail == True:
-                        map[x][y].change(RockFloor)
+                        map[x][y].change(ter.RockFloor)
 
     def buildMaze(self):
         pass
@@ -521,13 +541,13 @@ class Builder(object):
             for x in range(var.MapWidth):
                 # TODO: Move all of those into script file.
                 if (map[x][y].hasFlag('GROUND') and var.rand_chance(3)):
-                    map[x][y].change(Vines)
+                    map[x][y].change(ter.Vines)
 
                 elif (map[x][y].hasFlag('GROUND') and var.rand_chance(2)):
-                    map[x][y].change(ShallowWater)
+                    map[x][y].change(ter.ShallowWater)
 
                 elif (map[x][y].hasFlag('GROUND') and var.rand_chance(2)):
-                    map[x][y].change(RockPile)
+                    map[x][y].change(ter.RockPile)
 
         while var.rand_chance(15):
             print "Making a lake."
@@ -543,9 +563,9 @@ class Builder(object):
 
             # TODO: Rework.
             if var.rand_chance(80):
-                NewMob = entity.spawn(x, y, entity.Orc)
+                NewMob = entity.spawn(x, y, mon.Orc)
             else:
-                NewMob = entity.spawn(x, y, entity.Troll)
+                NewMob = entity.spawn(x, y, mon.Troll)
 
             if NewMob.isBlocked(x, y):
                 NewMob = None
@@ -555,26 +575,3 @@ class Builder(object):
                 MonsterNo += 1
 
             NewMob = None
-
-###############################################################################
-#  Tiles
-###############################################################################
-
-# TODO: All of this should go to a script file.
-# Walls:
-RockWall = Terrain('#', libtcod.dark_grey, 'rock wall', True, True, flags = ['WALL'])
-WoodWall = Terrain('#', libtcod.darkest_orange, 'wooden wall', True, True, flags = ['WALL'])
-IceWall = Terrain('#', libtcod.dark_cyan, 'ice wall', True, True, flags = ['WALL'])
-# Floors:
-RockFloor = Terrain('.', libtcod.light_grey, 'rock floor', False, False, flags = ['GROUND'])
-WoodFloor = Terrain('.', libtcod.dark_orange, 'parquet', False, False, flags = ['GROUND'])
-IceFloor = Terrain('.', libtcod.cyan, 'ice floor', False, False, flags = ['GROUND'])
-# Doors:
-WoodDoor = Terrain('+', libtcod.darkest_orange, 'wooden door', False, True, flags = ['CAN_BE_OPENED', 'DOOR'])
-OpenDoor = Terrain('\'', libtcod.darkest_orange, 'open door', False, False, flags = ['DOOR'])
-# Decorations:
-Vines = Terrain('|', libtcod.dark_green, 'hanging vines', False, True)
-RockPile = Terrain('*', libtcod.darker_grey, 'rock pile', False, False)
-# Liquids:
-ShallowWater = Terrain('~', libtcod.blue, 'shallow water', False, False, flags = ['LIQUID'])
-Lava = Terrain('~', libtcod.dark_red, 'lava', False, False, flags = ['LIQUID'])

@@ -6,6 +6,8 @@ import math
 
 import ai
 import dungeon
+import monster as mon
+import terrain as ter
 import ui
 import var
 
@@ -14,8 +16,51 @@ import var
 ###############################################################################
 
 def spawn(x, y, BluePrint):
-    NewMob = Mob(x, y, BluePrint.char, BluePrint.color, BluePrint.name,
-                 BluePrint.Str, BluePrint.Dex, BluePrint.End, BluePrint.speed)
+    # Careful, will only work for mobs now.
+    try:
+        char = BluePrint['char']
+        color = BluePrint['color']
+        name = BluePrint['name']
+    except:
+        print "Failed to spawn a monster."
+        return False
+
+    try:
+        Str = BluePrint['Str']
+    except:
+        Str = mon.Dummy['Str']
+    try:
+        Dex = BluePrint['Dex']
+    except:
+        Dex = mon.Dummy['Dex']
+    try:
+        End = BluePrint['End']
+    except:
+        End = mon.Dummy['End']
+    try:
+        speed = BluePrint['speed']
+    except:
+        speed = mon.Dummy['speed']
+    try:
+        sight = BluePrint['sight']
+    except:
+        sight = mon.Dummy['sight']
+    try:
+        addFlags = BluePrint['flags']
+    except:
+        addFlags = []
+    try:
+        addIntrinsics = BluePrint['intrinsics']
+    except:
+        addIntrinsics = []
+
+    NewMob = Mob(x, y, char, color, name, Str, Dex, End, speed, sight)
+    NewMob.flags.append(addFlags)
+    try:
+        NewMob.intrinsics.append(addIntrinsics)
+    except:
+        print "Failed to spawn non-mob with intrinsics."
+
     return NewMob
 
 # Player, monsters...
@@ -254,7 +299,7 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWidth and y > 0 and y < var.MapHeight):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if dungeon.map[x][y].hasFlag('DOOR'):
-                    dungeon.map[x][y].change(dungeon.OpenDoor)
+                    dungeon.map[x][y].change(ter.OpenDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
                     self.AP -= 1
@@ -310,10 +355,3 @@ class Feature(Entity):
         super(Mob, self).__init__(x, y, char, color, name)
 
         self.flags.append('FEATURE')
-
-###############################################################################
-#  Tiles
-###############################################################################
-
-Orc = Mob(0, 0, 'o', libtcod.desaturated_green, 'orc', 0, 0, 0, FOVRadius=4)
-Troll = Mob(0, 0, 'T', libtcod.dark_green, 'troll', 2, -1, 3, FOVRadius=3)
