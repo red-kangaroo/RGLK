@@ -24,28 +24,44 @@ def getAICommand(Mob):
             Mob.AP -= 100
             return
 
+        if (len(Mob.inventory) > Mob.carry):
+            Mob.actionDrop()
+            return
+
         Target = None
         # Check for enemies:
-        for enemy in var.Entities:
-            if (Mob.getRelation(enemy) < 1 and (not enemy.hasFlag('DEAD')) and
-                libtcod.map_is_in_fov(var.FOVMap, enemy.x, enemy.y)):
-                Target = enemy
-                Mob.goal = [enemy.x, enemy.y]
-                break
+        for i in var.Entities:
+            if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
+                if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
+                    Target = i
+                    Mob.goal = [i.x, i.y]
+                    break
+            elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
+                if Mob.hasFlag('AI_SCAVENGER') and not (len(Mob.inventory) >= Mob.carry):
+                    Target = i
+                    Mob.goal = [i.x, i.y]
+                    break
 
         if Target != None:
             if Mob.range(Target) > 1:
                 if aiMoveAStar(Mob, Target):
                     return
-            elif Mob.range(Target) < 2:
-                dx = Target.x - Mob.x
-                dy = Target.y - Mob.y
+            else:
+                if Target.hasFlag('MOB') and Mob.range(Target) < 2:
+                    dx = Target.x - Mob.x
+                    dy = Target.y - Mob.y
 
-                Mob.actionAttack(dx, dy, enemy)
-                return
+                    Mob.actionAttack(dx, dy, enemy)
+                    return
+                elif (Target.hasFlag('ITEM') and Mob.hasFlag('AI_SCAVENGER') and
+                      Mob.range(Target) == 0):
+                    Mob.actionPickUp(Mob.x, Mob.y, True)
+                    return
         elif Mob.goal != None:
             if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]):
                 return
+            elif var.rand_chance(2):
+                aiWander(Mob)
             else:
                 Mob.actionWait()
         else:

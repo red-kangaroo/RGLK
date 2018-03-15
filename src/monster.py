@@ -19,6 +19,8 @@ Dummy = {
 'speed': 1.0,
 'sight': 5,
 'BaseAttack': atk.Punch,
+'material': 'FLESH',
+'diet': ['FLESH', 'WATER'],
 'intrinsics': [],
 'flags': []
 }
@@ -44,7 +46,8 @@ Orc = {
 'Str': 0,
 'Dex': 0,
 'End': 0,
-'Int': 0
+'Int': 0,
+'flags': ['AI_SCAVENGER']
 }
 
 Troll = {

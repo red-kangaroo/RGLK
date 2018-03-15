@@ -51,6 +51,14 @@ def spawn(x, y, BluePrint):
     except:
         attack = mon.Dummy['BaseAttack']
     try:
+        material = BluePrint['material']
+    except:
+        material = mon.Dummy['material']
+    try:
+        diet = BluePrint['diet']
+    except:
+        diet = mon.Dummy['diet']
+    try:
         addFlags = BluePrint['flags']
     except:
         addFlags = []
@@ -61,8 +69,10 @@ def spawn(x, y, BluePrint):
 
     NewMob = Mob(x, y, char, color, name, Str, Dex, End, speed, sight)
 
-    NewMob.flags.append(addFlags)
     NewMob.BaseAttack = attack
+    NewMob.material = material
+    NewMob.diet = diet
+    NewMob.flags.append(addFlags)
 
     try:
         NewMob.intrinsics.append(addIntrinsics)
@@ -160,6 +170,7 @@ class Mob(Entity):
         self.goal = None
         self.carry = self.recalculateCarryingCapacity()
         self.BaseAttack = None # Special case this as a slam attack in attack code.
+        self.material = 'AETHER' # Dummy material.
         self.intrinsics = []
         self.flags.append('MOB')
 
@@ -307,10 +318,14 @@ class Mob(Entity):
 
     def actionDrop(self):
         if len(self.inventory) == 0:
-            ui.message("You carry nothing to drop.")
+            if self.hasFlag('AVATAR'):
+                ui.message("You carry nothing to drop.")
             return False
         else:
-            toDrop = ui.menu("What do you want to drop?", self.inventory)
+            if not self.hasFlag('AVATAR'):
+                toDrop = libtcod.random_get_int(0, 0, len(self.inventory) - 1)
+            else:
+                toDrop = ui.menu("What do you want to drop?", self.inventory)
 
             if toDrop == None:
                 return False
@@ -356,6 +371,7 @@ class Mob(Entity):
                     self.actionPickUp(x, y)
                     return True
                 elif i.hasFlag('MOB'):
+                    #i.selectAction(self)
                     print "Interacting with monster."
                     return True
 
@@ -416,7 +432,8 @@ class Mob(Entity):
 
     def actionPickUp(self, x, y, pickAll = False):
         if len(self.inventory) >= self.carry:
-            ui.message("Your inventory is already full.")
+            if self.hasFlag('AVATAR'):
+                ui.message("Your inventory is already full.")
             return False
 
         options = []
@@ -426,12 +443,14 @@ class Mob(Entity):
                 options.append(i)
 
         if len(options) == 0:
-            quips = [
-            "You grope foolishly on the floor.",
-            "There is nothing to pick up.",
-            "You return emtpy-handed."
-            ]
-            ui.message(random.choice(quips))
+            if self.hasFlag('AVATAR'):
+                quips = [
+                "You grope foolishly on the floor.",
+                "There is nothing to pick up.",
+                "You return emtpy-handed."
+                ]
+                ui.message(random.choice(quips))
+
             self.AP -= 0.5
             return False
         elif pickAll == True:
@@ -441,6 +460,9 @@ class Mob(Entity):
                 ui.message("%s picks up %s." % (str.capitalize(self.name), i.name), actor = self)
                 self.AP -= 1
         else:
+            if not self.hasFlag('AVATAR'):
+                return False
+
             toPick = ui.menu("What do you want to pick up?", options)
 
             if toPick == None:
@@ -500,6 +522,20 @@ class Item(Entity):
         super(Mob, self).__init__(x, y, char, color, name)
 
         self.flags.append('ITEM')
+
+    def beEaten(self, Eater):
+        # return if too full
+        if self.hasFlag('POTION'):
+            pass # quaffing
+        elif self.material in Eater.diet:
+            pass
+        else:
+            if Eater.hasFlag('AVATAR'):
+                ui.message("You cannot eat that.")
+            return False
+
+    def beZapped(self, Zapper):
+        pass
 
 class Feature(Entity):
     def __init__(self, x, y, char, color, name, #These are base Entity arguments.
