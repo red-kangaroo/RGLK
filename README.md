@@ -23,10 +23,14 @@ General:
 
 ```
  Alt + Enter  toggle full screen
- Ctrl + Q     close game
+ Space        interact
 
+ c            close
  J            jump
- X            swamp places
+ L            look
+ o            open
+ Ctrl + q     quit game
+ X            exchange places
 ```
 
 Wizard mode:
@@ -34,5 +38,6 @@ Wizard mode:
 ```
  F1           toggle walking through walls
  F2           toggle seeing through walls
+ F3           kill all
  F12          generate new level
 ```

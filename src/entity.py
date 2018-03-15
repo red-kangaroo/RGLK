@@ -286,6 +286,8 @@ class Mob(Entity):
                     print "BUG: Unhandled closeable terrain."
             elif dungeon.map[x][y].hasFlag('CAN_BE_CLOSED') and self.hasFlag('AVATAR'):
                 ui.message("There is something in the way.")
+            elif self.hasFlag('AVATAR'):
+                ui.message("There is nothing to close.")
         return False
 
     def actionInteract(self, where):
@@ -343,6 +345,8 @@ class Mob(Entity):
                     return True
                 else:
                     print "BUG: Unhandled openable terrain."
+            elif self.hasFlag('AVATAR'):
+                ui.message("There is nothing to open.")
         return False
 
     def actionSwap(self, Other):

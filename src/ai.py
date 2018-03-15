@@ -94,12 +94,12 @@ def handleKeys(Player):
             ui.message("True sight deactivated.")
         return
 
-    # TODO: Instakill all.
-    #if Key.vk == libtcod.KEY_F3:
-    #    for i in var.Entities:
-    #        if not i.hasFlag('AVATAR'):
-    #            del i
-    #    return
+
+    if Key.vk == libtcod.KEY_F3:
+        for i in var.Entities:
+            if not i.hasFlag('AVATAR'):
+                i.receiveDamage(i.maxHP)
+        return
 
     # Regenerate map
     if Key.vk == libtcod.KEY_F12:
@@ -136,22 +136,44 @@ def handleKeys(Player):
             where = askForDirection(Player)
             if where != None:
                 Player.actionInteract(where)
-                return
             else:
                 # This should not take a turn.
                 ui.message("Never mind.")
-                return
+            return
+
+        # Close
+        if Key.vk == libtcod.KEY_CHAR and Key.c == ord('c'):
+            where = askForDirection(Player)
+            if where != None:
+                x = Player.x + where[0]
+                y = Player.y + where[1]
+
+                Player.actionClose(x, y)
+            else:
+                ui.message("Never mind.")
+            return
 
         # Jump
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j'))):
             where = askForDirection(Player)
             if where != None:
                 Player.actionJump(where)
-                return
             else:
                 # This should not take a turn.
                 ui.message("You decide not to jump.")
-                return # We need to return here, or we fall through to vi keys...
+            return # We need to return here, or we fall through to vi keys...
+
+        # Open
+        if Key.vk == libtcod.KEY_CHAR and Key.c == ord('o'):
+            where = askForDirection(Player)
+            if where != None:
+                x = Player.x + where[0]
+                y = Player.y + where[1]
+
+                Player.actionOpen(x, y)
+            else:
+                ui.message("Never mind.")
+            return
 
         # Swap places
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('x'))):
@@ -168,7 +190,7 @@ def handleKeys(Player):
             else:
                 # This should not take a turn.
                 ui.message("You decide not to swap with anyone.")
-                return
+            return
 
         # MOVEMENT:
         dx = 0
