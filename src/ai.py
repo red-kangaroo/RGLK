@@ -183,7 +183,8 @@ def handleKeys(Player):
                 y = Player.y + where[1]
 
                 for i in var.Entities:
-                    if i.x == x and i.y == y and i.hasFlag('MOB'):
+                    if (i.x == x and i.y == y and (i.hasFlag('MOB') or
+                       (i.BlockMove == True and not i.hasFlag('FEATURE')))):
                         Player.actionSwap(i)
                         return
                 ui.message("There is no one to swap with.")
@@ -234,7 +235,7 @@ def handleKeys(Player):
             return
 
 def askForDirection(Player):
-    ui.message("Select a direction. [dir keys, Esc to exit]")
+    ui.message("Select a direction. [dir keys; Esc to exit]")
     ui.render_all(Player)
     while True:
         Key = libtcod.console_wait_for_keypress(True)
@@ -302,7 +303,7 @@ def askForConfirmation(Player, prompt = "Really?"):
             return True
 
 def askForTarget(Player, prompt = "Select a target."):
-    ui.message(prompt + " [dir keys, Enter or . to confirm, Esc to exit]")
+    ui.message(prompt + " [dir keys; Enter or . to confirm; Esc to exit]")
     ui.render_all(Player)
 
     x = Player.x
@@ -427,7 +428,7 @@ def aiMoveAStar(Me, Target):
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             libtcod.map_set_properties(MoveMap, x, y, not dungeon.map[x][y].BlockSight,
-                                       not dungeon.map[x][y].BlockMove)
+                    (not dungeon.map[x][y].BlockMove or dungeon.map[x][y].hasFlag('CAN_BE_OPENED')))
     for i in var.Entities:
         if i.BlockMove and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)

@@ -46,6 +46,10 @@ def spawn(x, y, BluePrint):
     except:
         sight = mon.Dummy['sight']
     try:
+        attack = BluePrint['BaseAttack']
+    except:
+        attack = mon.Dummy['BaseAttack']
+    try:
         addFlags = BluePrint['flags']
     except:
         addFlags = []
@@ -55,7 +59,10 @@ def spawn(x, y, BluePrint):
         addIntrinsics = []
 
     NewMob = Mob(x, y, char, color, name, Str, Dex, End, speed, sight)
+
     NewMob.flags.append(addFlags)
+    NewMob.BaseAttack = attack
+
     try:
         NewMob.intrinsics.append(addIntrinsics)
     except:
@@ -75,6 +82,7 @@ class Entity(object):
         self.BlockMove = BlockMove
 
         self.flags = []
+        self.inventory = [] # For both mobs and containers.
 
     def move(self, dx, dy):
         if (self.x + dx < 0 or self.x + dx > var.MapWidth - 1 or
@@ -149,11 +157,16 @@ class Mob(Entity):
         self.HP = self.maxHP
         # General:
         self.goal = None
+        self.carry = self.recalculateCarryingCapacity()
+        self.BaseAttack = None # Special case this as a slam attack in attack code.
         self.intrinsics = []
         self.flags.append('MOB')
 
     def recalculateFOV(self):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
+
+    def recalculateCarryingCapacity(self):
+        return max(0, 10 + (2 * self.Str))
 
     def recalculateHealth(self):
         return (20 * (1.2 ** self.End)) + self.bonusHP
@@ -220,7 +233,7 @@ class Mob(Entity):
         elif (toHit == 1 or toDodge == 20):
             forcedMiss = True
 
-        if not forcedMiss:
+        if forcedMiss == False:
             toHit += self.Dex
             toDodge += victim.Dex
 
@@ -234,6 +247,7 @@ class Mob(Entity):
                 ui.message("%s misses %s." % (str.capitalize(self.name), victim.name), actor = self)
         else:
             ui.message("%s completely misses %s." % (str.capitalize(self.name), victim.name), actor = self)
+            # TODO: if toHit + bonus < 0, fumble
 
         self.AP -= 1
 
@@ -301,14 +315,20 @@ class Mob(Entity):
         if (x < 0 or x > var.MapWidth - 1 or y < 0):
             if self.hasFlag('AVATAR'):
                 ui.message("Be careful or you will break the backlight.")
+                self.AP -= 1
                 return False
         elif (y > var.MapHeight - 1):
             if self.hasFlag('AVATAR'):
                 ui.message("You hear someone mashing buttons.")
+                self.AP -= 1
                 return False
 
-        if dungeon.map[x][y].hasFlag('CAN_BE_CLOSED'):
+        if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
+            self.actionOpen(x, y)
+            return True
+        elif dungeon.map[x][y].hasFlag('CAN_BE_CLOSED'):
             self.actionClose(x, y)
+            return True
 
         # TODO: More actions.
 
@@ -324,7 +344,8 @@ class Mob(Entity):
 
         # TODO: Leap attack, stamina cost, jumping out of pits with dz
 
-        if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny)):
+        if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny) and
+            libtcod.map_is_in_fov(var.FOVMap, nnx, nny)):
             ui.message("%s leaps." % str.capitalize(self.name), actor = self)
             self.move(dx * 2, dy * 2)
             moved = True
@@ -348,6 +369,9 @@ class Mob(Entity):
             elif self.hasFlag('AVATAR'):
                 ui.message("There is nothing to open.")
         return False
+
+    def actionPush(self, dx, dy):
+        pass
 
     def actionSwap(self, Other):
         x1 = self.x

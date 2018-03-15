@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import libtcodpy as libtcod
+import attack as atk
 
 ###############################################################################
-#  Monster Scripts
+#  Monster Configuration
 ###############################################################################
 
 Dummy = {
@@ -17,6 +18,7 @@ Dummy = {
 'Int': 0,
 'speed': 1.0,
 'sight': 4,
+'BaseAttack': atk.Punch,
 'intrinsics': [],
 'flags': []
 }
@@ -42,7 +44,7 @@ Orc = {
 'Str': 0,
 'Dex': 0,
 'End': 0,
-'Int': 0,
+'Int': 0
 }
 
 Troll = {
