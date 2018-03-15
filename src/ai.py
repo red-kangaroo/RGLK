@@ -120,9 +120,14 @@ def handleKeys(Player):
         Player.actionWait()
         return
 
+    # Inventory
+    if (Key.vk == libtcod.KEY_CHAR and Key.c == ord('i')):
+        Player.actionInventory()
+        return
+
     # Look
     if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('l'))):
-        examined = askForTarget(Player, "Look around.")
+        examined = askForTarget(Player, "Looking around.")
         if examined != None:
             # TODO: Descriptions.
             pass
@@ -153,6 +158,12 @@ def handleKeys(Player):
                 ui.message("Never mind.")
             return
 
+        # Drop
+        if Key.vk == libtcod.KEY_CHAR and Key.c == ord('d'):
+            while Player.actionDrop() == True:
+                pass # Return to menu if something remains to drop.
+            return
+
         # Jump
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j'))):
             where = askForDirection(Player)
@@ -173,6 +184,20 @@ def handleKeys(Player):
                 Player.actionOpen(x, y)
             else:
                 ui.message("Never mind.")
+            return
+
+        # Pick all
+        # Must be before non-modified key!!!
+        if ((Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('g'))) or
+            (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord(',')))):
+            Player.actionPickUp(Player.x, Player.y, pickAll = True)
+            return
+
+        # Pick up
+        if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('g')) or
+            (Key.vk == libtcod.KEY_CHAR and Key.c == ord(','))):
+            while Player.actionPickUp(Player.x, Player.y) == True:
+                pass # Return to menu if something remains to pick up.
             return
 
         # Swap places

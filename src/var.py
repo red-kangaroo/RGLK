@@ -49,6 +49,8 @@ MapWidth = 80
 MapHeight = 50
 PanelWidth = 20
 PanelHeight = 5
+MenuWidth = 70
+MenuHeight = 30
 
 RoomMinSize = 5
 RoomMaxSize = 10
@@ -73,3 +75,4 @@ FOVMap = libtcod.map_new(MapWidth, MapHeight)
 MapConsole = libtcod.console_new(MapWidth, MapHeight)
 UIPanel = libtcod.console_new(PanelWidth, ScreenHeight)
 MessagePanel = libtcod.console_new(ScreenWidth - PanelWidth, PanelHeight)
+MenuPanel = libtcod.console_new(MenuWidth, MenuHeight)

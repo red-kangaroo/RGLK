@@ -119,6 +119,44 @@ def render_UI(Player):
     libtcod.console_blit(var.UIPanel, 0, 0, var.PanelWidth, var.ScreenHeight, 0,
                          var.ScreenWidth - var.PanelWidth, 0)
 
+def menu(header, options):
+    # TODO: Several screens.
+    if len(options) > 26:
+        print "Too many menu options."
+
+    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+    libtcod.console_clear(var.MenuPanel)
+
+    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.LEFT, header + " [press letter; Esc to exit]")
+
+    index = ord('a')
+    y = 3
+    for option in options:
+        text = chr(index) + ') ' + option.name
+        libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 text)
+        index += 1
+        y += 1
+
+    libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+
+    # Draw it and wait for input:
+    libtcod.console_flush()
+
+    while True:
+        Key = libtcod.console_wait_for_keypress(True)
+
+        if Key.vk == libtcod.KEY_ESCAPE:
+            return None
+        # TODO: Next page.
+        else:
+            what = Key.c - ord('a')
+
+            if what in range(0, len(options) + 1):
+                return what
+
 def render_bar(x, y, totalWidth, name, value, maxValue, barColor, backColor):
     # Calculate width of bar:
     barWidth = int(float(value) / maxValue * totalWidth)

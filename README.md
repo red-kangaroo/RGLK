@@ -26,6 +26,10 @@ General:
  Space        interact
 
  c            close
+ d            drop item
+ g  or  ,     pick up item
+ Ctrl + g     pick up all
+ i            inventory
  J            jump
  L            look
  o            open

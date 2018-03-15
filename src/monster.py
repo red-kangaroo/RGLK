@@ -17,7 +17,7 @@ Dummy = {
 'End': 0,
 'Int': 0,
 'speed': 1.0,
-'sight': 4,
+'sight': 5,
 'BaseAttack': atk.Punch,
 'intrinsics': [],
 'flags': []
@@ -56,7 +56,6 @@ Troll = {
 'End': 3,
 'Int': 0,
 'speed': 1.0,
-'sight': 3,
 'intrinsics': [],
 'flags': []
 }

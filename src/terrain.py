@@ -69,7 +69,7 @@ IceFloor = {
 'name': 'ice floor',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['GROUND']
+'flags': ['GROUND', 'SLIDE']
 }
 
 # Doors:
@@ -79,7 +79,7 @@ WoodDoor = {
 'name': 'wooden door',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['CAN_BE_OPENED', 'DOOR']
+'flags': ['DOOR', 'CAN_BE_OPENED']
 }
 
 OpenDoor = {
@@ -88,7 +88,7 @@ OpenDoor = {
 'name': 'open door',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['CAN_BE_CLOSED', 'DOOR']
+'flags': ['DOOR', 'CAN_BE_CLOSED']
 }
 
 # Decorations:
@@ -118,6 +118,15 @@ ShallowWater = {
 'flags': ['LIQUID']
 }
 
+DeepWater = {
+'char': '~',
+'color': libtcod.darker_blue,
+'name': 'deep water',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['LIQUID', 'SWIM']
+}
+
 Lava = {
 'char': '~',
 'color': libtcod.dark_red,
@@ -125,4 +134,13 @@ Lava = {
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['LIQUID']
+}
+
+Mud = {
+'char': '~',
+'color': libtcod.darker_orange,
+'name': 'mud',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['LIQUID', 'STICKY']
 }

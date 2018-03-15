@@ -52,3 +52,6 @@ LIQUID
 Special:
 CAN_BE_OPENED      Can have actionOpen applied to self.
 CAN_BE_CLOSED
+SLIDE              Walking may cause you to fumble. More knockback.
+STICKY             Walking may fail.
+SWIM               Requires stamina to move.

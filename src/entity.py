@@ -3,6 +3,7 @@
 
 import libtcodpy as libtcod
 import math
+import random
 
 import ai
 import dungeon
@@ -304,6 +305,32 @@ class Mob(Entity):
                 ui.message("There is nothing to close.")
         return False
 
+    def actionDrop(self):
+        if len(self.inventory) == 0:
+            ui.message("You carry nothing to drop.")
+            return False
+        else:
+            toDrop = ui.menu("What do you want to drop?", self.inventory)
+
+            if toDrop == None:
+                return False
+            else:
+                item = self.inventory[toDrop]
+
+                self.inventory.remove(item)
+
+                item.x = self.x
+                item.y = self.y
+                var.Entities.append(item)
+                ui.message("%s drops %s." % (str.capitalize(self.name), item.name),
+                           actor = self)
+                self.AP -= 1
+
+        if len(self.inventory) >= 1:
+            return True
+        else:
+            return False
+
     def actionInteract(self, where):
         dx = where[0]
         dy = where[1]
@@ -323,6 +350,15 @@ class Mob(Entity):
                 self.AP -= 1
                 return False
 
+        for i in var.Entities:
+            if i.x == x and i.y == y:
+                if i.hasFlag('ITEM'):
+                    self.actionPickUp(x, y)
+                    return True
+                elif i.hasFlag('MOB'):
+                    print "Interacting with monster."
+                    return True
+
         if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
             self.actionOpen(x, y)
             return True
@@ -331,6 +367,14 @@ class Mob(Entity):
             return True
 
         # TODO: More actions.
+
+    def actionInventory(self):
+        if len(self.inventory) == 0:
+            ui.message("You carry no items.")
+            return False
+        else:
+            ui.menu("You carry the following:", self.inventory)
+            return True
 
     def actionJump(self, where):
         dx = where[0]
@@ -369,6 +413,49 @@ class Mob(Entity):
             elif self.hasFlag('AVATAR'):
                 ui.message("There is nothing to open.")
         return False
+
+    def actionPickUp(self, x, y, pickAll = False):
+        if len(self.inventory) >= self.carry:
+            ui.message("Your inventory is already full.")
+            return False
+
+        options = []
+
+        for i in var.Entities:
+            if i.hasFlag('ITEM') and i.x == x and i.y == y:
+                options.append(i)
+
+        if len(options) == 0:
+            quips = [
+            "You grope foolishly on the floor.",
+            "There is nothing to pick up.",
+            "You return emtpy-handed."
+            ]
+            ui.message(random.choice(quips))
+            self.AP -= 0.5
+            return False
+        elif pickAll == True:
+            for i in options:
+                self.inventory.append(i)
+                var.Entities.remove(i)
+                ui.message("%s picks up %s." % (str.capitalize(self.name), i.name), actor = self)
+                self.AP -= 1
+        else:
+            toPick = ui.menu("What do you want to pick up?", options)
+
+            if toPick == None:
+                return False
+            else:
+                self.inventory.append(options[toPick])
+                var.Entities.remove(options[toPick])
+                ui.message("%s picks up %s." % (str.capitalize(self.name), options[toPick].name),
+                           actor = self)
+                self.AP -= 1
+
+        if len(options) > 1:
+            return True
+        else:
+            return False # Closes window after picking up the only item on ground.
 
     def actionPush(self, dx, dy):
         pass
