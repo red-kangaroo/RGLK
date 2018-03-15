@@ -72,7 +72,9 @@ def spawn(x, y, BluePrint):
     NewMob.BaseAttack = attack
     NewMob.material = material
     NewMob.diet = diet
-    NewMob.flags.append(addFlags)
+
+    for i in addFlags:
+        NewMob.flags.append(i)
 
     try:
         NewMob.intrinsics.append(addIntrinsics)
@@ -166,8 +168,11 @@ class Mob(Entity):
         self.bonusHP = 0
         self.maxHP = self.recalculateHealth()
         self.HP = self.maxHP
-        # General:
+        # For pathfinding, mobs either have goal (an [x, y] list) or a target
+        # (any entity, ie. mob or item).
         self.goal = None
+        self.target = None
+        # General:
         self.carry = self.recalculateCarryingCapacity()
         self.BaseAttack = None # Special case this as a slam attack in attack code.
         self.material = 'AETHER' # Dummy material.
@@ -214,9 +219,12 @@ class Mob(Entity):
         if self.HP <= 0:
             ui.message("%s dies." % str.capitalize(self.name), libtcod.red, self)
 
+            self.actionDrop(True)
+
             self.flags.remove('MOB')
             self.flags.append('ITEM')
             self.flags.append('DEAD')
+
             self.char = '%'
             self.color = libtcod.red
             self.name = str(self.name + ' corpse')
@@ -316,11 +324,19 @@ class Mob(Entity):
                 ui.message("There is nothing to close.")
         return False
 
-    def actionDrop(self):
+    def actionDrop(self, dropAll = False):
         if len(self.inventory) == 0:
             if self.hasFlag('AVATAR'):
                 ui.message("You carry nothing to drop.")
             return False
+        elif dropAll == True:
+            for item in self.inventory:
+                self.inventory.remove(item)
+
+                item.x = self.x
+                item.y = self.y
+                var.Entities.append(item)
+                # Used only on death, so no AP nor drop messages.
         else:
             if not self.hasFlag('AVATAR'):
                 toDrop = libtcod.random_get_int(0, 0, len(self.inventory) - 1)
@@ -339,7 +355,7 @@ class Mob(Entity):
                 var.Entities.append(item)
                 ui.message("%s drops %s." % (str.capitalize(self.name), item.name),
                            actor = self)
-                self.AP -= 1
+                self.AP -= 0.2 # It's quick.
 
         if len(self.inventory) >= 1:
             return True
@@ -357,13 +373,13 @@ class Mob(Entity):
         if (x < 0 or x > var.MapWidth - 1 or y < 0):
             if self.hasFlag('AVATAR'):
                 ui.message("Be careful or you will break the backlight.")
-                self.AP -= 1
-                return False
+            self.AP -= 1
+            return False
         elif (y > var.MapHeight - 1):
             if self.hasFlag('AVATAR'):
                 ui.message("You hear someone mashing buttons.")
-                self.AP -= 1
-                return False
+            self.AP -= 1
+            return False
 
         for i in var.Entities:
             if i.x == x and i.y == y:
@@ -371,8 +387,12 @@ class Mob(Entity):
                     self.actionPickUp(x, y)
                     return True
                 elif i.hasFlag('MOB'):
+                    # TODO
                     #i.selectAction(self)
-                    print "Interacting with monster."
+                    if not self.hasFlag('AVATAR') and not i.hasFlag('AVATAR'):
+                        ui.message("%s chats with %s." % (str.capitalize(self.name), i.name),
+                                   actor = self)
+                    self.AP -= 1
                     return True
 
         if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
@@ -435,6 +455,8 @@ class Mob(Entity):
             if self.hasFlag('AVATAR'):
                 ui.message("Your inventory is already full.")
             return False
+        if not self.hasFlag('AVATAR'):
+            pickAll = True
 
         options = []
 

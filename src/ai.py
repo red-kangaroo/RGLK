@@ -24,48 +24,77 @@ def getAICommand(Mob):
             Mob.AP -= 100
             return
 
+        if var.rand_chance(1):
+            # This prevents hang-ups when I screw up some AI loop. ;)
+            Mob.target = None
+            Mob.goal = None
+            Mob.actionWait()
+            print "Hang-up in AI!"
+            return
+
         if (len(Mob.inventory) > Mob.carry):
             Mob.actionDrop()
             return
 
-        Target = None
-        # Check for enemies:
-        for i in var.Entities:
-            if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-                if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
-                    Target = i
-                    Mob.goal = [i.x, i.y]
-                    break
-            elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-                if Mob.hasFlag('AI_SCAVENGER') and not (len(Mob.inventory) >= Mob.carry):
-                    Target = i
-                    Mob.goal = [i.x, i.y]
-                    break
+        if Mob.target != None:
+            Target = Mob.target
+        else:
+            Target = None
+            # Check for enemies:
+            for i in var.Entities:
+                if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
+                    if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
+                        Target = i
+                        Mob.goal = [i.x, i.y]
+                        Mob.target = Target
+                        break
+                elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
+                    if Mob.hasFlag('AI_SCAVENGER') and not (len(Mob.inventory) >= Mob.carry):
+                        Target = i
+                        Mob.goal = [i.x, i.y]
+                        Mob.target = Target
+                        break
 
         if Target != None:
             if Mob.range(Target) > 1:
-                if aiMoveAStar(Mob, Target):
+                if aiMoveAStar(Mob, Target) == True:
+                    return
+            elif Target.hasFlag('MOB') and Mob.range(Target) < 2:
+                dx = Target.x - Mob.x
+                dy = Target.y - Mob.y
+
+                Mob.actionAttack(dx, dy, Target)
+                Mob.target = None
+                return
+            elif Target.hasFlag('ITEM') and Mob.hasFlag('AI_SCAVENGER'):
+                if Mob.range(Target) > 0:
+                    aiMoveBase(Mob, Target.x, Target.y)
+                else:
+                    Mob.actionPickUp(Mob.x, Mob.y, True)
+                    Mob.target = None
                     return
             else:
-                if Target.hasFlag('MOB') and Mob.range(Target) < 2:
-                    dx = Target.x - Mob.x
-                    dy = Target.y - Mob.y
-
-                    Mob.actionAttack(dx, dy, enemy)
-                    return
-                elif (Target.hasFlag('ITEM') and Mob.hasFlag('AI_SCAVENGER') and
-                      Mob.range(Target) == 0):
-                    Mob.actionPickUp(Mob.x, Mob.y, True)
-                    return
-        elif Mob.goal != None:
-            if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]):
+                if var.rand_chance(5):
+                    Mob.target = None
+                else:
+                    Mob.actionWait()
+        if Mob.goal != None:
+            if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]) == True:
                 return
             elif var.rand_chance(2):
                 aiWander(Mob)
             else:
                 Mob.actionWait()
         else:
-            aiWander(Mob)
+            if var.rand_chance(50):
+                for y in range(Mob.y - 1, Mob.y + 2):
+                    for x in range(Mob.x - 1, Mob.x + 2):
+                        where = [Mob.x - x, Mob.y - y]
+
+                        if Mob.actionInteract(where) == True:
+                            return
+            else:
+                aiWander(Mob)
     else:
         # Even some items and features will be able to take turns, but not now.
         Mob.AP -= 1
@@ -481,7 +510,8 @@ def aiMoveAStar(Me, Target):
     # The path size matters for alternative longer paths (for example through other rooms
     # if the player is in a corridor).
     moved = False
-    if not libtcod.path_is_empty(path) and libtcod.path_size(path) < 50:
+    if (not libtcod.path_is_empty(path) and libtcod.path_size(path) < 50 and
+        libtcod.path_size(path) > 1):
         x, y = libtcod.path_walk(path, True)
 
         if x or y:
@@ -525,6 +555,8 @@ def aiSuicide(Me, Enemy):
     pass
 
 def aiWander(Me):
+    Me.target = None
+
     x = 0
     y = 0
 
