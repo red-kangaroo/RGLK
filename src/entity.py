@@ -39,6 +39,14 @@ def spawn(x, y, BluePrint):
     except:
         End = mon.Dummy['End']
     try:
+        Wit = BluePrint['Wit']
+    except:
+        Wit = mon.Dummy['Wit']
+    try:
+        Ego = BluePrint['Ego']
+    except:
+        Ego = mon.Dummy['Ego']
+    try:
         speed = BluePrint['speed']
     except:
         speed = mon.Dummy['speed']
@@ -67,7 +75,7 @@ def spawn(x, y, BluePrint):
     except:
         addIntrinsics = []
 
-    NewMob = Mob(x, y, char, color, name, Str, Dex, End, speed, sight)
+    NewMob = Mob(x, y, char, color, name, Str, Dex, End, Wit, Ego, speed, sight)
 
     NewMob.BaseAttack = attack
     NewMob.material = material
@@ -144,6 +152,8 @@ class Entity(object):
         try:
             self.AP += self.speed
             self.regainHealth()
+            self.regainMana()
+            self.regainStamina()
         except:
             self.AP += 1
         # TODO: Check terrain for special effects.
@@ -151,7 +161,7 @@ class Entity(object):
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, #These are base Entity arguments.
-                 Str, Dex, End, speed = 1.0, FOVRadius = 6):
+                 Str, Dex, End, Wit, Ego, speed = 1.0, FOVRadius = 6):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
         super(Mob, self).__init__(x, y, char, color, name, BlockMove)
@@ -160,14 +170,21 @@ class Mob(Entity):
         self.Str = Str
         self.Dex = Dex
         self.End = End
+        self.Wit = Wit
+        self.Ego = Ego
         self.speed = speed
         # FOV:
         self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
         self.recalculateFOV()
-        # Calculate health:
+        # Calculate stats:
         self.bonusHP = 0
+        self.bonusMP = 0
         self.maxHP = self.recalculateHealth()
         self.HP = self.maxHP
+        self.maxMP = self.recalculateMana()
+        self.MP = self.maxMP
+        self.maxSP = self.recalculateStamina()
+        self.SP = self.maxSP
         # For pathfinding, mobs either have goal (an [x, y] list) or a target
         # (any entity, ie. mob or item).
         self.goal = None
@@ -188,9 +205,23 @@ class Mob(Entity):
     def recalculateHealth(self):
         return (20 * (1.2 ** self.End)) + self.bonusHP
 
+    def recalculateMana(self):
+        return (10 * (1.2 ** self.Ego)) + self.bonusMP
+
+    def recalculateStamina(self):
+        return (10 * (1.2 ** self.Str))
+
     def regainHealth(self):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
             self.HP += 0.2
+
+    def regainMana(self):
+        if not self.hasFlag('DEAD') and self.MP < self.maxMP:
+            self.MP += 0.3
+
+    def regainStamina(self):
+        if not self.hasFlag('DEAD') and self.SP < self.maxSP:
+            self.SP += 1
 
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
@@ -199,14 +230,53 @@ class Mob(Entity):
         else:
             return 1
 
+    def getActionAPCost(self):
+        return 1
+
+    def getAttackAPCost(self):
+        return 1
+
+    def getMoveAPCost(self):
+        return 1
+
     def hasIntrinsic(self, intrinsic):
         pass
 
     def receiveHeal(self, amount):
+        if self.hasFlag('DEAD'):
+            return False
         if amount > 0:
             self.HP += amount
+        else:
+            return False
         if self.HP > self.maxHP:
             self.HP = self.maxHP
+        return True
+
+    def receiveMana(self, amount):
+        if self.hasFlag('DEAD'):
+            return False
+        if amount > 0:
+            self.MP += amount
+        else:
+            return False
+        if self.MP > self.maxMP:
+            self.MP = self.maxMP
+        return True
+
+    def receiveStamina(self, amount):
+        if self.hasFlag('DEAD'):
+            return False
+        if amount > 0:
+            self.SP += amount
+        else:
+            return False
+        if self.SP > self.maxSP:
+            self.SP = self.maxSP
+        return True
+
+    def receiveAttack(self, attacker, multiplier):
+        pass
 
     def receiveDamage(self, damage, type = None):
         # TODO
@@ -218,12 +288,16 @@ class Mob(Entity):
     def checkDeath(self):
         if self.HP <= 0:
             ui.message("%s dies." % str.capitalize(self.name), libtcod.red, self)
-
-            self.actionDrop(True)
-
             self.flags.remove('MOB')
             self.flags.append('ITEM')
             self.flags.append('DEAD')
+
+            self.actionDrop(True)
+
+            if self.hasFlag('AVATAR'):
+                var.waitForMore(self)
+                var.WizModeTrueSight = True
+                ui.message("You have failed in your quest!")
 
             self.char = '%'
             self.color = libtcod.red
@@ -236,10 +310,14 @@ class Mob(Entity):
     # Actions:
     def actionAttack(self, dx, dy, victim):
         # TODO
+        if self.SP <= 2:
+            if self.hasFlag('AVATAR'):
+                ui.message("You are too exhausted to fight.")
+            return False
         if not victim.hasFlag('MOB'):
             if self.hasFlag('AVATAR'):
                 ui.message("You can only attack creatures.")
-            return
+            return False
 
         #ui.message("%s attacks %s." % (str.capitalize(self.name), victim.name))
 
@@ -269,7 +347,9 @@ class Mob(Entity):
             ui.message("%s completely misses %s." % (str.capitalize(self.name), victim.name), actor = self)
             # TODO: if toHit + bonus < 0, fumble
 
-        self.AP -= 1
+        self.AP -= self.getAttackAPCost()
+        self.SP -= 2 # TODO
+        return True
 
     def actionBump(self, dx, dy):
         bumpee = None
@@ -288,6 +368,9 @@ class Mob(Entity):
             else:
                 if (self.hasFlag('AVATAR') or var.rand_chance(50)):
                     self.actionSwap(bumpee)
+                    return True
+                else:
+                    self.actionWait()
                     return True
 
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
@@ -314,7 +397,7 @@ class Mob(Entity):
                     dungeon.map[x][y].change(ter.WoodDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s closes the door." % str.capitalize(self.name), actor = self)
-                    self.AP -= 1
+                    self.AP -= self.getActionAPCost()
                     return True
                 else:
                     print "BUG: Unhandled closeable terrain."
@@ -326,7 +409,7 @@ class Mob(Entity):
 
     def actionDrop(self, dropAll = False):
         if len(self.inventory) == 0:
-            if self.hasFlag('AVATAR'):
+            if self.hasFlag('AVATAR') and not self.hasFlag('DEAD'):
                 ui.message("You carry nothing to drop.")
             return False
         elif dropAll == True:
@@ -355,7 +438,7 @@ class Mob(Entity):
                 var.Entities.append(item)
                 ui.message("%s drops %s." % (str.capitalize(self.name), item.name),
                            actor = self)
-                self.AP -= 0.2 # It's quick.
+                self.AP -= (self.getActionAPCost() / 3) # It's quick.
 
         if len(self.inventory) >= 1:
             return True
@@ -373,12 +456,12 @@ class Mob(Entity):
         if (x < 0 or x > var.MapWidth - 1 or y < 0):
             if self.hasFlag('AVATAR'):
                 ui.message("Be careful or you will break the backlight.")
-            self.AP -= 1
+            self.AP -= self.getMoveAPCost()
             return False
         elif (y > var.MapHeight - 1):
             if self.hasFlag('AVATAR'):
                 ui.message("You hear someone mashing buttons.")
-            self.AP -= 1
+            self.AP -= self.getMoveAPCost()
             return False
 
         for i in var.Entities:
@@ -392,7 +475,7 @@ class Mob(Entity):
                     if not self.hasFlag('AVATAR') and not i.hasFlag('AVATAR'):
                         ui.message("%s chats with %s." % (str.capitalize(self.name), i.name),
                                    actor = self)
-                    self.AP -= 1
+                    self.AP -= self.getActionAPCost()
                     return True
 
         if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
@@ -423,6 +506,11 @@ class Mob(Entity):
         moved = False
 
         # TODO: Leap attack, stamina cost, jumping out of pits with dz
+        if self.SP <= 3:
+            if self.hasFlag('AVATAR'):
+                ui.message("You are too exhausted to jump.")
+            self.AP -= (self.getMoveAPCost() / 2)
+            return False
 
         if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny) and
             libtcod.map_is_in_fov(var.FOVMap, nnx, nny)):
@@ -432,7 +520,8 @@ class Mob(Entity):
         else:
             ui.message("%s balks at the leap." % str.capitalize(self.name), actor = self)
 
-        self.AP -= 1
+        self.AP -= self.getMoveAPCost()
+        self.SP -= 3
         return moved
 
     def actionOpen(self, x, y):
@@ -442,7 +531,7 @@ class Mob(Entity):
                     dungeon.map[x][y].change(ter.OpenDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
-                    self.AP -= 1
+                    self.AP -= self.getActionAPCost()
                     return True
                 else:
                     print "BUG: Unhandled openable terrain."
@@ -473,14 +562,14 @@ class Mob(Entity):
                 ]
                 ui.message(random.choice(quips))
 
-            self.AP -= 0.5
+            self.AP -= (self.getActionAPCost() / 2)
             return False
         elif pickAll == True:
             for i in options:
                 self.inventory.append(i)
                 var.Entities.remove(i)
                 ui.message("%s picks up %s." % (str.capitalize(self.name), i.name), actor = self)
-                self.AP -= 1
+                self.AP -= self.getActionAPCost()
         else:
             if not self.hasFlag('AVATAR'):
                 return False
@@ -494,7 +583,7 @@ class Mob(Entity):
                 var.Entities.remove(options[toPick])
                 ui.message("%s picks up %s." % (str.capitalize(self.name), options[toPick].name),
                            actor = self)
-                self.AP -= 1
+                self.AP -= self.getActionAPCost()
 
         if len(options) > 1:
             return True
@@ -517,11 +606,12 @@ class Mob(Entity):
 
         ui.message("%s swaps places with %s." % (str.capitalize(self.name), Other.name), actor = self)
 
-        self.AP -= 1
+        self.AP -= self.getMoveAPCost()
 
     def actionWait(self):
         #print "%s waits." % self.name
         self.AP -= 1
+        self.receiveStamina(2)
 
     def actionWalk(self, dx, dy):
         moved = False
@@ -535,7 +625,7 @@ class Mob(Entity):
                 ui.message("You cannot go there.")
 
         # Take a turn even if we walk into a wall.
-        self.AP -= 1
+        self.AP -= self.getMoveAPCost()
         return moved
 
 class Item(Entity):

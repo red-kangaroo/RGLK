@@ -15,7 +15,8 @@ Dummy = {
 'Str': 0,
 'Dex': 0,
 'End': 0,
-'Int': 0,
+'Wit': 0,
+'Ego': 0,
 'speed': 1.0,
 'sight': 5,
 'BaseAttack': atk.Punch,
@@ -28,12 +29,13 @@ Dummy = {
 Player = {
 'char': '@',
 'color': libtcod.white,
-'name': 'player',
-'Str': 0,
-'Dex': 0,
-'End': 0,
-'Int': 0,
-'speed': 1.0,
+'name': 'Player',
+'Str': 2,
+'Dex': 2,
+'End': 4,
+'Wit': 0,
+'Ego': 0,
+'speed': 1.2,
 'sight': 6,
 'intrinsics': [],
 'flags': ['AVATAR']
@@ -46,7 +48,8 @@ Orc = {
 'Str': 0,
 'Dex': 0,
 'End': 0,
-'Int': 0,
+'Wit': 0,
+'Ego': 0,
 'flags': ['AI_SCAVENGER']
 }
 
@@ -57,7 +60,8 @@ Troll = {
 'Str': 2,
 'Dex': -1,
 'End': 3,
-'Int': 0,
+'Wit': -1,
+'Ego': 0,
 'speed': 1.0,
 'intrinsics': [],
 'flags': []

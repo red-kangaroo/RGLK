@@ -3,6 +3,7 @@
 
 import libtcodpy as libtcod
 import math
+import random
 import sys
 
 import dungeon
@@ -24,7 +25,7 @@ def getAICommand(Mob):
             Mob.AP -= 100
             return
 
-        if var.rand_chance(1):
+        if var.rand_chance(2):
             # This prevents hang-ups when I screw up some AI loop. ;)
             Mob.target = None
             Mob.goal = None
@@ -36,10 +37,23 @@ def getAICommand(Mob):
             Mob.actionDrop()
             return
 
+        Target = None
+
         if Mob.target != None:
-            Target = Mob.target
-        else:
-            Target = None
+            for i in var.Entities:
+                if i.target == Mob.target:
+                    Mob.target = None
+                    break
+
+            for i in var.Entities:
+                if i == Mob.target:
+                    Target = Mob.target
+                    break
+
+            if Target == None:
+                Mob.target = None
+
+        if Target == None:
             # Check for enemies:
             for i in var.Entities:
                 if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
@@ -55,29 +69,43 @@ def getAICommand(Mob):
                         Mob.target = Target
                         break
 
+        if (Mob.SP <= 2 or Mob.HP <= (Mob.maxHP / 10)):
+            aiFlee(Mob, Target)
+            return
+
         if Target != None:
             if Mob.range(Target) > 1:
                 if aiMoveAStar(Mob, Target) == True:
                     return
-            elif Target.hasFlag('MOB') and Mob.range(Target) < 2:
-                dx = Target.x - Mob.x
-                dy = Target.y - Mob.y
+            if Target.hasFlag('MOB') and Mob.range(Target) < 2:
+                if Mob.getRelation(Target) < 1:
+                    dx = Target.x - Mob.x
+                    dy = Target.y - Mob.y
 
-                Mob.actionAttack(dx, dy, Target)
-                Mob.target = None
-                return
-            elif Target.hasFlag('ITEM') and Mob.hasFlag('AI_SCAVENGER'):
-                if Mob.range(Target) > 0:
-                    aiMoveBase(Mob, Target.x, Target.y)
+                    Mob.actionAttack(dx, dy, Target)
+                    return
                 else:
-                    Mob.actionPickUp(Mob.x, Mob.y, True)
+                    Target = None
                     Mob.target = None
                     return
-            else:
-                if var.rand_chance(5):
-                    Mob.target = None
+            if Target.hasFlag('ITEM') and Mob.hasFlag('AI_SCAVENGER'):
+                if Mob.x == Target.x and Mob.y == Target.y:
+                    Mob.actionPickUp(Mob.x, Mob.y, True)
+
+                    for i in var.Entities:
+                        if i.target == Target:
+                            i.target = None
+
+                    Target = None
+                    return
                 else:
-                    Mob.actionWait()
+                    if aiMoveBase(Mob, Target.x, Target.y) == False:
+                        Mob.actionWait()
+                    return
+            else:
+                Mob.actionWait()
+                return
+
         if Mob.goal != None:
             if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]) == True:
                 return
@@ -85,6 +113,7 @@ def getAICommand(Mob):
                 aiWander(Mob)
             else:
                 Mob.actionWait()
+                return
         else:
             if var.rand_chance(50):
                 for y in range(Mob.y - 1, Mob.y + 2):
@@ -95,6 +124,8 @@ def getAICommand(Mob):
                             return
             else:
                 aiWander(Mob)
+                Mob.actionWait()
+                return
     else:
         # Even some items and features will be able to take turns, but not now.
         Mob.AP -= 1
@@ -490,6 +521,16 @@ def askForTarget(Player, prompt = "Select a target."):
 ###############################################################################
 #  Monster Actions
 ###############################################################################
+def aiFlee (Me, Target):
+    if Target == None or not libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y):
+        Me.actionWait()
+        return True
+    else:
+        # TODO
+        ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
+        Me.actionWait()
+        return True
+
 def aiMoveAStar(Me, Target):
     # Create a FOV map that has the dimensions of the map.
     MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
@@ -518,10 +559,10 @@ def aiMoveAStar(Me, Target):
             dx = x - Me.x
             dy = y - Me.y
 
-            if Me.actionBump(dx, dy):
+            if Me.actionBump(dx, dy) == True:
                 moved = True
 
-    elif aiMoveBase(Me, Target.x, Target.y):
+    elif aiMoveBase(Me, Target.x, Target.y) == True:
         moved = True
 
     libtcod.path_delete(path)
@@ -529,6 +570,7 @@ def aiMoveAStar(Me, Target):
 
 def aiMoveBase(Me, x, y):
     if (Me.x == x and Me.y == y):
+        Me.target = None
         Me.goal = None
         return False
     else:
@@ -541,7 +583,9 @@ def aiMoveBase(Me, x, y):
         dx = int(round(dx / distance))
         dy = int(round(dy / distance))
 
-        if not Me.actionBump(dx, dy):
+        if Me.actionBump(dx, dy) == False:
+            Me.actionWait()
+            Me.target = None
             Me.goal = None
             return False
         else:
@@ -555,12 +599,13 @@ def aiSuicide(Me, Enemy):
     pass
 
 def aiWander(Me):
-    Me.target = None
+    Me.target = random.choice(var.Entities)
+    Me.goal = None
 
     x = 0
     y = 0
 
-    while Me.isBlocked(x, y):
+    while Me.isBlocked(x, y) == True:
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 

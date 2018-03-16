@@ -575,3 +575,6 @@ class Builder(object):
                 MonsterNo += 1
 
             NewMob = None
+
+        ItemNo = 0
+        # TODO: Item generation.

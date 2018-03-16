@@ -7,6 +7,7 @@ import math
 import ai
 import dungeon
 import entity
+import monster as mon
 import ui
 import var
 
@@ -17,11 +18,11 @@ import var
 libtcod.console_set_custom_font('graphics/terminal.png',
   libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
 libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
+#libtcod.sys_set_fps(30)
 
 # Player must be defined here, we work with him shortly.
-Player = entity.Mob(1, 1, '@', libtcod.white, 'Player', 2, 2, 4, 1.2)
+Player = entity.spawn(0, 0, mon.Player)
 var.Entities.append(Player)
-Player.flags.append('AVATAR')
 
 ###############################################################################
 #  Main Loop
@@ -58,3 +59,8 @@ while not libtcod.console_is_window_closed():
                 Dungeon.makeMap(False)
                 var.WizModeNewMap = False
                 ui.message("You call upon the great powers of wizard mode to create a whole new dungeon level!")
+
+    # This is a stupid way of doing this, but eh...
+    if Player.hasFlag('DEAD'):
+        ui.render_all(Player)
+        ai.getAICommand(Player)

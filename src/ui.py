@@ -91,29 +91,40 @@ def render_UI(Player):
     # Health bar:
     render_bar(1, 3, 18, 'HP', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
                libtcod.dark_red, libtcod.darker_red)
+    # Mana bar:
+    render_bar(1, 4, 18, 'MP', int(math.floor(Player.MP)), int(math.floor(Player.maxMP)),
+               libtcod.blue, libtcod.darker_blue)
+    # Stamina bar:
+    render_bar(1, 5, 18, 'SP', int(math.floor(Player.SP)), int(math.floor(Player.maxSP)),
+               libtcod.dark_green, libtcod.darker_green)
 
     # Attributes:
-    libtcod.console_print_ex(var.UIPanel, 1, 5, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Str: ' + str(Player.Str))
-    libtcod.console_print_ex(var.UIPanel, 1, 6, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Dex: ' + str(Player.Dex))
     libtcod.console_print_ex(var.UIPanel, 1, 7, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'Str: ' + str(Player.Str))
+    libtcod.console_print_ex(var.UIPanel, 1, 8, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'Dex: ' + str(Player.Dex))
+    libtcod.console_print_ex(var.UIPanel, 1, 9, libtcod.BKGND_NONE, libtcod.LEFT,
                              'End: ' + str(Player.End))
-    libtcod.console_print_ex(var.UIPanel, 9, 5, libtcod.BKGND_NONE, libtcod.LEFT,
+    libtcod.console_print_ex(var.UIPanel, 10, 7, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'Wit: ' + str(Player.Wit))
+    libtcod.console_print_ex(var.UIPanel, 10, 8, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'Ego: ' + str(Player.Ego))
+    libtcod.console_print_ex(var.UIPanel, 10, 9, libtcod.BKGND_NONE, libtcod.LEFT,
                              'Spd: ' + str(int(Player.speed * 100)))
 
-    libtcod.console_print_ex(var.UIPanel, 1, 9, libtcod.BKGND_NONE, libtcod.LEFT,
+    libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
                              'T: ' + str(var.TurnCount))
 
     # Effects:
     if Player.hasFlag('DEAD'):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_red)
-        libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
+        libtcod.console_print_ex(var.UIPanel, 1, 13, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Dead')
     elif Player.HP < 1:
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.red)
-        libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
+        libtcod.console_print_ex(var.UIPanel, 1, 13, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Dying')
+    # TODO
 
     # Render UI:
     libtcod.console_blit(var.UIPanel, 0, 0, var.PanelWidth, var.ScreenHeight, 0,

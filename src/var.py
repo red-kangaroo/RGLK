@@ -4,6 +4,7 @@
 import libtcodpy as libtcod
 
 import dungeon
+import ui
 
 ###############################################################################
 #  General Functions
@@ -37,6 +38,27 @@ def changeFOVMap(x, y):
     libtcod.map_set_properties(FOVMap, x, y, not dungeon.map[x][y].BlockSight,
                                not dungeon.map[x][y].BlockMove)
 
+# Find functions:
+# ---------------
+def findNearestFreeSpot(x, y):
+    pass
+
+def findNearestCreature(x, y, attitude = None):
+    pass
+
+# Other functions:
+# ----------------
+def waitForMore(Player):
+    ui.message("--More--", color = libtcod.dark_grey)
+    ui.render_all(Player)
+
+    while True:
+        Key = libtcod.console_wait_for_keypress(True)
+
+        if (Key.vk == libtcod.KEY_ESCAPE or Key.vk == libtcod.KEY_ENTER or
+            Key.vk == libtcod.KEY_SPACE):
+            return
+
 ###############################################################################
 #  Global Variables
 ###############################################################################
@@ -44,11 +66,11 @@ def changeFOVMap(x, y):
 # TODO: Most of this should be in a script file.
 
 ScreenWidth = 100
-ScreenHeight = 55
+ScreenHeight = 60
 MapWidth = 80
 MapHeight = 50
 PanelWidth = 20
-PanelHeight = 5
+PanelHeight = 10
 MenuWidth = 70
 MenuHeight = 30
 
@@ -64,6 +86,7 @@ WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
 
+Maps = []
 Entities = []
 MessageHistory = []
 TurnCount = 0
