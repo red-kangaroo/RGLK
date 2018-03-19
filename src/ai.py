@@ -8,6 +8,7 @@ import sys
 
 import dungeon
 import entity
+import game
 import ui
 import var
 
@@ -152,8 +153,20 @@ def handleKeys(Player):
     # NON-TURN ACTIONS:
     # Escape for main menu
     if Key.vk == libtcod.KEY_ESCAPE:
-        ui.main_menu()
-        return
+        what = ui.main_menu(Player)
+
+        if what == 0: # Save
+            game.save()
+            sys.exit("Game saved.")
+            return
+        elif what == 1: # Options
+            ui.message("This function is unfortunately not yet supported!", libtcod.yellow)
+            return
+        if what == 2: # Quit
+            sys.exit("You cowardly quit the game.")
+            return
+        else:
+            return
 
     # Alt+Enter goes fullscreen
     if Key.vk == libtcod.KEY_ENTER and Key.lalt:
@@ -290,6 +303,14 @@ def handleKeys(Player):
             (Key.vk == libtcod.KEY_CHAR and Key.c == ord(','))):
             while Player.actionPickUp(Player.x, Player.y) == True:
                 pass # Return to menu if something remains to pick up.
+            return
+
+        # Save game
+        if (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('s'))):
+            ui.message("Saving...", libtcod.yellow)
+            waitForMore(Player)
+            game.save()
+            sys.exit("Game saved.")
             return
 
         # Swap places

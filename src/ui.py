@@ -145,7 +145,7 @@ def render_UI(Player):
     libtcod.console_blit(var.UIPanel, 0, 0, var.PanelWidth, var.ScreenHeight, 0,
                          var.ScreenWidth - var.PanelWidth, 0)
 
-def menu(header, options):
+def option_menu(header, options):
     # TODO: Several screens.
     if len(options) > 26:
         print "Too many menu options."
@@ -183,7 +183,10 @@ def menu(header, options):
             if what in range(0, len(options) + 1):
                 return what
 
-def main_menu():
+def text_menu(header, text):
+    pass
+
+def main_menu(Player = None):
     libtcod.console_set_default_foreground(var.MainMenu, var.TextColor)
     # No background to allow for an image, one day.
     #libtcod.console_set_default_background(var.MainMenu, libtcod.BKGND_NONE)
@@ -193,16 +196,24 @@ def main_menu():
     libtcod.console_print(var.MainMenu, (var.MainWidth / 2), 1, var.GameName)
 
     index = ord('a')
-    options = [
-    "Quick Start",
-    "Create Character",
-    "Continue Game",
-    "Tutorial",
-    "Options",
-    #"Credits",
-    "Quit"
-    ]
-    # TODO: Options while playing, ie. Save, Quit etc.
+    options = []
+
+    if Player == None:
+        options = [
+        "Quick Start",
+        "Create Character",
+        "Continue Game",
+        "Tutorial",
+        "Options",
+        #"Credits",
+        "Quit"
+        ]
+    else:
+        options = [
+        "Save and Quit",
+        "Options",
+        "Quit and Abandon"
+        ]
 
     y = 3
     for option in options:
@@ -227,7 +238,7 @@ def main_menu():
         if what in range(0, len(options) + 1):
             return what
         elif Key.vk == libtcod.KEY_ESCAPE:
-            return 5 # Esc to quit.
+            return None
 
 def render_bar(x, y, totalWidth, name, value, maxValue, barColor, backColor):
     # Calculate width of bar:

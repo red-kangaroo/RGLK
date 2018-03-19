@@ -486,7 +486,7 @@ class Mob(Entity):
             if not self.hasFlag('AVATAR'):
                 toDrop = libtcod.random_get_int(0, 0, len(self.inventory) - 1)
             else:
-                toDrop = ui.menu("What do you want to drop?", self.inventory)
+                toDrop = ui.option_menu("What do you want to drop?", self.inventory)
 
             if toDrop == None:
                 return False
@@ -557,7 +557,7 @@ class Mob(Entity):
             ui.message("You carry no items.")
             return False
         else:
-            ui.menu("You carry the following:", self.inventory)
+            ui.option_menu("You carry the following:", self.inventory)
             return True
 
     def actionJump(self, where):
@@ -648,7 +648,7 @@ class Mob(Entity):
             if not self.hasFlag('AVATAR'):
                 return False
 
-            toPick = ui.menu("What do you want to pick up?", options)
+            toPick = ui.option_menu("What do you want to pick up?", options)
 
             if toPick == None:
                 return False

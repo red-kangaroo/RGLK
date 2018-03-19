@@ -22,6 +22,7 @@ Movement:
 General:
 
 ```
+ Esc          main menu
  Alt + Enter  toggle full screen
  Space        interact
 
@@ -33,7 +34,8 @@ General:
  J            jump
  L            look
  o            open
- Ctrl + q     quit game
+ Ctrl + s     save and quit
+ Ctrl + q     quit and abandon
  X            exchange places
 ```
 
