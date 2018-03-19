@@ -32,11 +32,12 @@ FEY
 HUMANOID
 
 AI:
-AI_FLEE
+AI_DIJKSTRA        Uses dijkstra maps for movement instead of A*.
+AI_FLEE            Used to change AI pattern to fleeing from enemies.
 AI_GREEDY
-AI_KITE
+AI_KITE            Tries to stay at range from enemy.
 AI_PREDATOR        Attacks anything with flag BEAST and without AI_PREDATOR.
-AI_SCAVENGER
+AI_SCAVENGER       Hoards items.
 
 Special:
 AVATAR             Player-controlled entity.

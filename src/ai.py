@@ -36,11 +36,13 @@ def getAICommand(Mob):
             Mob.actionDrop()
             return
 
-        if (Mob.SP <= 2 or Mob.HP <= (Mob.maxHP / 10)):
+        if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
             Mob.flags.append('AI_FLEE')
+            print "%s flees." % Mob.name
         elif (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
               Mob.HP >= (Mob.maxHP / 2)):
             Mob.flags.remove('AI_FLEE')
+            print "%s no longer flees." % Mob.name
 
         Target = None
 
@@ -49,6 +51,11 @@ def getAICommand(Mob):
             #    if i.target == Mob.target:
             #        Mob.target = None
             #        break
+
+            if (not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y) and
+                var.rand_chance(15)):
+                Mob.target == None
+                return
 
             # This prevents looking for target that was picked up or something:
             for i in var.Entities:
@@ -76,20 +83,52 @@ def getAICommand(Mob):
                         break
 
         if Target != None:
-            # TODO: This does not work yet:
-            #if Mob.hasFlag('AI_FLEE'):
-            #    if aiFlee(Mob, Target) == True:
-            #        return
+            if Mob.hasFlag('AI_FLEE'):
+                if aiFlee(Mob, Target) == True:
+                    return
+
+            # TODO: ranged attacks
 
             if Mob.range(Target) > 1:
-                if aiMoveAStar(Mob, Target) == True:
+                if Mob.hasFlag('AI_KITE'):
+                    if aiKite(Mob, Target) == True:
+                        return
+
+                if aiMove(Mob, Target) == True:
                     return
 
             if Target.hasFlag('MOB') and Mob.range(Target) < 2:
                 if Mob.getRelation(Target) < 1:
+                    if Mob.hasFlag('AI_KITE') and var.rand_chance(50):
+                        if aiKite(Mob, Target) == True:
+                            return
+
                     dx = Target.x - Mob.x
                     dy = Target.y - Mob.y
 
+                    # We want to sometimes sidestep player to allow others to join us.
+                    friends = False
+
+                    for i in var.Entities:
+                        if (i != Mob and i != Target and i.range(Mob) < 2 and
+                            i.getRelation(Target) < 1):
+                            friends = True
+                            break
+
+                    if friends == True and var.rand_chance(20):
+                        for y in range(Mob.y - 1, Mob.y + 2):
+                            for x in range(Mob.x - 1, Mob.x + 2):
+                                if (x in range(0, var.MapWidth - 1) and
+                                    y in range(0, var.MapHeight - 1)):
+                                    if dungeon.map[x][y].BlockMove == False:
+                                        if Target.distance(x, y) < 2:
+                                            dx = x - Mob.x
+                                            dy = y - Mob.y
+                                            break
+                        Mob.actionBump(dx, dy)
+                        return
+
+                    # Exterminate! Exterminate! Exterminate!
                     Mob.actionAttack(dx, dy, Target)
                     return
                 else:
@@ -585,22 +624,52 @@ def aiFlee(Me, Target):
         Me.actionWait()
         return True
     else:
-        if aiMoveDijkstra(Me, Target) == False:
-            ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
-            Me.actionWait()
-            return False
-
-        return True
-
-def aiMoveAStar(Me, Target):
-    if Me.hasFlag('AI_FLEE'):
-        if aiMoveBase(Me, Target.x, Target.y, True) == True:
+        if aiKite(Me, Target) == True:
             return True
-        else:
-            ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
-            Me.actionWait()
-            return False
 
+        # We failed to move away, so find a friendly target and run for help.
+        fails = 0
+        Other = None
+
+        while fails < 100:
+            Other = random.choice(var.Entities)
+
+            if Other.hasFlag('MOB'):
+                if Me.getRelation(Other) == 1:
+                    Me.target = Other
+                    break
+
+        if Me.target != None and Me.target != Target:
+            if aiMove(Me, Me.target) == True:
+                return True
+
+        ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
+        Me.actionWait()
+        return False
+
+def aiKite(Me, Target):
+    if Me.range(Target) >= Me.FOVRadius:
+        return False
+
+    distance = Me.range(Target)
+    goal = None
+
+    for y in range(Me.y - 1, Me.y + 2):
+        for x in range(Me.x - 1, Me.x + 2):
+            if x in range(0, var.MapWidth - 1) and y in range(0, var.MapHeight - 1):
+                if dungeon.map[x][y].BlockMove == False:
+                    if Target.distance(x, y) > distance:
+                        distance = Target.distance(x, y)
+                        goal = [x, y]
+
+    if goal != None:
+        Me.goal = goal
+        if aiMoveBase(Me, goal[0], goal[1]) == True:
+            return True
+
+    return False
+
+def aiMove(Me, Target):
     # Create a map that has the dimensions of the map.
     MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
 
@@ -613,6 +682,21 @@ def aiMoveAStar(Me, Target):
         if i.BlockMove and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
 
+    if Me.hasFlag('AI_DIJKSTRA'):
+        if aiMoveDijkstra(Me, Target, MoveMap) == True:
+            return True
+    if Me.Wit > -3:
+        if aiMoveAStar(Me, Target, MoveMap) == True:
+            return True
+
+    if Me.hasFlag('AI_FLEE'):
+        flee = True
+    else:
+        flee = False
+
+    aiMoveBase(Me, Target.x, Target.y, flee)
+
+def aiMoveAStar(Me, Target, MoveMap):
     path = libtcod.path_new_using_map(MoveMap, 1.41)
     libtcod.path_compute(path, Me.x, Me.y, Target.x, Target.y)
 
@@ -620,7 +704,7 @@ def aiMoveAStar(Me, Target):
     # The path size matters for alternative longer paths (for example through other rooms
     # if the player is in a corridor).
     moved = False
-    if (not libtcod.path_is_empty(path) and libtcod.path_size(path) < 50 and
+    if (not libtcod.path_is_empty(path) and libtcod.path_size(path) < 25 and
         libtcod.path_size(path) > 1):
         x, y = libtcod.path_walk(path, True)
 
@@ -635,48 +719,6 @@ def aiMoveAStar(Me, Target):
         moved = True
 
     libtcod.path_delete(path)
-    return moved
-
-def aiMoveDijkstra(Me, Target):
-    # TODO:
-    # This does not work right for now. :(
-
-    # Create a map that has the dimensions of the map.
-    MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
-
-    # Set non-walkable spaces:
-    for y in range(var.MapHeight):
-        for x in range(var.MapWidth):
-            libtcod.map_set_properties(MoveMap, x, y, not dungeon.map[x][y].BlockSight,
-                    (not dungeon.map[x][y].BlockMove or dungeon.map[x][y].hasFlag('CAN_BE_OPENED')))
-    for i in var.Entities:
-        if i.BlockMove and i != Me and i != Target:
-            libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
-
-    path = libtcod.dijkstra_new(MoveMap, 1.41)
-    libtcod.dijkstra_compute(path, Me.x, Me.y)
-    libtcod.dijkstra_path_set(path, Target.x, Target.y)
-
-    if Me.hasFlag('AI_FLEE'):
-        libtcod.dijkstra_reverse(path)
-
-    # Check if the path exists and walk it:
-    moved = False
-    if not libtcod.dijkstra_is_empty(path):
-        x, y = libtcod.dijkstra_path_walk(path)
-
-        if x or y:
-            dx = x - Me.x
-            dy = y - Me.y
-
-            if Me.actionBump(dx, dy) == True:
-                print "Bump"
-                moved = True
-
-    elif aiMoveBase(Me, Target.x, Target.y, True) == True:
-        moved = True
-
-    libtcod.dijkstra_delete(path)
     return moved
 
 def aiMoveBase(Me, x, y, flee = False):
@@ -705,6 +747,30 @@ def aiMoveBase(Me, x, y, flee = False):
             return False
         else:
             return True
+
+def aiMoveDijkstra(Me, Target, MoveMap):
+    path = libtcod.dijkstra_new(MoveMap, 1.41)
+    libtcod.dijkstra_compute(path, Me.x, Me.y)
+    libtcod.dijkstra_path_set(path, Target.x, Target.y)
+
+    # Check if the path exists and walk it:
+    moved = False
+    if (not libtcod.dijkstra_is_empty(path) and libtcod.dijkstra_size(path) < 25 and
+        libtcod.dijkstra_size(path) > 1):
+        x, y = libtcod.dijkstra_path_walk(path)
+
+        if x or y:
+            dx = x - Me.x
+            dy = y - Me.y
+
+            if Me.actionBump(dx, dy) == True:
+                moved = True
+
+    elif aiMoveBase(Me, Target.x, Target.y) == True:
+        moved = True
+
+    libtcod.dijkstra_delete(path)
+    return moved
 
 def aiSpite(Me, Enemy):
     pass

@@ -217,7 +217,7 @@ class Mob(Entity):
         return (20 * (1.2 ** self.Ego)) + self.bonusMP
 
     def recalculateStamina(self):
-        return (20 * (1.2 ** self.Str)) # TODO
+        return (20 * (1.2 ** self.Str))
 
     def regainHealth(self):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
@@ -252,6 +252,7 @@ class Mob(Entity):
 
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
+        #       Special cases for golden beetle, vampire bat, ...
         if (self.hasFlag('AVATAR') or Other.hasFlag('AVATAR')):
             return 0
         else:
@@ -433,6 +434,14 @@ class Mob(Entity):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if(self.actionOpen(x, y)):
                     return True
+            elif dungeon.map[x][y].BlockMove == True:
+                for n in range(y - 1, y + 2):
+                    for m in range(x - 1, x + 2):
+                        if (m > 0 and m < var.MapWidth - 1 and
+                            n > 0 and n < var.MapHeight - 1):
+                            if dungeon.map[m][n].hasFlag('CAN_BE_CLOSED'):
+                                if(self.actionClose(m, n)):
+                                    return True
 
         if self.actionWalk(dx, dy):
             return True

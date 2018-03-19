@@ -18,7 +18,7 @@ Dummy = {
 'Wit': 0,
 'Ego': 0,
 'speed': 1.0,
-'sight': 5,
+'sight': 6,
 'BaseAttack': atk.Punch,
 'material': 'FLESH',
 'diet': ['FLESH', 'WATER'],

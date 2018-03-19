@@ -127,7 +127,7 @@ def render_UI(Player):
 
     # Display target stats:
     if Player.target != None:
-        # Player's name:
+        libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
         libtcod.console_print_ex(var.UIPanel, 1, 54, libtcod.BKGND_NONE, libtcod.LEFT,
                                  Player.target.name)
 
