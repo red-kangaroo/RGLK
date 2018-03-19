@@ -46,19 +46,6 @@ def findNearestFreeSpot(x, y):
 def findNearestCreature(x, y, attitude = None):
     pass
 
-# Other functions:
-# ----------------
-def waitForMore(Player):
-    ui.message("Press Enter, Space or Esc for more.", color = libtcod.yellow)
-    ui.render_all(Player)
-
-    while True:
-        Key = libtcod.console_wait_for_keypress(True)
-
-        if (Key.vk == libtcod.KEY_ESCAPE or Key.vk == libtcod.KEY_ENTER or
-            Key.vk == libtcod.KEY_SPACE):
-            return
-
 ###############################################################################
 #  Global Variables
 ###############################################################################
@@ -73,6 +60,8 @@ PanelWidth = 20
 PanelHeight = 10
 MenuWidth = 70
 MenuHeight = 30
+MainWidth = 35
+MainHeight = 12
 
 RoomMinSize = 5
 RoomMaxSize = 10
@@ -89,8 +78,10 @@ WizModeNewMap = False
 Maps = []
 Entities = []
 MessageHistory = []
+
 TurnCount = 0
 TextColor = libtcod.white
+GameName = "Realm of the Glorious Lich King"
 
 # FOV map:
 FOVMap = libtcod.map_new(MapWidth, MapHeight)
@@ -99,3 +90,4 @@ MapConsole = libtcod.console_new(MapWidth, MapHeight)
 UIPanel = libtcod.console_new(PanelWidth, ScreenHeight)
 MessagePanel = libtcod.console_new(ScreenWidth - PanelWidth, PanelHeight)
 MenuPanel = libtcod.console_new(MenuWidth, MenuHeight)
+MainMenu = libtcod.console_new(MainWidth, MainHeight)

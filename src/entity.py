@@ -164,6 +164,8 @@ class Entity(object):
             self.AP += 1
         # TODO: Check terrain for special effects.
         # TODO: Intrinsics and status effects.
+        # TODO: Call Be() for inventory items from here, because they will not go
+        #       through the main loop of var.Entities
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, #These are base Entity arguments.
@@ -215,7 +217,7 @@ class Mob(Entity):
         return (20 * (1.2 ** self.Ego)) + self.bonusMP
 
     def recalculateStamina(self):
-        return (10 * (1.2 ** self.Str))
+        return (20 * (1.2 ** self.Str)) # TODO
 
     def regainHealth(self):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
@@ -320,7 +322,7 @@ class Mob(Entity):
             self.actionDrop(True)
 
             if self.hasFlag('AVATAR'):
-                var.waitForMore(self)
+                ai.waitForMore(self)
                 var.WizModeTrueSight = True
                 ui.message("You have failed in your quest!")
 
@@ -328,14 +330,23 @@ class Mob(Entity):
             self.color = libtcod.red
             self.name = str(self.name + ' corpse')
             self.BlockMove = False
+
+            for i in var.Entities:
+                if i.target == self:
+                    i.target = None
+
             return True
         else:
             return False
 
     # Actions:
     def actionAttack(self, dx, dy, victim):
+        # Set our victim as AI target:
+        self.target = victim
+
         if self.AP < 1:
             return False
+
         # TODO
         if self.SP <= 0:
             if self.hasFlag('AVATAR'):

@@ -37,8 +37,8 @@ def getAICommand(Mob):
 
         if (Mob.SP <= 2 or Mob.HP <= (Mob.maxHP / 10)):
             Mob.flags.append('AI_FLEE')
-        elif (Mob.hasFlag('AI_FLEE') and Mob.SP >= Mob.maxSP / 2 and
-              Mob.HP >= Mob.maxHP / 2):
+        elif (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
+              Mob.HP >= (Mob.maxHP / 2)):
             Mob.flags.remove('AI_FLEE')
 
         Target = None
@@ -150,6 +150,11 @@ def handleKeys(Player):
 
 
     # NON-TURN ACTIONS:
+    # Escape for main menu
+    if Key.vk == libtcod.KEY_ESCAPE:
+        ui.main_menu()
+        return
+
     # Alt+Enter goes fullscreen
     if Key.vk == libtcod.KEY_ENTER and Key.lalt:
         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
@@ -537,6 +542,17 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
         elif (Key.vk == libtcod.KEY_ENTER or
             (Key.vk == libtcod.KEY_CHAR and Key.c == ord('.'))):
             return [x, y]
+
+def waitForMore(Player):
+    ui.message("Press Enter, Space or Esc for more.", color = libtcod.yellow)
+    ui.render_all(Player)
+
+    while True:
+        Key = libtcod.console_wait_for_keypress(True)
+
+        if (Key.vk == libtcod.KEY_ESCAPE or Key.vk == libtcod.KEY_ENTER or
+            Key.vk == libtcod.KEY_SPACE):
+            return
 
 ###############################################################################
 #  Monster Actions
