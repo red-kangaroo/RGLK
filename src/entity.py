@@ -120,9 +120,15 @@ class Entity(object):
             libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_SCREEN)
             self.flags.append('SEEN')
 
-    def range(self, Other):
+    def range(self, Other): # Range between to entities.
         dx = Other.x - self.x
         dy = Other.y - self.y
+
+        return math.sqrt(dx ** 2 + dy ** 2)
+
+    def distance(self, x, y): # Distance between self and map square.
+        dx = x - self.x
+        dy = y - self.y
 
         return math.sqrt(dx ** 2 + dy ** 2)
 
@@ -206,7 +212,7 @@ class Mob(Entity):
         return (20 * (1.2 ** self.End)) + self.bonusHP
 
     def recalculateMana(self):
-        return (10 * (1.2 ** self.Ego)) + self.bonusMP
+        return (20 * (1.2 ** self.Ego)) + self.bonusMP
 
     def recalculateStamina(self):
         return (10 * (1.2 ** self.Str))
@@ -222,6 +228,25 @@ class Mob(Entity):
     def regainStamina(self):
         if not self.hasFlag('DEAD') and self.SP < self.maxSP:
             self.SP += 1
+
+    def getAccuracyBonus(self):
+        # TODO
+        toHit = self.Dex
+
+        if toHit >= 1:
+            return libtcod.random_get_int(0, 0, toHit)
+        else:
+            return toHit
+
+    def getDodgeBonus(self):
+        # TODO
+        toDodge = self.Dex
+
+        if toDodge >= 1:
+            return libtcod.random_get_int(0, 0, toDodge)
+        else:
+            return toDodge
+
 
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
@@ -309,8 +334,10 @@ class Mob(Entity):
 
     # Actions:
     def actionAttack(self, dx, dy, victim):
+        if self.AP < 1:
+            return False
         # TODO
-        if self.SP <= 2:
+        if self.SP <= 0:
             if self.hasFlag('AVATAR'):
                 ui.message("You are too exhausted to fight.")
             return False
@@ -331,16 +358,28 @@ class Mob(Entity):
         elif (toHit == 1 or toDodge == 20):
             forcedMiss = True
 
-        if forcedMiss == False:
-            toHit += self.Dex
-            toDodge += victim.Dex
+        # Debug:
+        print "-" * 10
+        print "%s to hit roll: %s; %s to dodge roll: %s" % (self.name, toHit,
+                                                            victim.name, toDodge)
 
-            if (forcedHit or toHit > toDodge):
-                # For now:
-                ui.message("%s hits %s." % (str.capitalize(self.name), victim.name), actor = self)
+        toHit += self.getAccuracyBonus()
+        toDodge += victim.getDodgeBonus()
 
+        print "modified hit chance: %s vs %s" % (toHit, toDodge)
+
+        if forcedMiss == False or forcedHit == True:
+            if (forcedHit == True or toHit > toDodge):
+                if forcedHit == True:
+                    ui.message("%s easily hits %s." % (str.capitalize(self.name), victim.name), actor = self)
+                else:
+                    ui.message("%s hits %s." % (str.capitalize(self.name), victim.name), actor = self)
+
+                # TODO:
+                # Different attacks, crits.
                 damage = libtcod.random_get_int(0, 1, 6) + self.Str
                 victim.receiveDamage(damage)
+                print "%s receives %s damage" % (victim.name, damage)
             else:
                 ui.message("%s misses %s." % (str.capitalize(self.name), victim.name), actor = self)
         else:
@@ -352,6 +391,9 @@ class Mob(Entity):
         return True
 
     def actionBump(self, dx, dy):
+        if self.AP < 1:
+            return False
+
         bumpee = None
         x = self.x + dx
         y = self.y + dy
@@ -362,7 +404,10 @@ class Mob(Entity):
                 break
 
         if bumpee != None:
-            if self.getRelation(bumpee) < 1:
+            if self.hasFlag('AI_FLEE'):
+                self.actionSwap(bumpee)
+                return True
+            elif self.getRelation(bumpee) < 1:
                 self.actionAttack(dx, dy, bumpee)
                 return True
             else:
@@ -384,6 +429,9 @@ class Mob(Entity):
             return False
 
     def actionClose(self, x, y):
+        if self.AP < 1:
+            return False
+
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             blocked = False
 
@@ -408,6 +456,9 @@ class Mob(Entity):
         return False
 
     def actionDrop(self, dropAll = False):
+        if self.AP < 1:
+            return False
+
         if len(self.inventory) == 0:
             if self.hasFlag('AVATAR') and not self.hasFlag('DEAD'):
                 ui.message("You carry nothing to drop.")
@@ -446,6 +497,9 @@ class Mob(Entity):
             return False
 
     def actionInteract(self, where):
+        if self.AP < 1:
+            return False
+
         dx = where[0]
         dy = where[1]
 
@@ -496,6 +550,9 @@ class Mob(Entity):
             return True
 
     def actionJump(self, where):
+        if self.AP < 1:
+            return False
+
         dx = where[0]
         dy = where[1]
         dz = where[2]
@@ -506,7 +563,7 @@ class Mob(Entity):
         moved = False
 
         # TODO: Leap attack, stamina cost, jumping out of pits with dz
-        if self.SP <= 3:
+        if self.SP <= 5:
             if self.hasFlag('AVATAR'):
                 ui.message("You are too exhausted to jump.")
             self.AP -= (self.getMoveAPCost() / 2)
@@ -521,10 +578,13 @@ class Mob(Entity):
             ui.message("%s balks at the leap." % str.capitalize(self.name), actor = self)
 
         self.AP -= self.getMoveAPCost()
-        self.SP -= 3
+        self.SP -= 5
         return moved
 
     def actionOpen(self, x, y):
+        if self.AP < 1:
+            return False
+
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if dungeon.map[x][y].hasFlag('DOOR'):
@@ -540,6 +600,9 @@ class Mob(Entity):
         return False
 
     def actionPickUp(self, x, y, pickAll = False):
+        if self.AP < 1:
+            return False
+
         if len(self.inventory) >= self.carry:
             if self.hasFlag('AVATAR'):
                 ui.message("Your inventory is already full.")
@@ -594,6 +657,9 @@ class Mob(Entity):
         pass
 
     def actionSwap(self, Other):
+        if self.AP < 1:
+            return False
+
         x1 = self.x
         y1 = self.y
         x2 = Other.x
@@ -614,6 +680,9 @@ class Mob(Entity):
         self.receiveStamina(2)
 
     def actionWalk(self, dx, dy):
+        if self.AP < 1:
+            return False
+
         moved = False
 
         if (not self.isBlocked(self.x + dx, self.y + dy) or

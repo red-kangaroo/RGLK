@@ -49,7 +49,7 @@ def findNearestCreature(x, y, attitude = None):
 # Other functions:
 # ----------------
 def waitForMore(Player):
-    ui.message("--More--", color = libtcod.dark_grey)
+    ui.message("Press Enter, Space or Esc for more.", color = libtcod.yellow)
     ui.render_all(Player)
 
     while True:

@@ -32,7 +32,11 @@ FEY
 HUMANOID
 
 AI:
+AI_FLEE
+AI_GREEDY
+AI_KITE
 AI_PREDATOR        Attacks anything with flag BEAST and without AI_PREDATOR.
+AI_SCAVENGER
 
 Special:
 AVATAR             Player-controlled entity.

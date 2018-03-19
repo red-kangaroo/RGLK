@@ -1,0 +1,45 @@
+Typeing area (name, wishing):
+
+libtcod.console_init_root(80, 25, 'Testing input keys', False)
+FPS = 20
+libtcod.sys_set_fps(FPS)
+libtcod.console_set_keyboard_repeat(300, 100)
+
+timer = 0
+command = ""
+x = 0
+
+while not libtcod.console_is_window_closed():
+
+    key = libtcod.console_check_for_keypress(libtcod.KEY_PRESSED)
+
+    timer += 1
+    if timer % (FPS // 4) == 0:
+        if timer % (FPS // 2) == 0:
+            timer = 0
+            libtcod.console_set_char(0, x,  0, "_")
+            libtcod.console_set_fore(0, x, 0, libtcod.white)
+        else:
+            libtcod.console_set_char(0, x,  0, " ")
+            libtcod.console_set_fore(0, x, 0, libtcod.white)
+
+    if key.vk == libtcod.KEY_BACKSPACE and x > 0:
+        libtcod.console_set_char(0, x,  0, " ")
+        libtcod.console_set_fore(0, x, 0, libtcod.white)
+        command = command[:-1]
+        x -= 1
+    elif key.vk == libtcod.KEY_ENTER:
+        break
+    elif key.vk == libtcod.KEY_ESCAPE:
+        command = ""
+        break
+    elif key.c > 0:
+        letter = chr(key.c)
+        libtcod.console_set_char(0, x, 0, letter)  #print new character at appropriate position on screen
+        libtcod.console_set_fore(0, x, 0, libtcod.white)  #make it white or something
+        command += letter  #add to the string
+        x += 1
+
+    libtcod.console_flush()
+
+print command

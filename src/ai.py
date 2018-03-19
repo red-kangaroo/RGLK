@@ -20,31 +20,36 @@ def getAICommand(Mob):
         handleKeys(Mob)
     elif Mob.hasFlag('MOB'):
         if Mob.hasFlag('DEAD'):
-            # TODO
             print "BUG: %s is too dead to do anything." % Mob.name
             Mob.AP -= 100
             return
 
-        if var.rand_chance(2):
+        if var.rand_chance(1):
             # This prevents hang-ups when I screw up some AI loop. ;)
             Mob.target = None
             Mob.goal = None
             Mob.actionWait()
-            print "Hang-up in AI!"
             return
 
         if (len(Mob.inventory) > Mob.carry):
             Mob.actionDrop()
             return
 
+        if (Mob.SP <= 2 or Mob.HP <= (Mob.maxHP / 10)):
+            Mob.flags.append('AI_FLEE')
+        elif (Mob.hasFlag('AI_FLEE') and Mob.SP >= Mob.maxSP / 2 and
+              Mob.HP >= Mob.maxHP / 2):
+            Mob.flags.remove('AI_FLEE')
+
         Target = None
 
         if Mob.target != None:
-            for i in var.Entities:
-                if i.target == Mob.target:
-                    Mob.target = None
-                    break
+            #for i in var.Entities:
+            #    if i.target == Mob.target:
+            #        Mob.target = None
+            #        break
 
+            # This prevents looking for target that was picked up or something:
             for i in var.Entities:
                 if i == Mob.target:
                     Target = Mob.target
@@ -69,14 +74,16 @@ def getAICommand(Mob):
                         Mob.target = Target
                         break
 
-        if (Mob.SP <= 2 or Mob.HP <= (Mob.maxHP / 10)):
-            aiFlee(Mob, Target)
-            return
-
         if Target != None:
+            # TODO: This does not work yet:
+            #if Mob.hasFlag('AI_FLEE'):
+            #    if aiFlee(Mob, Target) == True:
+            #        return
+
             if Mob.range(Target) > 1:
                 if aiMoveAStar(Mob, Target) == True:
                     return
+
             if Target.hasFlag('MOB') and Mob.range(Target) < 2:
                 if Mob.getRelation(Target) < 1:
                     dx = Target.x - Mob.x
@@ -88,6 +95,7 @@ def getAICommand(Mob):
                     Target = None
                     Mob.target = None
                     return
+
             if Target.hasFlag('ITEM') and Mob.hasFlag('AI_SCAVENGER'):
                 if Mob.x == Target.x and Mob.y == Target.y:
                     Mob.actionPickUp(Mob.x, Mob.y, True)
@@ -102,9 +110,11 @@ def getAICommand(Mob):
                     if aiMoveBase(Mob, Target.x, Target.y) == False:
                         Mob.actionWait()
                     return
-            else:
-                Mob.actionWait()
-                return
+
+            # We can't seem to be able to do anything, so find other target.
+            aiWander(Mob)
+            Mob.actionWait()
+            return
 
         if Mob.goal != None:
             if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]) == True:
@@ -116,6 +126,7 @@ def getAICommand(Mob):
                 return
         else:
             if var.rand_chance(50):
+                # Close doors, chat with friends...
                 for y in range(Mob.y - 1, Mob.y + 2):
                     for x in range(Mob.x - 1, Mob.x + 2):
                         where = [Mob.x - x, Mob.y - y]
@@ -403,7 +414,7 @@ def askForConfirmation(Player, prompt = "Really?"):
             # Requires capital Y to avoid fat-fingering with vi keys.
             return True
 
-def askForTarget(Player, prompt = "Select a target."):
+def askForTarget(Player, prompt = "Select a target.", Range = None):
     ui.message(prompt + " [dir keys; Enter or . to confirm; Esc to exit]")
     ui.render_all(Player)
 
@@ -455,8 +466,17 @@ def askForTarget(Player, prompt = "Select a target."):
             # Move the colored cursor:
             if (x + dx > 0 or x + dx < var.MapWidth - 1 or
                 y + dy > 0 or y + dy < var.MapHeight - 1):
-                x = x + dx
-                y = y + dy
+                if Range != None:
+                    if Player.distance(x + dx, y + dy) <= Range:
+                        x = x + dx
+                        y = y + dy
+                    else:
+                        ui.message("Out of range!")
+                        ui.render_all(Player)
+                        continue
+                else:
+                    x = x + dx
+                    y = y + dy
 
             libtcod.console_set_char_background(var.MapConsole, x, y, libtcod.light_grey,
                                                 libtcod.BKGND_SET)
@@ -521,18 +541,30 @@ def askForTarget(Player, prompt = "Select a target."):
 ###############################################################################
 #  Monster Actions
 ###############################################################################
-def aiFlee (Me, Target):
-    if Target == None or not libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y):
+def aiFlee(Me, Target):
+    if not Me.hasFlag('AI_FLEE'):
+        return False
+    elif Target == None or not libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y):
         Me.actionWait()
         return True
     else:
-        # TODO
-        ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
-        Me.actionWait()
+        if aiMoveDijkstra(Me, Target) == False:
+            ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
+            Me.actionWait()
+            return False
+
         return True
 
 def aiMoveAStar(Me, Target):
-    # Create a FOV map that has the dimensions of the map.
+    if Me.hasFlag('AI_FLEE'):
+        if aiMoveBase(Me, Target.x, Target.y, True) == True:
+            return True
+        else:
+            ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
+            Me.actionWait()
+            return False
+
+    # Create a map that has the dimensions of the map.
     MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
 
     # Set non-walkable spaces:
@@ -568,7 +600,49 @@ def aiMoveAStar(Me, Target):
     libtcod.path_delete(path)
     return moved
 
-def aiMoveBase(Me, x, y):
+def aiMoveDijkstra(Me, Target):
+    # TODO:
+    # This does not work right for now. :(
+
+    # Create a map that has the dimensions of the map.
+    MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
+
+    # Set non-walkable spaces:
+    for y in range(var.MapHeight):
+        for x in range(var.MapWidth):
+            libtcod.map_set_properties(MoveMap, x, y, not dungeon.map[x][y].BlockSight,
+                    (not dungeon.map[x][y].BlockMove or dungeon.map[x][y].hasFlag('CAN_BE_OPENED')))
+    for i in var.Entities:
+        if i.BlockMove and i != Me and i != Target:
+            libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
+
+    path = libtcod.dijkstra_new(MoveMap, 1.41)
+    libtcod.dijkstra_compute(path, Me.x, Me.y)
+    libtcod.dijkstra_path_set(path, Target.x, Target.y)
+
+    if Me.hasFlag('AI_FLEE'):
+        libtcod.dijkstra_reverse(path)
+
+    # Check if the path exists and walk it:
+    moved = False
+    if not libtcod.dijkstra_is_empty(path):
+        x, y = libtcod.dijkstra_path_walk(path)
+
+        if x or y:
+            dx = x - Me.x
+            dy = y - Me.y
+
+            if Me.actionBump(dx, dy) == True:
+                print "Bump"
+                moved = True
+
+    elif aiMoveBase(Me, Target.x, Target.y, True) == True:
+        moved = True
+
+    libtcod.dijkstra_delete(path)
+    return moved
+
+def aiMoveBase(Me, x, y, flee = False):
     if (Me.x == x and Me.y == y):
         Me.target = None
         Me.goal = None
@@ -583,6 +657,10 @@ def aiMoveBase(Me, x, y):
         dx = int(round(dx / distance))
         dy = int(round(dy / distance))
 
+        if flee == True:
+            dx = -dx
+            dy = -dy
+
         if Me.actionBump(dx, dy) == False:
             Me.actionWait()
             Me.target = None
@@ -593,13 +671,13 @@ def aiMoveBase(Me, x, y):
 
 def aiSpite(Me, Enemy):
     pass
-    # break weapon, spit at Enemy
+    # break weapon, spit at Enemy etc.
 
 def aiSuicide(Me, Enemy):
     pass
 
 def aiWander(Me):
-    Me.target = random.choice(var.Entities)
+    Me.target = None
     Me.goal = None
 
     x = 0
