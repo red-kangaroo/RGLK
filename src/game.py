@@ -9,7 +9,7 @@ import sys
 import ai
 import dungeon
 import entity
-import monster as mon
+import raw
 import ui
 import var
 
@@ -30,7 +30,7 @@ def initialize():
     global Player, Dungeon
 
     # Player must be defined here, we work with him shortly.
-    Player = entity.spawn(0, 0, mon.Player)
+    Player = entity.spawn(0, 0, raw.Player)
     var.Entities.append(Player)
 
     Dungeon = dungeon.Builder()

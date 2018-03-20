@@ -8,8 +8,7 @@ import random
 import ai
 import dungeon
 import game
-import monster as mon
-import terrain as ter
+import raw
 import ui
 import var
 
@@ -24,49 +23,49 @@ def spawn(x, y, BluePrint):
         color = BluePrint['color']
         name = BluePrint['name']
     except:
-        print "Failed to spawn a monster."
+        print "Failed to spawn a monsraw."
         return False
 
     try:
         Str = BluePrint['Str']
     except:
-        Str = mon.Dummy['Str']
+        Str = raw.DummyMonster['Str']
     try:
         Dex = BluePrint['Dex']
     except:
-        Dex = mon.Dummy['Dex']
+        Dex = raw.DummyMonster['Dex']
     try:
         End = BluePrint['End']
     except:
-        End = mon.Dummy['End']
+        End = raw.DummyMonster['End']
     try:
         Wit = BluePrint['Wit']
     except:
-        Wit = mon.Dummy['Wit']
+        Wit = raw.DummyMonster['Wit']
     try:
         Ego = BluePrint['Ego']
     except:
-        Ego = mon.Dummy['Ego']
+        Ego = raw.DummyMonster['Ego']
     try:
         speed = BluePrint['speed']
     except:
-        speed = mon.Dummy['speed']
+        speed = raw.DummyMonster['speed']
     try:
         sight = BluePrint['sight']
     except:
-        sight = mon.Dummy['sight']
+        sight = raw.DummyMonster['sight']
     try:
         attack = BluePrint['BaseAttack']
     except:
-        attack = mon.Dummy['BaseAttack']
+        attack = raw.DummyMonster['BaseAttack']
     try:
         material = BluePrint['material']
     except:
-        material = mon.Dummy['material']
+        material = raw.DummyMonster['material']
     try:
         diet = BluePrint['diet']
     except:
-        diet = mon.Dummy['diet']
+        diet = raw.DummyMonster['diet']
     try:
         addFlags = BluePrint['flags']
     except:
@@ -478,7 +477,7 @@ class Mob(Entity):
 
             if not blocked == True and dungeon.map[x][y].hasFlag('CAN_BE_CLOSED'):
                 if dungeon.map[x][y].hasFlag('DOOR'):
-                    dungeon.map[x][y].change(ter.WoodDoor)
+                    dungeon.map[x][y].change(raw.WoodDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s closes the door." % str.capitalize(self.name), actor = self)
                     self.AP -= self.getActionAPCost()
@@ -624,7 +623,7 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if dungeon.map[x][y].hasFlag('DOOR'):
-                    dungeon.map[x][y].change(ter.OpenDoor)
+                    dungeon.map[x][y].change(raw.OpenDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
                     self.AP -= self.getActionAPCost()
@@ -747,10 +746,10 @@ class Item(Entity):
         # return if too full
         if self.hasFlag('POTION'):
             pass # quaffing
-        elif self.material in Eater.diet:
+        elif self.material in Earaw.diet:
             pass
         else:
-            if Eater.hasFlag('AVATAR'):
+            if Earaw.hasFlag('AVATAR'):
                 ui.message("You cannot eat that.")
             return False
 
