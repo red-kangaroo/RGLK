@@ -156,7 +156,7 @@ class Entity(object):
     def Be(self):
         # How else to check if entity has a speed variable?
         try:
-            self.AP += self.speed
+            self.regainActions()
             self.regainHealth()
             self.regainMana()
             self.regainStamina()
@@ -229,7 +229,17 @@ class Mob(Entity):
 
     def regainStamina(self):
         if not self.hasFlag('DEAD') and self.SP < self.maxSP:
-            self.SP += 1
+            self.SP += 0.5
+
+    def regainActions(self):
+        # This works even when dead, because items can have actions, too.
+        self.AP += self.speed
+
+        # Energy randomization:
+        #if var.rand_chance(5):
+        #    self.AP += 0.1
+        #elif var.rand_chance(5):
+        #    self.AP -= 0.1
 
     def getAccuracyBonus(self):
         # TODO
@@ -241,7 +251,11 @@ class Mob(Entity):
             return toHit
 
     def getDodgeBonus(self):
-        # TODO
+        # TODO:
+        # Penalty for adjacent walls.
+        # Bonus after move.
+        # Unarmored / Light Armor
+
         toDodge = self.Dex
 
         if toDodge >= 1:
@@ -323,6 +337,7 @@ class Mob(Entity):
             self.actionDrop(True)
 
             if self.hasFlag('AVATAR'):
+                game.save() # No savescumming for you! (Unless you prepare for this, of course.)
                 ai.waitForMore(self)
                 var.WizModeTrueSight = True
                 ui.message("You have failed in your quest!")
@@ -702,6 +717,9 @@ class Mob(Entity):
     def actionWalk(self, dx, dy):
         if self.AP < 1:
             return False
+
+        # TODO: If running, takes half a turn. With Unarmored and not running,
+        #       you recover 1 SP per move.
 
         moved = False
 

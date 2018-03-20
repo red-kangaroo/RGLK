@@ -1,4 +1,4 @@
-# Realm of the Glorious Lich King
+# Recondite Gaol of the Lachrymose Knights
 
 Simple roguelike in python + libtcod.
 

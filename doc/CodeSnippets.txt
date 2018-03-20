@@ -1,4 +1,5 @@
-Typeing area (name, wishing):
+Typeing area (name, wishing)
+============================
 
 libtcod.console_init_root(80, 25, 'Testing input keys', False)
 FPS = 20
@@ -43,3 +44,19 @@ while not libtcod.console_is_window_closed():
     libtcod.console_flush()
 
 print command
+
+
+Rooms
+=====
+
+#open file in "read" mode and set tiles according to the characters
+file = open('town.txt', 'r')
+y = 0
+for line in file:
+  x = 0
+  for character in line:
+    if character == '#':
+      map[x][y].blocked = True
+      map[x][y].block_sight = True
+    x += 1
+  y += 1

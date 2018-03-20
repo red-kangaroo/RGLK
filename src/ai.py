@@ -19,6 +19,7 @@ import var
 def getAICommand(Mob):
     if Mob.hasFlag('AVATAR'):
         handleKeys(Mob)
+        return # D'oh, and I was wondering where the player's AP were leaking...
     elif Mob.hasFlag('MOB'):
         if Mob.hasFlag('DEAD'):
             print "BUG: %s is too dead to do anything." % Mob.name
@@ -177,9 +178,9 @@ def getAICommand(Mob):
                 aiWander(Mob)
                 Mob.actionWait()
                 return
-    else:
-        # Even some items and features will be able to take turns, but not now.
-        Mob.AP -= 1
+
+    # Even some items and features will be able to take turns, but not now.
+    Mob.AP -= 1
 
 ###############################################################################
 #  Player Input

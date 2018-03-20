@@ -60,7 +60,7 @@ PanelWidth = 20
 PanelHeight = 10
 MenuWidth = 70
 MenuHeight = 30
-MainWidth = 35
+MainWidth = 40
 MainHeight = 12
 
 RoomMinSize = 5
@@ -81,7 +81,8 @@ MessageHistory = []
 
 TurnCount = 0
 TextColor = libtcod.white
-GameName = "Realm of the Glorious Lich King"
+GameName = "Recondite Gaol of the Lachrymose Knights"
+# Once this was "Realm of the Glorious Lich King"
 
 # FOV map:
 FOVMap = libtcod.map_new(MapWidth, MapHeight)

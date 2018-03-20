@@ -32,7 +32,7 @@ WoodWall = {
 'name': 'wooden wall',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['WALL']
+'flags': ['WALL', 'CAN_BE_BURNED']
 }
 
 IceWall = {
@@ -41,7 +41,7 @@ IceWall = {
 'name': 'ice wall',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['WALL']
+'flags': ['WALL', 'CAN_BE_MELTED']
 }
 
 # Floors:
@@ -60,7 +60,7 @@ WoodFloor = {
 'name': 'parquet',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['GROUND']
+'flags': ['GROUND', 'CAN_BE_BURNED']
 }
 
 IceFloor = {
@@ -69,7 +69,7 @@ IceFloor = {
 'name': 'ice floor',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['GROUND', 'SLIDE']
+'flags': ['GROUND', 'SLIDE', 'CAN_BE_MELTED']
 }
 
 # Doors:
@@ -79,7 +79,16 @@ WoodDoor = {
 'name': 'wooden door',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['DOOR', 'CAN_BE_OPENED']
+'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_KICKED']
+}
+
+SecretDoor = {              # Opened will be revealed and transformed into normal
+'char': '#',                # open doors. You need to zap them with invisibility
+'color': libtcod.dark_grey, # to make them secret again.
+'name': 'rock wall',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_KICKED']
 }
 
 OpenDoor = {
@@ -88,7 +97,7 @@ OpenDoor = {
 'name': 'open door',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['DOOR', 'CAN_BE_CLOSED']
+'flags': ['DOOR', 'CAN_BE_CLOSED', 'CAN_BE_BURNED']
 }
 
 # Decorations:
@@ -98,6 +107,7 @@ Vines = {
 'name': 'hanging vines',
 'BlockMove': False,
 'BlockSight': True,
+'flags': ['CAN_BE_BURNED']
 }
 
 RockPile = {
@@ -106,6 +116,7 @@ RockPile = {
 'name': 'rock pile',
 'BlockMove': False,
 'BlockSight': False,
+'flags': ['CAN_BE_KICKED']
 }
 
 # Liquids:

@@ -65,7 +65,7 @@ def render_messages(Player):
 
     y = 0
     for (line, color, turn) in messagesToPrint:
-        if turn >= (var.TurnCount - 1): # Turn count increases before redrawing
+        if turn >= (var.TurnCount - 2): # Turn count increases before redrawing
                                         # screen, so here we chance for T - 1.
             libtcod.console_set_default_foreground(var.MessagePanel, color)
         else:
@@ -89,13 +89,13 @@ def render_UI(Player):
                              Player.name)
 
     # Health bar:
-    render_bar(1, 3, 18, 'HP', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
+    render_bar(1, 3, 18, 'Health ', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
                libtcod.dark_red, libtcod.darker_red)
     # Mana bar:
-    render_bar(1, 4, 18, 'MP', int(math.floor(Player.MP)), int(math.floor(Player.maxMP)),
+    render_bar(1, 4, 18, 'Aether ', int(math.floor(Player.MP)), int(math.floor(Player.maxMP)),
                libtcod.blue, libtcod.darker_blue)
     # Stamina bar:
-    render_bar(1, 5, 18, 'SP', int(math.floor(Player.SP)), int(math.floor(Player.maxSP)),
+    render_bar(1, 5, 18, 'Stamina', int(math.floor(Player.SP)), int(math.floor(Player.maxSP)),
                libtcod.dark_green, libtcod.darker_green)
 
     # Attributes:
@@ -270,3 +270,8 @@ def message(text, color = var.TextColor, actor = None):
         # Save message as a tuple:
         for i in textWrapped:
             var.MessageHistory.append((i, color, turn))
+
+#def grammar(text, actor):
+#    text = str.replace(&D, getPronoun(actor.sex, 'DEFINITE'))
+#    text = str.replace(&D, getPronoun(actor.sex, 'INDEFINITE'))
+#    return text
