@@ -33,6 +33,7 @@ General:
  i            inventory
  J            jump
  L            look
+ M            message history
  o            open
  Ctrl + s     save and quit
  Ctrl + q     quit and abandon

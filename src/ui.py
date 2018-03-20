@@ -58,22 +58,28 @@ def render_messages(Player):
     libtcod.console_set_default_background(var.MessagePanel, libtcod.black)
     libtcod.console_clear(var.MessagePanel)
 
-    messagesToPrint = var.MessageHistory
-
-    while len(messagesToPrint) > var.PanelHeight:
-        del messagesToPrint[0]
-
+    if len(var.MessageHistory) > 10:
+        s = len(var.MessageHistory) - 10
+    else:
+        s = 0
     y = 0
-    for (line, color, turn) in messagesToPrint:
-        if turn >= (var.TurnCount - 2): # Turn count increases before redrawing
-                                        # screen, so here we chance for T - 1.
-            libtcod.console_set_default_foreground(var.MessagePanel, color)
-        else:
-            libtcod.console_set_default_foreground(var.MessagePanel, libtcod.darker_grey)
 
-        libtcod.console_print_ex(var.MessagePanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
-                                 line)
+    while y <= var.PanelHeight:
+        try:
+            (line, color, turn) = var.MessageHistory[s]
+            if turn >= (var.TurnCount - 1): # Turn count increases before redrawing
+                                            # screen, so here we need T - 1 for color.
+                libtcod.console_set_default_foreground(var.MessagePanel, color)
+            else:
+                libtcod.console_set_default_foreground(var.MessagePanel, libtcod.darker_grey)
+
+            libtcod.console_print_ex(var.MessagePanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                     line)
+        except:
+            break
+
         y += 1
+        s += 1
 
     # Render messages:
     libtcod.console_blit(var.MessagePanel, 0, 0, var.ScreenWidth - var.PanelWidth, var.PanelHeight, 0,
@@ -184,7 +190,46 @@ def option_menu(header, options):
                 return what
 
 def text_menu(header, text):
-    pass
+    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+
+    # Clear and print header:
+    libtcod.console_clear(var.MenuPanel)
+    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                  header + " [Space for next page; Esc to exit]")
+
+    # Text should always be a list of lines.
+    line = -1
+    y = 28
+
+    while abs(line) <= len(text):
+        (toPrint, color, turn) = text[line]
+
+        libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 toPrint)
+        line -= 1
+        y -= 1
+
+        if y < 4 or abs(line) > len(text):
+            # Draw it and wait for input:
+            libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+            libtcod.console_flush()
+
+            while True:
+                Key = libtcod.console_wait_for_keypress(True)
+
+                if Key.vk == libtcod.KEY_ESCAPE:
+                    return None
+
+                if Key.vk == libtcod.KEY_SPACE:
+                    libtcod.console_clear(var.MenuPanel)
+                    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                                  header + " [Space for next page; Esc to exit]")
+                    y = 28
+                    # Ugly:
+                    break
 
 def main_menu(Player = None):
     libtcod.console_set_default_foreground(var.MainMenu, var.TextColor)

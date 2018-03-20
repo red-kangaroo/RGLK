@@ -7,6 +7,7 @@ import random
 
 import ai
 import dungeon
+import game
 import monster as mon
 import terrain as ter
 import ui
@@ -104,6 +105,10 @@ class Entity(object):
 
         self.flags = []
         self.inventory = [] # For both mobs and containers.
+        # Mobs for pathfinding and items/features for liking may have either goal
+        # (an [x, y] list) or a target (any entity, ie. mob or item).
+        self.goal = None
+        self.target = None
 
     def move(self, dx, dy):
         if (self.x + dx < 0 or self.x + dx > var.MapWidth - 1 or
@@ -193,10 +198,6 @@ class Mob(Entity):
         self.MP = self.maxMP
         self.maxSP = self.recalculateStamina()
         self.SP = self.maxSP
-        # For pathfinding, mobs either have goal (an [x, y] list) or a target
-        # (any entity, ie. mob or item).
-        self.goal = None
-        self.target = None
         # General:
         self.carry = self.recalculateCarryingCapacity()
         self.BaseAttack = None # Special case this as a slam attack in attack code.

@@ -319,6 +319,11 @@ def handleKeys(Player):
                 ui.message("You decide not to jump.")
             return # We need to return here, or we fall through to vi keys...
 
+        # Jump
+        if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('m'))):
+            ui.text_menu("Message history:", var.MessageHistory)
+            return
+
         # Open
         if Key.vk == libtcod.KEY_CHAR and Key.c == ord('o'):
             where = askForDirection(Player)
