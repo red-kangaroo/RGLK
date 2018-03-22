@@ -48,7 +48,7 @@ def initialize():
                 m = x
                 n = y
 
-    Player = entity.spawn(m, n, raw.Player)
+    Player = entity.spawn(m, n, raw.Player, 'MOB')
     var.Entities[var.DungeonLevel].append(Player)
 
     # TODO: Better welcoming message.
@@ -67,8 +67,9 @@ def main_loop():
         # Mob turns, including the player.
         for i in var.Entities[var.DungeonLevel]:
             while i.AP >= 1:
-                # Calculate FOV for the current actor.
-                i.recalculateFOV()
+                if i.hasFlag('MOB'):
+                    # Calculate FOV for the current actor.
+                    i.recalculateFOV()
 
                 if i.hasFlag('AVATAR'):
                     # Redraw screen with each of the player's turns.

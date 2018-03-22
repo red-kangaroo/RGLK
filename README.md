@@ -38,6 +38,8 @@ General:
  Ctrl + s     save and quit
  Ctrl + q     quit and abandon
  X            exchange places
+ <            climb up
+ >            climb down
 ```
 
 Wizard mode:

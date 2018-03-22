@@ -553,9 +553,9 @@ def populate(DungeonLevel):
 
         # TODO: Rework.
         if var.rand_chance(80):
-            NewMob = entity.spawn(x, y, raw.Orc)
+            NewMob = entity.spawn(x, y, raw.Orc, 'MOB')
         else:
-            NewMob = entity.spawn(x, y, raw.Troll)
+            NewMob = entity.spawn(x, y, raw.Troll, 'MOB')
 
         if NewMob.isBlocked(x, y):
             NewMob = None
@@ -567,7 +567,23 @@ def populate(DungeonLevel):
         NewMob = None
 
     ItemNo = 0
+    NewItem = None
     # TODO: Item generation.
+
+    while ItemNo < var.ItemMaxNumber:
+        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+        NewItem = entity.spawn(x, y, random.choice(raw.ItemList), 'ITEM')
+
+        if NewItem.isBlocked(x, y):
+            NewItem = None
+
+        if NewItem != None:
+            var.Entities[DungeonLevel].append(NewItem)
+            ItemNo += 1
+
+        NewItem = None
 
 ###############################################################################
 #  Objects

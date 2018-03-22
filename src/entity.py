@@ -16,94 +16,123 @@ import var
 #  Entities
 ###############################################################################
 
-def spawn(x, y, BluePrint):
-    # Careful, will only work for mobs now.
+def spawn(x, y, BluePrint, type):
+    # Requires at least a colored character with a name.
     try:
         char = BluePrint['char']
         color = BluePrint['color']
         name = BluePrint['name']
     except:
-        print "Failed to spawn a monsraw."
+        print "Failed to spawn an entity."
         return False
 
-    try:
-        Str = BluePrint['Str']
-    except:
-        Str = raw.DummyMonster['Str']
-    try:
-        Dex = BluePrint['Dex']
-    except:
-        Dex = raw.DummyMonster['Dex']
-    try:
-        End = BluePrint['End']
-    except:
-        End = raw.DummyMonster['End']
-    try:
-        Wit = BluePrint['Wit']
-    except:
-        Wit = raw.DummyMonster['Wit']
-    try:
-        Ego = BluePrint['Ego']
-    except:
-        Ego = raw.DummyMonster['Ego']
-    try:
-        speed = BluePrint['speed']
-    except:
-        speed = raw.DummyMonster['speed']
-    try:
-        sight = BluePrint['sight']
-    except:
-        sight = raw.DummyMonster['sight']
-    try:
-        attack = BluePrint['BaseAttack']
-    except:
-        attack = raw.DummyMonster['BaseAttack']
-    try:
-        material = BluePrint['material']
-    except:
-        material = raw.DummyMonster['material']
-    try:
-        diet = BluePrint['diet']
-    except:
-        diet = raw.DummyMonster['diet']
-    try:
-        addFlags = BluePrint['flags']
-    except:
-        addFlags = []
-    try:
-        addIntrinsics = BluePrint['intrinsics']
-    except:
-        addIntrinsics = []
+    if type == 'MOB':
+        try:
+            material = BluePrint['material']
+        except:
+            material = raw.DummyMonster['material']
+        try:
+            Str = BluePrint['Str']
+        except:
+            Str = raw.DummyMonster['Str']
+        try:
+            Dex = BluePrint['Dex']
+        except:
+            Dex = raw.DummyMonster['Dex']
+        try:
+            End = BluePrint['End']
+        except:
+            End = raw.DummyMonster['End']
+        try:
+            Wit = BluePrint['Wit']
+        except:
+            Wit = raw.DummyMonster['Wit']
+        try:
+            Ego = BluePrint['Ego']
+        except:
+            Ego = raw.DummyMonster['Ego']
+        try:
+            speed = BluePrint['speed']
+        except:
+            speed = raw.DummyMonster['speed']
+        try:
+            sight = BluePrint['sight']
+        except:
+            sight = raw.DummyMonster['sight']
+        try:
+            attack = BluePrint['BaseAttack']
+        except:
+            attack = raw.DummyMonster['BaseAttack']
+        try:
+            diet = BluePrint['diet']
+        except:
+            diet = raw.DummyMonster['diet']
+        try:
+            addFlags = BluePrint['flags']
+        except:
+            addFlags = []
+        try:
+            addIntrinsics = BluePrint['intrinsics']
+        except:
+            addIntrinsics = []
 
-    NewMob = Mob(x, y, char, color, name, Str, Dex, End, Wit, Ego, speed, sight)
+        New = Mob(x, y, char, color, name, material,
+                     Str, Dex, End, Wit, Ego, speed, sight)
 
-    NewMob.BaseAttack = attack
-    NewMob.material = material
-    NewMob.diet = diet
+        New.BaseAttack = attack
+        New.diet = diet
+    elif type == 'ITEM':
+        #try:
+        #    attack = BluePrint['something']
+        #except:
+        #    attack = raw.DummyItem['something']
+        try:
+            material = BluePrint['material']
+        except:
+            material = raw.DummyItem['material']
+        try:
+            BlockMove = BluePrint['BlockMove']
+        except:
+            BlockMove = raw.DummyItem['BlockMove']
+        try:
+            addFlags = BluePrint['flags']
+        except:
+            addFlags = []
+        try:
+            addIntrinsics = BluePrint['intrinsics']
+        except:
+            addIntrinsics = []
+
+        New = Item(x, y, char, color, name, material, BlockMove)
+    else:
+        print "Failed to spawn unknown entity type."
 
     for i in addFlags:
-        NewMob.flags.append(i)
+        New.flags.append(i)
 
     try:
-        NewMob.intrinsics.append(addIntrinsics)
+        New.intrinsics.append(addIntrinsics)
     except:
-        print "Failed to spawn non-mob with intrinsics."
+        print "Failed to spawn with intrinsics."
 
-    return NewMob
+    return New
 
 # Player, monsters...
 class Entity(object):
-    def __init__(self, x, y, char, color, name, BlockMove = False):
+    def __init__(self, x, y, char, color, name, material, BlockMove = False):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
         self.name = name
+        self.material = material
         self.AP = 0.0 # Start with 0 turns to take.
         self.BlockMove = BlockMove
 
         self.flags = []
         self.inventory = [] # For both mobs and containers.
+        self.intrinsics = []
+
         # Mobs for pathfinding and items/features for liking may have either goal
         # (an [x, y] list) or a target (any entity, ie. mob or item).
         self.goal = None
@@ -172,11 +201,11 @@ class Entity(object):
         #       through the main loop of var.Entities
 
 class Mob(Entity):
-    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
+    def __init__(self, x, y, char, color, name, material, #These are base Entity arguments.
                  Str, Dex, End, Wit, Ego, speed = 1.0, FOVRadius = 6):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
-        super(Mob, self).__init__(x, y, char, color, name, BlockMove)
+        super(Mob, self).__init__(x, y, char, color, name, material, BlockMove)
 
         # Attributes:
         self.Str = Str
@@ -198,12 +227,13 @@ class Mob(Entity):
         self.maxSP = self.recalculateStamina()
         self.SP = self.maxSP
         # TODO: NP, pain, heat
+        self.XL = 1
+        self.XP = 0
 
         # General:
         self.carry = self.recalculateCarryingCapacity()
         self.BaseAttack = None # Special case this as a slam attack in attack code.
-        self.material = 'AETHER' # Dummy material.
-        self.intrinsics = []
+        #self.material = 'AETHER' # Dummy material.
         self.flags.append('MOB')
 
     def recalculateFOV(self):
@@ -317,6 +347,20 @@ class Mob(Entity):
             return False
         if self.SP > self.maxSP:
             self.SP = self.maxSP
+        return True
+
+    def receiveExperience(self, amount):
+        if self.hasFlag('DEAD'):
+            return False
+        if amount > 0:
+            self.XP += amount
+        elif amount < self.XP:
+            self.XP += amount # This deducts negative experience.
+        else:
+            self.XP = 0
+        if self.XP >= 1000:
+            self.XL += 1
+            self.XP -= 1000
         return True
 
     def receiveAttack(self, attacker, multiplier):
@@ -553,6 +597,7 @@ class Mob(Entity):
 
                 ui.message("%s climbs the stairs." % str.capitalize(self.name), actor = self)
                 # TODO: Knock back entities that are standing on the stairs.
+                #       Enemies and pets follow you. (Requires findNearestFreeSpot().)
                 self.SP -= 3
                 self.AP -= self.getMoveAPCost()
                 return True
@@ -668,13 +713,27 @@ class Mob(Entity):
         dx = where[0]
         dy = where[1]
         dz = where[2]
+
+        if dx == 0 and dy == 0:
+            if dz > 0:
+                ui.message("You jump up and down.")
+                self.AP -= self.getMoveAPCost()
+                return True
+            elif dz < 0:
+                ui.message("Wait, how do you jump downwards?")
+                self.AP -= self.getMoveAPCost()
+                return True
+            else:
+                ui.message("You completely fail to jump.")
+                return False
+
         nx = self.x + dx
         ny = self.y + dy
         nnx = nx + dx
         nny = ny + dy
         moved = False
 
-        # TODO: Leap attack, stamina cost, jumping out of pits with dz
+        # TODO: Leap attack, stamina cost, jumping out of pits.
         if self.SP <= 5:
             if self.hasFlag('AVATAR'):
                 ui.message("You are too exhausted to jump.")
@@ -775,6 +834,9 @@ class Mob(Entity):
     def actionSwap(self, Other):
         if self.AP < 1:
             return False
+        if self == Other:
+            ui.message("%s tries to swap with themselves and fails." % (str.capitalize(self.name)), actor = self)
+            return False
 
         x1 = self.x
         y1 = self.y
@@ -817,20 +879,23 @@ class Mob(Entity):
         return moved
 
 class Item(Entity):
-    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
+    def __init__(self, x, y, char, color, name, material, BlockMove #These are base Entity arguments.
                  ):
-        super(Mob, self).__init__(x, y, char, color, name)
+        super(Item, self).__init__(x, y, char, color, name, material, BlockMove)
 
-        self.flags.append('ITEM')
+        flags = ['ITEM']
+
+        for i in flags:
+            self.flags.append(i)
 
     def beEaten(self, Eater):
         # return if too full
         if self.hasFlag('POTION'):
             pass # quaffing
-        elif self.material in Earaw.diet:
+        elif self.material in Eater.diet:
             pass
         else:
-            if Earaw.hasFlag('AVATAR'):
+            if Eater.hasFlag('AVATAR'):
                 ui.message("You cannot eat that.")
             return False
 

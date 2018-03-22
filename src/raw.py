@@ -41,11 +41,40 @@ NonWeapon = {
 }
 
 ###############################################################################
+#  Items
+###############################################################################
+
+# Must be defined before monsters to allow for generating inventories.
+
+DummyItem = {
+'char': '?',
+'color': libtcod.white,
+'name': 'BUG: dummy item',
+'BlockMove': False,
+'material': 'STONE',
+'intrinsics': [],
+'flags': []
+}
+
+Boulder = {
+'char': '0',
+'color': libtcod.dark_grey,
+'name': 'boulder',
+'BlockMove': True,
+'flags': [] # TODO: Block sight.
+}
+
+# Item list must be last to have all items already defined.
+ItemList = [
+Boulder
+]
+
+###############################################################################
 #  Monsters
 ###############################################################################
 
 DummyMonster = {
-'char': '?',
+'char': 'Q', # The question is, what is this strange monster?
 'color': libtcod.white,
 'name': 'BUG: dummy monster',
 'Str': 0,
@@ -329,12 +358,28 @@ Why2 = {
 'height': 6,
 }
 
+# T-junction.
+TJunction = {
+'file': 'rooms/tjunction',
+'width': 5,
+'height': 4,
+}
+
+# Four pillars in a large room.
+FourPillars = {
+'file': 'rooms/fourpillars',
+'width': 11,
+'height': 11,
+}
+
 # Room list must be last to have all rooms already defined.
 RoomList = [
 Cages,
-Prison,
+FourPillars,
 LetterX,
+Prison,
 SuperSecret,
+TJunction,
 Why1,
 Why2
 ]

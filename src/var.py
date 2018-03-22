@@ -69,6 +69,7 @@ DrunkenSteps = 5000
 FloorMaxNumber = 25 # Depths of the dungeon.
 
 MonsterMaxNumber = 10 # Should depend on dungeon level.
+ItemMaxNumber = 5 # Should depend on dungeon level.
 TurnCount = 0
 DungeonLevel = 1 # Starting level of the player.
 

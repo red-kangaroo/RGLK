@@ -30,7 +30,8 @@ def render_all(Player):
 
 def render_map(Player):
     libtcod.console_set_default_background(var.MapConsole, libtcod.black)
-    libtcod.console_clear(var.MapConsole)
+    libtcod.console_clear(var.MapConsole) # I originally forgot to add this and
+                                          # it looked quite weird on level transitions. :D
 
     # Draw map.
     for y in range(var.MapHeight):
@@ -119,10 +120,17 @@ def render_UI(Player):
     #libtcod.console_print_ex(var.UIPanel, 10, 9, libtcod.BKGND_NONE, libtcod.LEFT,
     #                         'Spd: ' + str(int(Player.speed * 100)))
 
+    # Other stats:
     libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
                              'T: ' + str(var.TurnCount))
     libtcod.console_print_ex(var.UIPanel, 1, 12, libtcod.BKGND_NONE, libtcod.LEFT,
                              'D: ' + str(var.DungeonLevel))
+    #libtcod.console_print_ex(var.UIPanel, 1, 13, libtcod.BKGND_NONE, libtcod.LEFT,
+    #                         '$: ' + Player.getGold())
+    libtcod.console_print_ex(var.UIPanel, 10, 11, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'XP: ' + str(Player.XL) + '/' + str(Player.XP))
+    # DV
+    # PV
 
     y = 14
     # Effects:

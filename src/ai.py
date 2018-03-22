@@ -376,7 +376,8 @@ def handleKeys(Player):
 
                 for i in var.Entities[var.DungeonLevel]:
                     if (i.x == x and i.y == y and (i.hasFlag('MOB') or
-                       (i.BlockMove == True and i.hasFlag('ITEM')))):
+                       (i.BlockMove == True and i.hasFlag('ITEM'))) and
+                        not i == Player):
                         Player.actionSwap(i)
                         return
                 ui.message("There is no one to swap with.")
@@ -475,7 +476,10 @@ def askForDirection(Player):
               (Key.vk == libtcod.KEY_CHAR and Key.c == ord('n'))):
             dx += 1
             dy += 1
-        # TODO: Up and down.
+        elif (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord(',')):
+            dz += 1
+        elif (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')):
+            dz -= 1
 
         if (dx != 0 or dy != 0 or dz != 0):
             return [dx, dy, dz]
