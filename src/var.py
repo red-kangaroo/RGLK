@@ -67,8 +67,11 @@ RoomMinSize = 5
 RoomMaxSize = 10
 RoomMaxNumber = 99
 DrunkenSteps = 5000
+FloorMaxNumber = 25 # Depths of the dungeon.
 
 MonsterMaxNumber = 10 # Should depend on dungeon level.
+TurnCount = 0
+DungeonLevel = 1 # Starting level of the player.
 
 WizModeActivated = False
 WizModeNoClip = False
@@ -79,7 +82,6 @@ Maps = []
 Entities = []
 MessageHistory = []
 
-TurnCount = 0
 TextColor = libtcod.white
 GameName = "Recondite Gaol of the Lachrymose Knights"
 # Once this was "Realm of the Glorious Lich King"

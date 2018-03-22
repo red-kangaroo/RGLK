@@ -27,14 +27,16 @@ libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 ##############################################################################
 
 def initialize():
-    global Player, Dungeon
+    global Player
 
     # Player must be defined here, we work with him shortly.
     Player = entity.spawn(0, 0, raw.Player)
     var.Entities.append(Player)
 
-    Dungeon = dungeon.Builder()
-    Dungeon.makeMap(True)
+    for i in range(0, var.FloorMaxNumber + 1):
+        var.Maps.append(None)
+
+    dungeon.makeMap(True)
     ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
     # TODO: Better welcoming message.
 
@@ -64,7 +66,7 @@ def main_loop():
 
                 # Some wizard mode handling:
                 if var.WizModeNewMap:
-                    Dungeon.makeMap(False)
+                    dungeon.makeMap(False)
                     var.WizModeNewMap = False
                     ui.message("You call upon the great powers of wizard mode to create a whole new dungeon level!")
 
@@ -96,10 +98,9 @@ def play():
         sys.exit("Goodbye!")
 
 def save():
-    global Player, Dungeon
+    global Player
     file = shelve.open('savegame', 'n')
 
-    file["dungeon"] = Dungeon
     file["map"] = dungeon.map
     #file["map"] = var.Maps
     file["entity"] = var.Entities
@@ -110,10 +111,9 @@ def save():
     file.close()
 
 def load():
-    global Player, Dungeon
+    global Player
     file = shelve.open('savegame', 'r')
 
-    Dungeon = file["dungeon"]
     dungeon.map = file["map"]
     #file["map"] = var.Maps
     var.Entities = file["entity"]

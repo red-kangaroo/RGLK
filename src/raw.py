@@ -20,7 +20,7 @@ DummyAttack = {
 Punch = {
 'verb': 'punch',
 'DiceNumber': 1,
-'DiceValue': 3,
+'DiceValue': 2,
 'flags': ['UNARMED', 'NATURAL']
 }
 
@@ -188,7 +188,7 @@ SecretDoor = {              # Opened will be revealed and transformed into norma
 'name': 'rock wall',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_KICKED']
+'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_KICKED', 'SECRET']
 }
 
 OpenDoor = {
@@ -207,7 +207,7 @@ Vines = {
 'name': 'hanging vines',
 'BlockMove': False,
 'BlockSight': True,
-'flags': ['CAN_BE_BURNED']
+'flags': ['GROUND', 'CAN_BE_BURNED', 'PLANT']
 }
 
 RockPile = {
@@ -216,7 +216,7 @@ RockPile = {
 'name': 'rock pile',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['CAN_BE_KICKED']
+'flags': ['GROUND', 'CAN_BE_KICKED']
 }
 
 # Liquids:
@@ -255,3 +255,67 @@ Mud = {
 'BlockSight': False,
 'flags': ['LIQUID', 'STICKY']
 }
+
+###############################################################################
+#  Rooms
+##############################################################################
+
+DummyRoom = {
+'#': RockWall,
+'.': RockFloor,
+'+': WoodDoor
+}
+
+# Several small cages.
+Cages = {
+'file': 'rooms/cages',
+'width': 9,
+'height': 7
+}
+
+# Prison cells.
+Prison = {
+'file': 'rooms/prison',
+'width': 10,
+'height': 6
+}
+
+# The letter X.
+LetterX = {
+'file': 'rooms/xxx',
+'width': 7,
+'height': 7
+}
+
+# A very secretly hidden room.
+SuperSecret = {
+'file': 'rooms/supersecret',
+'width': 11,
+'height': 11,
+'#': WoodWall,
+'X': RockWall,
+'S': SecretDoor,
+}
+
+# Why not?
+Why1 = {
+'file': 'rooms/why1',
+'width': 5,
+'height': 6,
+}
+
+Why2 = {
+'file': 'rooms/why2',
+'width': 5,
+'height': 6,
+}
+
+# Room list must be last to have all rooms already defined.
+RoomList = [
+Cages,
+Prison,
+LetterX,
+SuperSecret,
+Why1,
+Why2
+]

@@ -206,6 +206,11 @@ def text_menu(header, text):
     while abs(line) <= len(text):
         (toPrint, color, turn) = text[line]
 
+        try:
+            libtcod.console_set_default_foreground(var.MenuPanel, color)
+        except:
+            libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
         libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
                                  toPrint)
         line -= 1

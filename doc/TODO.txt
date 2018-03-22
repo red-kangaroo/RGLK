@@ -17,3 +17,7 @@ https://imgur.com/a/AnB4T#14
 
 Noise forest:
 http://roguecentral.org/doryen/data/libtcod/doc/1.5.1/html2/noise_get.html?c=false&cpp=false&cs=false&py=true&lua=false
+
+
+* add description optional attribute to tiles, which would be printed when player
+  steps on them (eg. "You enter an unused sewer node.")

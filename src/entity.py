@@ -623,6 +623,10 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
                 if dungeon.map[x][y].hasFlag('DOOR'):
+                    if dungeon.map[x][y].hasFlag('SECRET'):
+                        ui.message("%s discovers a secret door!" % str.capitalize(self.name),
+                                   libtcod.azure, actor = self)
+
                     dungeon.map[x][y].change(raw.OpenDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
