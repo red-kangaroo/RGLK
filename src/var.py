@@ -4,7 +4,6 @@
 import libtcodpy as libtcod
 
 import dungeon
-import ui
 
 ###############################################################################
 #  General Functions

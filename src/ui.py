@@ -30,6 +30,7 @@ def render_all(Player):
 
 def render_map(Player):
     libtcod.console_set_default_background(var.MapConsole, libtcod.black)
+    libtcod.console_clear(var.MapConsole)
 
     # Draw map.
     for y in range(var.MapHeight):
@@ -115,21 +116,47 @@ def render_UI(Player):
                              'Wit: ' + str(Player.Wit))
     libtcod.console_print_ex(var.UIPanel, 10, 8, libtcod.BKGND_NONE, libtcod.LEFT,
                              'Ego: ' + str(Player.Ego))
-    libtcod.console_print_ex(var.UIPanel, 10, 9, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Spd: ' + str(int(Player.speed * 100)))
+    #libtcod.console_print_ex(var.UIPanel, 10, 9, libtcod.BKGND_NONE, libtcod.LEFT,
+    #                         'Spd: ' + str(int(Player.speed * 100)))
 
     libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
                              'T: ' + str(var.TurnCount))
+    libtcod.console_print_ex(var.UIPanel, 1, 12, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'D: ' + str(var.DungeonLevel))
 
+    y = 14
     # Effects:
     if Player.hasFlag('DEAD'):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_red)
-        libtcod.console_print_ex(var.UIPanel, 1, 13, libtcod.BKGND_NONE, libtcod.LEFT,
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Dead')
+        y += 1
     elif Player.HP < 1:
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.red)
-        libtcod.console_print_ex(var.UIPanel, 1, 13, libtcod.BKGND_NONE, libtcod.LEFT,
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Dying')
+        y += 1
+
+    if Player.speed > 1.5:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.azure)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Very Fast')
+        y += 1
+    elif Player.speed > 1:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_azure)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Fast')
+        y += 1
+    elif Player.speed < 0.5:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.red)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Very Slow')
+        y += 1
+    elif Player.speed < 1:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_red)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Slow')
+        y += 1
 
     # Display target stats:
     if Player.target != None:
@@ -216,7 +243,7 @@ def text_menu(header, text):
         line -= 1
         y -= 1
 
-        if y < 4 or abs(line) > len(text):
+        if y < 3 or abs(line) > len(text):
             # Draw it and wait for input:
             libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
             libtcod.console_flush()
@@ -229,6 +256,7 @@ def text_menu(header, text):
 
                 if Key.vk == libtcod.KEY_SPACE:
                     libtcod.console_clear(var.MenuPanel)
+                    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
                     libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
                                                   libtcod.BKGND_SET, libtcod.LEFT,
                                                   header + " [Space for next page; Esc to exit]")

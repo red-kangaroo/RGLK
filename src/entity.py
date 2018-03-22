@@ -6,6 +6,7 @@ import math
 import random
 
 import ai
+import dungeon
 import game
 import raw
 import ui
@@ -196,6 +197,8 @@ class Mob(Entity):
         self.MP = self.maxMP
         self.maxSP = self.recalculateStamina()
         self.SP = self.maxSP
+        # TODO: NP, pain, heat
+
         # General:
         self.carry = self.recalculateCarryingCapacity()
         self.BaseAttack = None # Special case this as a slam attack in attack code.
@@ -488,6 +491,81 @@ class Mob(Entity):
             elif self.hasFlag('AVATAR'):
                 ui.message("There is nothing to close.")
         return False
+
+    def actionClimb(self, dz):
+        if self.AP < 1:
+            return False
+        if self.SP < 5:
+            ui.message("%s is too tired to climb the stairs." % str.capitalize(self.name), actor = self)
+            self.AP -= self.getMoveAPCost()
+            return False
+
+        if dz > 0 and var.Maps[var.DungeonLevel][self.x][self.y].hasFlag('STAIRS_UP'):
+            if var.DungeonLevel - 1 >= 0:
+                if var.Maps[var.DungeonLevel - 1] == None:
+                    dungeon.makeMap(True, var.DungeonLevel - 1)
+
+                toClimb = [self.x, self.y]
+
+                for y in range(0, var.MapHeight):
+                    for x in range(0, var.MapWidth):
+                        if var.Maps[var.DungeonLevel - 1][x][y].hasFlag('STAIRS_DOWN'):
+                            toClimb = [x, y]
+
+                self.x = toClimb[0]
+                self.y = toClimb[1]
+
+                var.Entities[var.DungeonLevel - 1].append(self)
+                var.Entities[var.DungeonLevel].remove(self)
+                var.DungeonLevel -= 1
+
+                if self.hasFlag('AVATAR'):
+                    var.calculateFOVMap()
+
+                ui.message("%s climbs the stairs." % str.capitalize(self.name), actor = self)
+                self.SP -= 8 # It's a bit more tiring to go upstairs.
+                self.AP -= self.getMoveAPCost()
+                return True
+            else:
+                ui.message("The stairs lead nowhere!", actor = self)
+                return False
+        elif dz < 0 and var.Maps[var.DungeonLevel][self.x][self.y].hasFlag('STAIRS_DOWN'):
+            if var.DungeonLevel + 1 <= var.FloorMaxNumber:
+                if var.Maps[var.DungeonLevel + 1] == None:
+                    dungeon.makeMap(True, var.DungeonLevel + 1)
+
+                toClimb = [self.x, self.y]
+
+                for y in range(0, var.MapHeight):
+                    for x in range(0, var.MapWidth):
+                        if var.Maps[var.DungeonLevel + 1][x][y].hasFlag('STAIRS_UP'):
+                            toClimb = [x, y]
+
+                self.x = toClimb[0]
+                self.y = toClimb[1]
+
+                var.Entities[var.DungeonLevel + 1].append(self)
+                var.Entities[var.DungeonLevel].remove(self)
+                var.DungeonLevel += 1
+
+                if self.hasFlag('AVATAR'):
+                    var.calculateFOVMap()
+
+                ui.message("%s climbs the stairs." % str.capitalize(self.name), actor = self)
+                # TODO: Knock back entities that are standing on the stairs.
+                self.SP -= 3
+                self.AP -= self.getMoveAPCost()
+                return True
+            else:
+                ui.message("The stairs lead nowhere!", actor = self)
+                return False
+        else:
+            if dz > 0:
+                ui.message("%s jumps up and down." % str.capitalize(self.name), actor = self)
+            elif dz < 0:
+                ui.message("%s crouches a bit." % str.capitalize(self.name), actor = self)
+            self.AP -= self.getMoveAPCost()
+            return True
 
     def actionDrop(self, dropAll = False):
         if self.AP < 1:

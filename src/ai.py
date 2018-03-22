@@ -17,6 +17,10 @@ import var
 
 def getAICommand(Mob):
     if Mob.hasFlag('AVATAR'):
+        if Mob.target != None:
+            if not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y):
+                Mob.target = None
+
         handleKeys(Mob)
         return # D'oh, and I was wondering where the player's AP were leaking...
     elif Mob.hasFlag('MOB'):
@@ -39,7 +43,8 @@ def getAICommand(Mob):
         if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
             Mob.flags.append('AI_FLEE')
             print "%s flees." % Mob.name
-        elif (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
+
+        if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
               Mob.HP >= (Mob.maxHP / 2)):
             Mob.flags.remove('AI_FLEE')
             print "%s no longer flees." % Mob.name
@@ -249,17 +254,13 @@ def handleKeys(Player):
     if Key.vk == libtcod.KEY_F12:
         # Heh heh, if I don't clear the console, it looks quite trippy after
         # redrawing a new map over the old one.
-        for y in range(var.MapHeight):
-            for x in range(var.MapWidth):
-                libtcod.console_put_char_ex(var.MapConsole, x, y, ' ', libtcod.black, libtcod.black)
-
         var.WizModeNewMap = True
         return
 
 
     # You can do some stuff even when dead:
     # Wait
-    if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
+    if ((not Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
         Player.actionWait()
         return
@@ -288,6 +289,15 @@ def handleKeys(Player):
             else:
                 # This should not take a turn.
                 ui.message("Never mind.")
+            return
+
+        # Climb up and down
+        if Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord(','):
+            Player.actionClimb(1)
+            return
+
+        if Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('.'):
+            Player.actionClimb(-1)
             return
 
         # Close

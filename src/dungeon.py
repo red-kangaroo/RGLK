@@ -4,6 +4,7 @@
 import libtcodpy as libtcod
 import math
 import random
+import sys
 
 import entity
 import raw
@@ -12,7 +13,10 @@ import var
 ###############################################################################
 #  Dungeon Generation
 ###############################################################################
-def makeMap(Populate):
+def makeMap(Populate, DungeonLevel):
+    if DungeonLevel < 0 or DungeonLevel > var.FloorMaxNumber:
+        sys.exit("Tried building beyond the dungeon.")
+
     # First create map of dummy terrain:
     map = [[ Terrain('.', libtcod.white, 'BUG: dummy terrain', False, False)
       for y in range(var.MapHeight) ]
@@ -26,20 +30,20 @@ def makeMap(Populate):
     which = libtcod.random_get_int(0, 1, 5)
     if which in range(1, 4):
         print "Building traditional dungeon."
-        map = buildTraditionalDungeon(map)
+        map = buildTraditionalDungeon(map, DungeonLevel)
     elif which == 4:
         print "Building sewers."
-        map = buildSewers(map)
+        map = buildSewers(map, DungeonLevel)
     else:
         print "Building a cave."
-        map = buildDrunkenCave(map)
+        map = buildDrunkenCave(map, DungeonLevel)
 
     # Set map to the correct dungeon level.
-    var.Maps[var.DungeonLevel] = map
+    var.Maps[DungeonLevel] = map
 
     # Add entities.
     if Populate:
-        populate()
+        populate(DungeonLevel)
 
     for i in var.Entities[var.DungeonLevel]:
         # On the off-chance we trap someone in dungeon generation:
@@ -53,8 +57,6 @@ def makeMap(Populate):
 
             i.x = x
             i.y = y
-
-    var.calculateFOVMap()
 
 def makeLake(liquid, map):
     # This is basically a bit changed drunken cave.
@@ -246,13 +248,19 @@ def makePrefabRoom(Rooms, map, Prefab = None):
 def makeClosets(map):
     pass
 
-def makeStairs(map, Rooms = None):
+def makeStairs(map, DungeonLevel, Rooms = None):
     # Rooms passed into this function are alredy without prefab rooms (removed in
     # makePrefabRoom), so we only need to check if there are stairs placed in prefabs
     # and don't need to worry about placing the stairs into vaults and such by this.
 
     upstairs = False
     downstairs = False
+
+    # This prevents creating upstairs on ground floor and downstairs on last floor.
+    if DungeonLevel == 0:
+        upstairs = True
+    elif DungeonLevel == var.FloorMaxNumber:
+        downstairs = True
 
     for y in range(0, var.MapHeight):
         for x in range(0, var.MapWidth):
@@ -317,7 +325,7 @@ def makeStairs(map, Rooms = None):
 
     return map
 
-def buildTraditionalDungeon(map):
+def buildTraditionalDungeon(map, DungeonLevel):
     Rooms = []
     RoomNo = 0
 
@@ -385,17 +393,17 @@ def buildTraditionalDungeon(map):
 
     Rooms, map = makePrefabRoom(Rooms, map)
     map = makeBetterRoom(Rooms, map)
-    map = makeStairs(map, Rooms)
+    map = makeStairs(map, DungeonLevel, Rooms)
 
     return map
 
-def buildBSPDungeon(map):
+def buildBSPDungeon(map, DungeonLevel):
     pass
 
-def buildQIXDungeon(map):
+def buildQIXDungeon(map, DungeonLevel):
     pass
 
-def buildDrunkenCave(map):
+def buildDrunkenCave(map, DungeonLevel):
     StepsTaken = 0
     Fails = 0
 
@@ -442,11 +450,11 @@ def buildDrunkenCave(map):
             Fails += 1
 
     map = postProcess(map)
-    map = makeStairs(map)
+    map = makeStairs(map, DungeonLevel)
 
     return map
 
-def buildSewers(map):
+def buildSewers(map, DungeonLevel):
     Rooms = []
     RoomNo = 0
 
@@ -496,14 +504,14 @@ def buildSewers(map):
                 if Fail == True:
                     map[x][y].change(raw.RockFloor)
 
-    map = makeStairs(map, Rooms)
+    map = makeStairs(map, DungeonLevel, Rooms)
 
     return map
 
-def buildMaze(map):
+def buildMaze(map, DungeonLevel):
     pass
 
-def buildPerlinForest(map):
+def buildPerlinForest(map, DungeonLevel):
     noise = libtcod.noise_new(2)
 
     for y in range(var.MapHeight):
@@ -535,7 +543,7 @@ def postProcess(map):
 
     return map
 
-def populate():
+def populate(DungeonLevel):
     MonsterNo = 0
     NewMob = None
 
@@ -553,7 +561,7 @@ def populate():
             NewMob = None
 
         if NewMob != None:
-            var.Entities[var.DungeonLevel].append(NewMob)
+            var.Entities[DungeonLevel].append(NewMob)
             MonsterNo += 1
 
         NewMob = None

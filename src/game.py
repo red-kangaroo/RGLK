@@ -35,13 +35,24 @@ def initialize():
     for i in range(0, var.FloorMaxNumber + 1):
         var.Entities.append([])
 
+    dungeon.makeMap(True, var.DungeonLevel)
+    var.calculateFOVMap()
+
     # Player must be defined here, we work with him shortly.
-    Player = entity.spawn(0, 0, raw.Player)
+    m = 0
+    n = 0
+
+    for y in range(0, var.MapHeight):
+        for x in range(0, var.MapWidth):
+            if var.Maps[var.DungeonLevel][x][y].hasFlag('STAIRS_UP'):
+                m = x
+                n = y
+
+    Player = entity.spawn(m, n, raw.Player)
     var.Entities[var.DungeonLevel].append(Player)
 
-    dungeon.makeMap(True)
-    ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
     # TODO: Better welcoming message.
+    ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
 
 def main_loop():
     global Player
@@ -69,7 +80,8 @@ def main_loop():
 
                 # Some wizard mode handling:
                 if var.WizModeNewMap:
-                    dungeon.makeMap(False)
+                    dungeon.makeMap(False, var.DungeonLevel)
+                    var.calculateFOVMap()
                     var.WizModeNewMap = False
                     ui.message("You call upon the great powers of wizard mode to create a whole new dungeon level!")
 
