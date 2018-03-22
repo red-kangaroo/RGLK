@@ -6,7 +6,6 @@ import math
 import random
 
 import ai
-import dungeon
 import game
 import raw
 import ui
@@ -141,10 +140,10 @@ class Entity(object):
             y < 0 or y > var.MapHeight - 1):
             return True
 
-        if dungeon.map[x][y].BlockMove:
+        if var.Maps[var.DungeonLevel][x][y].BlockMove:
             return True
 
-        for i in var.Entities:
+        for i in var.Entities[var.DungeonLevel]:
             if (i.BlockMove and i.x == x and i.y == y):
                 return True
 
@@ -347,7 +346,7 @@ class Mob(Entity):
             self.name = str(self.name + ' corpse')
             self.BlockMove = False
 
-            for i in var.Entities:
+            for i in var.Entities[var.DungeonLevel]:
                 if i.target == self:
                     i.target = None
 
@@ -425,7 +424,7 @@ class Mob(Entity):
         x = self.x + dx
         y = self.y + dy
 
-        for i in var.Entities:
+        for i in var.Entities[var.DungeonLevel]:
             if i.x == x and i.y == y and i.hasFlag('MOB'):
                 bumpee = i
                 break
@@ -446,15 +445,15 @@ class Mob(Entity):
                     return True
 
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
-            if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
+            if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
                 if(self.actionOpen(x, y)):
                     return True
-            elif dungeon.map[x][y].BlockMove == True:
+            elif var.Maps[var.DungeonLevel][x][y].BlockMove == True:
                 for n in range(y - 1, y + 2):
                     for m in range(x - 1, x + 2):
                         if (m > 0 and m < var.MapWidth - 1 and
                             n > 0 and n < var.MapHeight - 1):
-                            if dungeon.map[m][n].hasFlag('CAN_BE_CLOSED'):
+                            if var.Maps[var.DungeonLevel][m][n].hasFlag('CAN_BE_CLOSED'):
                                 if(self.actionClose(m, n)):
                                     return True
 
@@ -470,21 +469,21 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             blocked = False
 
-            for i in var.Entities:
+            for i in var.Entities[var.DungeonLevel]:
                 if i.x == x and i.y == y:
                     blocked = True
                     break
 
-            if not blocked == True and dungeon.map[x][y].hasFlag('CAN_BE_CLOSED'):
-                if dungeon.map[x][y].hasFlag('DOOR'):
-                    dungeon.map[x][y].change(raw.WoodDoor)
+            if not blocked == True and var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED'):
+                if var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR'):
+                    var.Maps[var.DungeonLevel][x][y].change(raw.WoodDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s closes the door." % str.capitalize(self.name), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 else:
                     print "BUG: Unhandled closeable terrain."
-            elif dungeon.map[x][y].hasFlag('CAN_BE_CLOSED') and self.hasFlag('AVATAR'):
+            elif var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED') and self.hasFlag('AVATAR'):
                 ui.message("There is something in the way.")
             elif self.hasFlag('AVATAR'):
                 ui.message("There is nothing to close.")
@@ -504,7 +503,7 @@ class Mob(Entity):
 
                 item.x = self.x
                 item.y = self.y
-                var.Entities.append(item)
+                var.Entities[var.DungeonLevel].append(item)
                 # Used only on death, so no AP nor drop messages.
         else:
             if not self.hasFlag('AVATAR'):
@@ -521,7 +520,7 @@ class Mob(Entity):
 
                 item.x = self.x
                 item.y = self.y
-                var.Entities.append(item)
+                var.Entities[var.DungeonLevel].append(item)
                 ui.message("%s drops %s." % (str.capitalize(self.name), item.name),
                            actor = self)
                 self.AP -= (self.getActionAPCost() / 3) # It's quick.
@@ -553,7 +552,7 @@ class Mob(Entity):
             self.AP -= self.getMoveAPCost()
             return False
 
-        for i in var.Entities:
+        for i in var.Entities[var.DungeonLevel]:
             if i.x == x and i.y == y:
                 if i.hasFlag('ITEM'):
                     self.actionPickUp(x, y)
@@ -567,10 +566,10 @@ class Mob(Entity):
                     self.AP -= self.getActionAPCost()
                     return True
 
-        if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
+        if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
             self.actionOpen(x, y)
             return True
-        elif dungeon.map[x][y].hasFlag('CAN_BE_CLOSED'):
+        elif var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED'):
             self.actionClose(x, y)
             return True
 
@@ -621,13 +620,13 @@ class Mob(Entity):
             return False
 
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
-            if dungeon.map[x][y].hasFlag('CAN_BE_OPENED'):
-                if dungeon.map[x][y].hasFlag('DOOR'):
-                    if dungeon.map[x][y].hasFlag('SECRET'):
+            if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
+                if var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR'):
+                    if var.Maps[var.DungeonLevel][x][y].hasFlag('SECRET'):
                         ui.message("%s discovers a secret door!" % str.capitalize(self.name),
                                    libtcod.azure, actor = self)
 
-                    dungeon.map[x][y].change(raw.OpenDoor)
+                    var.Maps[var.DungeonLevel][x][y].change(raw.OpenDoor)
                     var.changeFOVMap(x, y)
                     ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
                     self.AP -= self.getActionAPCost()
@@ -651,7 +650,7 @@ class Mob(Entity):
 
         options = []
 
-        for i in var.Entities:
+        for i in var.Entities[var.DungeonLevel]:
             if i.hasFlag('ITEM') and i.x == x and i.y == y:
                 options.append(i)
 
@@ -669,7 +668,7 @@ class Mob(Entity):
         elif pickAll == True:
             for i in options:
                 self.inventory.append(i)
-                var.Entities.remove(i)
+                var.Entities[var.DungeonLevel].remove(i)
                 ui.message("%s picks up %s." % (str.capitalize(self.name), i.name), actor = self)
                 self.AP -= self.getActionAPCost()
         else:
@@ -682,7 +681,7 @@ class Mob(Entity):
                 return False
             else:
                 self.inventory.append(options[toPick])
-                var.Entities.remove(options[toPick])
+                var.Entities[var.DungeonLevel].remove(options[toPick])
                 ui.message("%s picks up %s." % (str.capitalize(self.name), options[toPick].name),
                            actor = self)
                 self.AP -= self.getActionAPCost()
@@ -760,9 +759,8 @@ class Item(Entity):
     def beZapped(self, Zapper):
         pass
 
-class Feature(Entity):
-    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
-                 ):
-        super(Mob, self).__init__(x, y, char, color, name)
-
-        self.flags.append('FEATURE')
+#    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
+#                 ):
+#        super(Mob, self).__init__(x, y, char, color, name)
+#
+#        self.flags.append('FEATURE')

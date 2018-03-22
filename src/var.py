@@ -31,12 +31,12 @@ def rand_gaussian_d20():
 def calculateFOVMap():
     for y in range(MapHeight):
         for x in range(MapWidth):
-            libtcod.map_set_properties(FOVMap, x, y, not dungeon.map[x][y].BlockSight,
-                                       not dungeon.map[x][y].BlockMove)
+            libtcod.map_set_properties(FOVMap, x, y, not Maps[DungeonLevel][x][y].BlockSight,
+                                       not Maps[DungeonLevel][x][y].BlockMove)
 
 def changeFOVMap(x, y):
-    libtcod.map_set_properties(FOVMap, x, y, not dungeon.map[x][y].BlockSight,
-                               not dungeon.map[x][y].BlockMove)
+    libtcod.map_set_properties(FOVMap, x, y, not Maps[DungeonLevel][x][y].BlockSight,
+                               not Maps[DungeonLevel][x][y].BlockMove)
 
 # Find functions:
 # ---------------

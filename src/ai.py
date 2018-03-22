@@ -6,7 +6,6 @@ import math
 import random
 import sys
 
-import dungeon
 import entity
 import game
 import ui
@@ -48,7 +47,7 @@ def getAICommand(Mob):
         Target = None
 
         if Mob.target != None:
-            #for i in var.Entities:
+            #for i in var.Entities[var.DungeonLevel]:
             #    if i.target == Mob.target:
             #        Mob.target = None
             #        break
@@ -59,7 +58,7 @@ def getAICommand(Mob):
                 return
 
             # This prevents looking for target that was picked up or something:
-            for i in var.Entities:
+            for i in var.Entities[var.DungeonLevel]:
                 if i == Mob.target:
                     Target = Mob.target
                     break
@@ -69,7 +68,7 @@ def getAICommand(Mob):
 
         if Target == None:
             # Check for enemies:
-            for i in var.Entities:
+            for i in var.Entities[var.DungeonLevel]:
                 if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
                     if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
                         Target = i
@@ -110,7 +109,7 @@ def getAICommand(Mob):
                     # We want to sometimes sidestep player to allow others to join us.
                     friends = False
 
-                    for i in var.Entities:
+                    for i in var.Entities[var.DungeonLevel]:
                         if (i != Mob and i != Target and i.range(Mob) < 2 and
                             i.getRelation(Target) < 1):
                             friends = True
@@ -121,7 +120,7 @@ def getAICommand(Mob):
                             for x in range(Mob.x - 1, Mob.x + 2):
                                 if (x in range(0, var.MapWidth - 1) and
                                     y in range(0, var.MapHeight - 1)):
-                                    if dungeon.map[x][y].BlockMove == False:
+                                    if var.Maps[var.DungeonLevel][x][y].BlockMove == False:
                                         if Target.distance(x, y) < 2:
                                             dx = x - Mob.x
                                             dy = y - Mob.y
@@ -141,7 +140,7 @@ def getAICommand(Mob):
                 if Mob.x == Target.x and Mob.y == Target.y:
                     Mob.actionPickUp(Mob.x, Mob.y, True)
 
-                    for i in var.Entities:
+                    for i in var.Entities[var.DungeonLevel]:
                         if i.target == Target:
                             i.target = None
 
@@ -241,7 +240,7 @@ def handleKeys(Player):
 
 
     if Key.vk == libtcod.KEY_F3:
-        for i in var.Entities:
+        for i in var.Entities[var.DungeonLevel]:
             if not i.hasFlag('AVATAR'):
                 i.receiveDamage(i.maxHP)
         return
@@ -365,9 +364,9 @@ def handleKeys(Player):
                 x = Player.x + where[0]
                 y = Player.y + where[1]
 
-                for i in var.Entities:
+                for i in var.Entities[var.DungeonLevel]:
                     if (i.x == x and i.y == y and (i.hasFlag('MOB') or
-                       (i.BlockMove == True and not i.hasFlag('FEATURE')))):
+                       (i.BlockMove == True and i.hasFlag('ITEM')))):
                         Player.actionSwap(i)
                         return
                 ui.message("There is no one to swap with.")
@@ -553,15 +552,15 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
                                                 libtcod.BKGND_SET)
 
             # Print what's there:
-            if dungeon.map[x][y].explored == True:
-                square = dungeon.map[x][y].name
+            if var.Maps[var.DungeonLevel][x][y].explored == True:
+                square = var.Maps[var.DungeonLevel][x][y].name
             else:
                 square = None
 
             mob = None
             stuff = []
 
-            for i in var.Entities:
+            for i in var.Entities[var.DungeonLevel]:
                 if i.hasFlag('MOB') and i.hasFlag('SEEN') and i.x == x and i.y == y:
                     mob = i.name
                 elif i.hasFlag('ITEM') and i.x == x and i.y == y:
@@ -638,7 +637,7 @@ def aiFlee(Me, Target):
         Other = None
 
         while fails < 100:
-            Other = random.choice(var.Entities)
+            Other = random.choice(var.Entities[var.DungeonLevel])
 
             if Other.hasFlag('MOB'):
                 if Me.getRelation(Other) == 1:
@@ -663,7 +662,7 @@ def aiKite(Me, Target):
     for y in range(Me.y - 1, Me.y + 2):
         for x in range(Me.x - 1, Me.x + 2):
             if x in range(0, var.MapWidth - 1) and y in range(0, var.MapHeight - 1):
-                if dungeon.map[x][y].BlockMove == False:
+                if var.Maps[var.DungeonLevel][x][y].BlockMove == False:
                     if Target.distance(x, y) > distance:
                         distance = Target.distance(x, y)
                         goal = [x, y]
@@ -682,9 +681,9 @@ def aiMove(Me, Target):
     # Set non-walkable spaces:
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
-            libtcod.map_set_properties(MoveMap, x, y, not dungeon.map[x][y].BlockSight,
-                    (not dungeon.map[x][y].BlockMove or dungeon.map[x][y].hasFlag('CAN_BE_OPENED')))
-    for i in var.Entities:
+            libtcod.map_set_properties(MoveMap, x, y, not var.Maps[var.DungeonLevel][x][y].BlockSight,
+                    (not var.Maps[var.DungeonLevel][x][y].BlockMove or var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
+    for i in var.Entities[var.DungeonLevel]:
         if i.BlockMove and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
 

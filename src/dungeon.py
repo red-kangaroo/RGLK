@@ -3,6 +3,7 @@
 
 import libtcodpy as libtcod
 import math
+import random
 
 import entity
 import raw
@@ -12,8 +13,6 @@ import var
 #  Dungeon Generation
 ###############################################################################
 def makeMap(Populate):
-    global map
-
     # First create map of dummy terrain:
     map = [[ Terrain('.', libtcod.white, 'BUG: dummy terrain', False, False)
       for y in range(var.MapHeight) ]
@@ -24,21 +23,25 @@ def makeMap(Populate):
             map[x][y].change(raw.RockWall)
 
     # TODO: Dungeon levels.
-    #which = libtcod.random_get_int(0, 1, 5)
-    #if which in range(1, 4):
-    print "Building traditional dungeon."
-    buildTraditionalDungeon()
-    #elif which == 4:
-    #    print "Building sewers."
-    #    buildSewers()
-    #else:
-    #    print "Building a cave."
-    #    buildDrunkenCave()
+    which = libtcod.random_get_int(0, 1, 5)
+    if which in range(1, 4):
+        print "Building traditional dungeon."
+        map = buildTraditionalDungeon(map)
+    elif which == 4:
+        print "Building sewers."
+        map = buildSewers(map)
+    else:
+        print "Building a cave."
+        map = buildDrunkenCave(map)
 
+    # Set map to the correct dungeon level.
+    var.Maps[var.DungeonLevel] = map
+
+    # Add entities.
     if Populate:
         populate()
 
-    for i in var.Entities:
+    for i in var.Entities[var.DungeonLevel]:
         # On the off-chance we trap someone in dungeon generation:
         if i.isBlocked(i.x, i.y):
             x = 0
@@ -53,7 +56,7 @@ def makeMap(Populate):
 
     var.calculateFOVMap()
 
-def makeLake(liquid):
+def makeLake(liquid, map):
     # This is basically a bit changed drunken cave.
     StepsTaken = 0
     Fails = 0
@@ -87,7 +90,9 @@ def makeLake(liquid):
         else:
             Fails += 1
 
-def makeBetterRoom(Rooms):
+    return map
+
+def makeBetterRoom(Rooms, map):
     for room in Rooms:
         if var.rand_chance(2):
             which = libtcod.random_get_int(0, 1, 2)
@@ -110,7 +115,9 @@ def makeBetterRoom(Rooms):
                         elif not map[x][y].hasFlag('LIQUID'):
                             map[x][y].change(raw.IceFloor)
 
-def makePrefabRoom(Rooms, Prefab = None):
+    return map
+
+def makePrefabRoom(Rooms, map, Prefab = None):
     if Prefab == None:
         for room in Rooms:
             for Prefab in raw.RoomList:
@@ -230,16 +237,87 @@ def makePrefabRoom(Rooms, Prefab = None):
                     Rooms.remove(room)
                     break
 
-        return Rooms
+        return Rooms, map
     else:
         print "This function is not functional yet."
-        return Rooms
+        return Rooms, map
 
 
-def makeClosets():
+def makeClosets(map):
     pass
 
-def buildTraditionalDungeon():
+def makeStairs(map, Rooms = None):
+    # Rooms passed into this function are alredy without prefab rooms (removed in
+    # makePrefabRoom), so we only need to check if there are stairs placed in prefabs
+    # and don't need to worry about placing the stairs into vaults and such by this.
+
+    upstairs = False
+    downstairs = False
+
+    for y in range(0, var.MapHeight):
+        for x in range(0, var.MapWidth):
+            if map[x][y].hasFlag('STAIRS_UP'):
+                upstairs = True
+            elif map[x][y].hasFlag('STAIRS_DOWN'):
+                downstairs = True
+
+    if Rooms != None:
+        # Place upstairs.
+        if upstairs == False:
+            room = random.choice(Rooms)
+            toPlace = []
+
+            for y in range(room.y1 + 1, room.y2):
+                for x in range(room.x1 + 1, room.x2):
+                    if (map[x][y].isWalkable() and not map[x][y].hasFlag('DOOR') and
+                        not map[x][y].hasFlag('FEATURE')):
+                        toPlace.append(map[x][y])
+
+            if len(toPlace) > 0:
+                random.choice(toPlace).change(raw.UpStairs)
+            else:
+                print "Failed to place upstairs."
+
+        # Place downstairs.
+        if downstairs == False:
+            room = random.choice(Rooms)
+            toPlace = []
+
+            for y in range(room.y1 + 1, room.y2):
+                for x in range(room.x1 + 1, room.x2):
+                    if (map[x][y].isWalkable() and not map[x][y].hasFlag('DOOR') and
+                        not map[x][y].hasFlag('FEATURE')):
+                        toPlace.append(map[x][y])
+
+            if len(toPlace) > 0:
+                random.choice(toPlace).change(raw.DownStairs)
+            else:
+                print "Failed to place downstairs."
+    else:
+        if upstairs == False:
+            x = 0
+            y = 0
+
+            while not (map[x][y].isWalkable() and not map[x][y].hasFlag('DOOR') and
+                       not map[x][y].hasFlag('FEATURE')):
+                x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            map[x][y].change(raw.UpStairs)
+        if downstairs == False:
+            x = 0
+            y = 0
+
+            while not (map[x][y].isWalkable() and not map[x][y].hasFlag('DOOR') and
+                       not map[x][y].hasFlag('FEATURE')):
+                x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            map[x][y].change(raw.DownStairs)
+
+    return map
+
+def buildTraditionalDungeon(map):
     Rooms = []
     RoomNo = 0
 
@@ -265,26 +343,26 @@ def buildTraditionalDungeon():
 
         if not Fail:
             if var.rand_chance(20):
-                NewRoom.create_circular_room()
+                map = NewRoom.create_circular_room(map)
             else:
-                NewRoom.create_square_room()
+                map = NewRoom.create_square_room(map)
 
             if RoomNo != 0:
                 PrevRoom = Rooms[RoomNo - 1]
 
                 if var.rand_chance(50):
-                    NewRoom.create_h_tunnel(PrevRoom.CenterX)
-                    PrevRoom.create_v_tunnel(NewRoom.CenterY)
+                    map = NewRoom.create_h_tunnel(PrevRoom.CenterX, map)
+                    map = PrevRoom.create_v_tunnel(NewRoom.CenterY, map)
                 else:
-                    NewRoom.create_v_tunnel(PrevRoom.CenterY)
-                    PrevRoom.create_h_tunnel(NewRoom.CenterX)
+                    map = NewRoom.create_v_tunnel(PrevRoom.CenterY, map)
+                    map = PrevRoom.create_h_tunnel(NewRoom.CenterX, map)
 
             Rooms.append(NewRoom)
             RoomNo += 1
 
     # Clean door generation and add some decorations.
-    postProcess() # Must be before door handling, or lakes will break
-                  # our door placement.
+    map = postProcess(map) # Must be before door handling, or lakes will break
+                           # our door placement.
 
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
@@ -305,17 +383,19 @@ def buildTraditionalDungeon():
                 if Fail == True:
                     map[x][y].change(raw.RockFloor)
 
-    Rooms = makePrefabRoom(Rooms)
+    Rooms, map = makePrefabRoom(Rooms, map)
+    map = makeBetterRoom(Rooms, map)
+    map = makeStairs(map, Rooms)
 
-    makeBetterRoom(Rooms)
+    return map
 
-def buildBSPDungeon():
+def buildBSPDungeon(map):
     pass
 
-def buildQIXDungeon():
+def buildQIXDungeon(map):
     pass
 
-def buildDrunkenCave():
+def buildDrunkenCave(map):
     StepsTaken = 0
     Fails = 0
 
@@ -361,9 +441,12 @@ def buildDrunkenCave():
         else:
             Fails += 1
 
-    postProcess()
+    map = postProcess(map)
+    map = makeStairs(map)
 
-def buildSewers():
+    return map
+
+def buildSewers(map):
     Rooms = []
     RoomNo = 0
 
@@ -384,15 +467,15 @@ def buildSewers():
                 break
 
         if not Fail:
-            NewRoom.create_square_room()
-            NewRoom.create_d_tunnels(Rooms)
+            map = NewRoom.create_square_room(map)
+            map = NewRoom.create_d_tunnels(Rooms, map)
 
             Rooms.append(NewRoom)
             RoomNo += 1
 
     # Clean door generation and add some decorations.
-    postProcess() # Must be before door handling, or lakes will break
-                  # our door placement.
+    map = postProcess(map) # Must be before door handling, or lakes will break
+                           # our door placement.
 
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
@@ -413,10 +496,14 @@ def buildSewers():
                 if Fail == True:
                     map[x][y].change(raw.RockFloor)
 
-def buildMaze():
+    map = makeStairs(map, Rooms)
+
+    return map
+
+def buildMaze(map):
     pass
 
-def buildPerlinForest():
+def buildPerlinForest(map):
     noise = libtcod.noise_new(2)
 
     for y in range(var.MapHeight):
@@ -426,8 +513,9 @@ def buildPerlinForest():
             # TODO
 
     libtcod.noise_delete(noise)
+    return map
 
-def postProcess():
+def postProcess(map):
     print "Starting post-processing dungeon."
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
@@ -443,7 +531,9 @@ def postProcess():
 
     while var.rand_chance(15):
         print "Making a lake."
-        makeLake(raw.ShallowWater)
+        map = makeLake(raw.ShallowWater, map)
+
+    return map
 
 def populate():
     MonsterNo = 0
@@ -463,7 +553,7 @@ def populate():
             NewMob = None
 
         if NewMob != None:
-            var.Entities.append(NewMob)
+            var.Entities[var.DungeonLevel].append(NewMob)
             MonsterNo += 1
 
         NewMob = None
@@ -534,7 +624,8 @@ class Terrain(object):
             return False
 
     def isWalkable(self):
-        if self.hasFlag('GROUND') or self.hasFlag('DOOR') or self.hasFlag('LIQUID'):
+        if (self.hasFlag('GROUND') or self.hasFlag('DOOR') or
+            self.hasFlag('LIQUID') or self.hasFlag('FEATURE')):
             return True
         else:
             return False
@@ -555,12 +646,13 @@ class Room(object):
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
     # TODO: Move floor, wall etc. parameters into script files.
-    def create_square_room(self):
+    def create_square_room(self, map):
         for x in range(self.x1 + 1, self.x2):
             for y in range(self.y1 + 1, self.y2):
                 map[x][y].change(raw.RockFloor)
+        return map
 
-    def create_circular_room(self):
+    def create_circular_room(self, map):
         r = min(self.width / 2, self.height / 2)
 
         for x in range(self.x1 + 1, self.x2):
@@ -569,7 +661,9 @@ class Room(object):
                              (y - self.CenterY) ** 2) <= r:
                     map[x][y].change(raw.RockFloor)
 
-    def create_h_tunnel(self, OtherX):
+        return map
+
+    def create_h_tunnel(self, OtherX, map):
         for x in range(min(self.CenterX, OtherX), max(self.CenterX, OtherX) + 1):
             if (x == self.x1 or x == self.x2):
                 if var.rand_chance(5):
@@ -579,7 +673,9 @@ class Room(object):
             else:
                 map[x][self.CenterY].change(raw.RockFloor)
 
-    def create_v_tunnel(self, OtherY):
+        return map
+
+    def create_v_tunnel(self, OtherY, map):
         for y in range(min(self.CenterY, OtherY), max(self.CenterY, OtherY) + 1):
             if (y == self.y1 or y == self.y2):
                 if var.rand_chance(5):
@@ -589,7 +685,9 @@ class Room(object):
             else:
                 map[self.CenterX][y].change(raw.RockFloor)
 
-    def create_d_tunnels(self, OtherRooms):
+        return map
+
+    def create_d_tunnels(self, OtherRooms, map):
         # This must be possible in some easier way...
         end = False
         x = self.x1
@@ -722,3 +820,5 @@ class Room(object):
             else:
                 x = x + dx
                 y = y + dy
+
+        return map

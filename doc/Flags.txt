@@ -53,6 +53,8 @@ WALL
 GROUND
 DOOR
 LIQUID
+STAIRS_UP
+STAIRS_DOWN
 
 Special:
 CAN_BE_OPENED      Can have actionOpen applied to self.
@@ -60,6 +62,8 @@ CAN_BE_CLOSED      Can have actionClose applied to self.
 CAN_BE_BURNED      Fire damage may transform them into ash pile.
 CAN_BE_MELTED      Fire damage may transform them into water square.
 CAN_BE_KICKED      Destroy with actionKick.
+PLANT
+SECRET
 SLIDE              Walking may cause you to fumble. More knockback.
 STICKY             Walking may fail.
 SWIM               Requires stamina to move. Drowns with no stamina.

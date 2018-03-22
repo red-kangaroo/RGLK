@@ -256,6 +256,25 @@ Mud = {
 'flags': ['LIQUID', 'STICKY']
 }
 
+# Features:
+UpStairs = {
+'char': '<',
+'color': libtcod.white,
+'name': 'upward staircase',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['FEATURE', 'STAIRS_UP']
+}
+
+DownStairs = {
+'char': '>',
+'color': libtcod.white,
+'name': 'downward staircase',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['FEATURE', 'STAIRS_DOWN']
+}
+
 ###############################################################################
 #  Rooms
 ##############################################################################

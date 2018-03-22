@@ -29,12 +29,15 @@ libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 def initialize():
     global Player
 
-    # Player must be defined here, we work with him shortly.
-    Player = entity.spawn(0, 0, raw.Player)
-    var.Entities.append(Player)
-
+    # Create empty Maps and Entities lists.
     for i in range(0, var.FloorMaxNumber + 1):
         var.Maps.append(None)
+    for i in range(0, var.FloorMaxNumber + 1):
+        var.Entities.append([])
+
+    # Player must be defined here, we work with him shortly.
+    Player = entity.spawn(0, 0, raw.Player)
+    var.Entities[var.DungeonLevel].append(Player)
 
     dungeon.makeMap(True)
     ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
@@ -47,11 +50,11 @@ def main_loop():
         var.TurnCount += 1
 
         # Heartbeat of all entities.
-        for i in var.Entities:
+        for i in var.Entities[var.DungeonLevel]:
             i.Be()
 
         # Mob turns, including the player.
-        for i in var.Entities:
+        for i in var.Entities[var.DungeonLevel]:
             while i.AP >= 1:
                 # Calculate FOV for the current actor.
                 i.recalculateFOV()
@@ -101,26 +104,26 @@ def save():
     global Player
     file = shelve.open('savegame', 'n')
 
-    file["map"] = dungeon.map
-    #file["map"] = var.Maps
+    file["map"] = var.Maps
     file["entity"] = var.Entities
     file["wizard"] = var.WizModeActivated
     file["message"] = var.MessageHistory
     file["turn"] = var.TurnCount
-    file["player"] = var.Entities.index(Player) # Index of player in Entities list, to prevent doubling on load.
+    file["level"] = var.DungeonLevel
+    file["player"] = var.Entities[var.DungeonLevel].index(Player) # Index of player in Entities list, to prevent doubling on load.
     file.close()
 
 def load():
     global Player
     file = shelve.open('savegame', 'r')
 
-    dungeon.map = file["map"]
-    #file["map"] = var.Maps
+    var.Maps = file["map"]
     var.Entities = file["entity"]
     var.WizModeActivated = file["wizard"]
     var.MessageHistory = file["message"]
     var.TurnCount = file["turn"]
-    Player = var.Entities[file["player"]]
+    var.DungeonLevel = file["level"]
+    Player = var.Entities[var.DungeonLevel][file["player"]]
     file.close()
 
     var.calculateFOVMap()
