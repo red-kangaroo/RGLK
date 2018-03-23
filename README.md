@@ -16,7 +16,7 @@ Movement:
    / | \       / | \
   1  2  3     b  j  n
 
- 5  .         wait a turn
+ 5  or  .     wait a turn
 ```
 
 General:

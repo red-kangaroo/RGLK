@@ -34,15 +34,24 @@ HUMANOID
 AI:
 AI_DIJKSTRA        Uses dijkstra maps for movement instead of A*.
 AI_FLEE            Used to change AI pattern to fleeing from enemies.
-AI_GREEDY
+*AI_GREEDY
 AI_KITE            Tries to stay at range from enemy.
-AI_PREDATOR        Attacks anything with flag BEAST and without AI_PREDATOR.
+*AI_PREDATOR        Attacks anything with flag BEAST and without AI_PREDATOR.
 AI_SCAVENGER       Hoards items.
 
 Special:
 AVATAR             Player-controlled entity.
 DEAD               A creature that died.
 SEEN               Whether player can currently see the entity.
+
+
+Items
+=====
+
+Generation:
+  These flags are removed at item generation, setting object properties.
+*ALWAYS_BLESSED
+*ALWAYS_CURSED
 
 
 Terrain
@@ -59,11 +68,16 @@ STAIRS_DOWN
 Special:
 CAN_BE_OPENED      Can have actionOpen applied to self.
 CAN_BE_CLOSED      Can have actionClose applied to self.
-CAN_BE_BURNED      Fire damage may transform them into ash pile.
-CAN_BE_MELTED      Fire damage may transform them into water square.
-CAN_BE_KICKED      Destroy with actionKick.
+*CAN_BE_DUG
+*CAN_BE_BURNED      Fire damage may transform them into ash pile.
+*CAN_BE_MELTED      Fire damage may transform them into water square.
+*CAN_BE_KICKED      Destroy with actionKick.
+*LOCKED
+  KEY_SQUARE, KEY_FOO
 PLANT
 SECRET
 SLIDE              Walking may cause you to fumble. More knockback.
 STICKY             Walking may fail.
 SWIM               Requires stamina to move. Drowns with no stamina.
+
+(*) TODO

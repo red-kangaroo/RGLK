@@ -29,9 +29,10 @@ def render_all(Player):
     libtcod.console_flush()
 
 def render_map(Player):
-    libtcod.console_set_default_background(var.MapConsole, libtcod.black)
-    libtcod.console_clear(var.MapConsole) # I originally forgot to add this and
-                                          # it looked quite weird on level transitions. :D
+    # Sadly, this cannot be here or Look command will not work properly. :(
+    #libtcod.console_set_default_background(var.MapConsole, libtcod.black)
+    #libtcod.console_clear(var.MapConsole) # I originally forgot to add this and
+                                           # it looked quite weird on level transitions. :D
 
     # Draw map.
     for y in range(var.MapHeight):

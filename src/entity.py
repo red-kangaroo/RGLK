@@ -32,6 +32,10 @@ def spawn(x, y, BluePrint, type):
         except:
             material = raw.DummyMonster['material']
         try:
+            size = BluePrint['size']
+        except:
+            size = raw.DummyMonster['size']
+        try:
             Str = BluePrint['Str']
         except:
             Str = raw.DummyMonster['Str']
@@ -76,7 +80,7 @@ def spawn(x, y, BluePrint, type):
         except:
             addIntrinsics = []
 
-        New = Mob(x, y, char, color, name, material,
+        New = Mob(x, y, char, color, name, material, size,
                      Str, Dex, End, Wit, Ego, speed, sight)
 
         New.BaseAttack = attack
@@ -91,6 +95,10 @@ def spawn(x, y, BluePrint, type):
         except:
             material = raw.DummyItem['material']
         try:
+            size = BluePrint['size']
+        except:
+            size = raw.DummyItem['size']
+        try:
             BlockMove = BluePrint['BlockMove']
         except:
             BlockMove = raw.DummyItem['BlockMove']
@@ -103,7 +111,7 @@ def spawn(x, y, BluePrint, type):
         except:
             addIntrinsics = []
 
-        New = Item(x, y, char, color, name, material, BlockMove)
+        New = Item(x, y, char, color, name, material, size, BlockMove)
     else:
         print "Failed to spawn unknown entity type."
 
@@ -119,15 +127,16 @@ def spawn(x, y, BluePrint, type):
 
 # Player, monsters...
 class Entity(object):
-    def __init__(self, x, y, char, color, name, material, BlockMove = False):
+    def __init__(self, x, y, char, color, name, material, size, BlockMove = False):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
         self.name = name
         self.material = material
-        self.AP = 0.0 # Start with 0 turns to take.
+        self.size = size
         self.BlockMove = BlockMove
+        self.AP = 0.0 # Start with 0 turns to take.
 
         self.flags = []
         self.inventory = [] # For both mobs and containers.
@@ -185,6 +194,9 @@ class Entity(object):
         else:
             return False
 
+    def hasIntrinsic(self, intrinsic):
+        pass
+
     # Heartbeat of all entities.
     def Be(self):
         # How else to check if entity has a speed variable?
@@ -201,7 +213,7 @@ class Entity(object):
         #       through the main loop of var.Entities
 
 class Mob(Entity):
-    def __init__(self, x, y, char, color, name, material, #These are base Entity arguments.
+    def __init__(self, x, y, char, color, name, material, size, #These are base Entity arguments.
                  Str, Dex, End, Wit, Ego, speed = 1.0, FOVRadius = 6):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
@@ -214,9 +226,11 @@ class Mob(Entity):
         self.Wit = Wit
         self.Ego = Ego
         self.speed = speed
+
         # FOV:
         self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
         self.recalculateFOV()
+
         # Calculate stats:
         self.bonusHP = 0
         self.bonusMP = 0
@@ -235,6 +249,7 @@ class Mob(Entity):
         self.BaseAttack = None # Special case this as a slam attack in attack code.
         #self.material = 'AETHER' # Dummy material.
         self.flags.append('MOB')
+        self.bodyparts = []
 
     def recalculateFOV(self):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
@@ -313,7 +328,7 @@ class Mob(Entity):
     def getMoveAPCost(self):
         return 1
 
-    def hasIntrinsic(self, intrinsic):
+    def handleIntrinsics(self):
         pass
 
     def receiveHeal(self, amount):
@@ -523,7 +538,11 @@ class Mob(Entity):
 
             if not blocked == True and var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED'):
                 if var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR'):
-                    var.Maps[var.DungeonLevel][x][y].change(raw.WoodDoor)
+                    if var.Maps[var.DungeonLevel][x][y].hasFlag('PORTCULLIS'):
+                        var.Maps[var.DungeonLevel][x][y].change(raw.ClosedPort)
+                    else:
+                        var.Maps[var.DungeonLevel][x][y].change(raw.WoodDoor)
+
                     var.changeFOVMap(x, y)
                     ui.message("%s closes the door." % str.capitalize(self.name), actor = self)
                     self.AP -= self.getActionAPCost()
@@ -565,6 +584,7 @@ class Mob(Entity):
 
                 if self.hasFlag('AVATAR'):
                     var.calculateFOVMap()
+                    libtcod.console_clear(var.MapConsole)
 
                 ui.message("%s climbs the stairs." % str.capitalize(self.name), actor = self)
                 self.SP -= 8 # It's a bit more tiring to go upstairs.
@@ -594,6 +614,7 @@ class Mob(Entity):
 
                 if self.hasFlag('AVATAR'):
                     var.calculateFOVMap()
+                    libtcod.console_clear(var.MapConsole)
 
                 ui.message("%s climbs the stairs." % str.capitalize(self.name), actor = self)
                 # TODO: Knock back entities that are standing on the stairs.
@@ -759,11 +780,22 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
                 if var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR'):
+                    # Blocked door will only appear in vault where we want to keep
+                    # monsters inside.
+                    if (var.Maps[var.DungeonLevel][x][y].hasFlag('BLOCKED') and
+                        not self.hasFlag('AVATAR')):
+                        return False
+
+                    # TODO: LOCKED flag.
                     if var.Maps[var.DungeonLevel][x][y].hasFlag('SECRET'):
                         ui.message("%s discovers a secret door!" % str.capitalize(self.name),
                                    libtcod.azure, actor = self)
 
-                    var.Maps[var.DungeonLevel][x][y].change(raw.OpenDoor)
+                    if var.Maps[var.DungeonLevel][x][y].hasFlag('PORTCULLIS'):
+                        var.Maps[var.DungeonLevel][x][y].change(raw.OpenPort)
+                    else:
+                        var.Maps[var.DungeonLevel][x][y].change(raw.OpenDoor)
+
                     var.changeFOVMap(x, y)
                     ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
                     self.AP -= self.getActionAPCost()
@@ -879,9 +911,11 @@ class Mob(Entity):
         return moved
 
 class Item(Entity):
-    def __init__(self, x, y, char, color, name, material, BlockMove #These are base Entity arguments.
+    def __init__(self, x, y, char, color, name, material, size, BlockMove #These are base Entity arguments.
                  ):
         super(Item, self).__init__(x, y, char, color, name, material, BlockMove)
+
+        self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
 
         flags = ['ITEM']
 
@@ -900,6 +934,9 @@ class Item(Entity):
             return False
 
     def beZapped(self, Zapper):
+        pass
+
+    def handleIntrinsics(self):
         pass
 
 #    def __init__(self, x, y, char, color, name, #These are base Entity arguments.

@@ -97,7 +97,7 @@ def makeLake(liquid, map):
 def makeBetterRoom(Rooms, map):
     for room in Rooms:
         if var.rand_chance(2):
-            which = libtcod.random_get_int(0, 1, 2)
+            which = libtcod.random_get_int(0, 1, 3)
             # TODO: Add so much more rooms.
 
             # Wooden room:
@@ -116,6 +116,19 @@ def makeBetterRoom(Rooms, map):
                             map[x][y].change(raw.IceWall)
                         elif not map[x][y].hasFlag('LIQUID'):
                             map[x][y].change(raw.IceFloor)
+            # Grass room:
+            elif which == 3:
+                for x in range(room.x1, room.x2 + 1):
+                    for y in range(room.y1, room.y2 + 1):
+                        if map[x][y].hasFlag('WALL'):
+                            map[x][y].change(raw.EarthWall)
+                        elif not map[x][y].hasFlag('LIQUID'):
+                            if var.rand_chance(5):
+                                map[x][y].change(raw.Vines)
+                            elif var.rand_chance(60):
+                                map[x][y].change(raw.GrassFloor)
+                            else:
+                                map[x][y].change(raw.TallGrass)
 
     return map
 
@@ -127,11 +140,19 @@ def makePrefabRoom(Rooms, map, Prefab = None):
                 # Select a file and change terrain based on its map.
                 if (room.width + 1 == Prefab['width'] and
                     room.height + 1 == Prefab['height']):
-                    if var.rand_chance(80):
+                    try:
+                        frequency = Prefab['frequency']
+                    except:
+                        frequency = raw.DummyRoom['frequency']
+                    if not var.rand_chance(frequency):
                         break
 
                     file = open(Prefab['file'], 'r')
                     y = room.y1
+
+                    #if var.rand_chance(50):
+                    #    for line in file:
+                    #        line = reversed(line)
 
                     for line in file:
                         x = room.x1
@@ -139,9 +160,21 @@ def makePrefabRoom(Rooms, map, Prefab = None):
                         for i in line:
                             try:
                                 try:
-                                    map[x][y].change(Prefab[i])
+                                    (terrain, terrainFlags, item, mob) = Prefab[i]
                                 except:
-                                    map[x][y].change(raw.DummyRoom[i])
+                                    (terrain, terrainFlags, item, mob) = raw.DummyRoom[i]
+
+                                map[x][y].change(terrain)
+
+                                if terrainFlags != None:
+                                    for p in terrainFlags:
+                                        map[x][y].flags.append(p)
+
+                                if item != None:
+                                    entity.spawn(x, y, item, 'ITEM')
+
+                                if mob != None:
+                                    entity.spawn(x, y, mob, 'MOB')
                             except:
                                 pass # This should prevent crashes on newline, if there are any.
 
@@ -163,7 +196,13 @@ def makePrefabRoom(Rooms, map, Prefab = None):
                                 continue
                             else:
                                 while n > 0 and n < var.MapHeight - 1:
-                                    if map[x][n].isWalkable():
+                                    connected = False
+
+                                    for m in range(x - 1, x + 2):
+                                        if map[m][n].isWalkable():
+                                            connected = True
+
+                                    if connected:
                                         break
                                     else:
                                         map[x][n].change(raw.RockFloor)
@@ -184,7 +223,13 @@ def makePrefabRoom(Rooms, map, Prefab = None):
                                 continue
                             else:
                                 while m > 0 and m < var.MapWidth - 1:
-                                    if map[m][y].isWalkable():
+                                    connected = False
+
+                                    for n in range(y - 1, y + 2):
+                                        if map[m][n].isWalkable():
+                                            connected = True
+
+                                    if connected:
                                         break
                                     else:
                                         map[m][y].change(raw.RockFloor)
@@ -205,7 +250,13 @@ def makePrefabRoom(Rooms, map, Prefab = None):
                                 continue
                             else:
                                 while m > 0 and m < var.MapWidth - 1:
-                                    if map[m][y].isWalkable():
+                                    connected = False
+
+                                    for n in range(y - 1, y + 2):
+                                        if map[m][n].isWalkable():
+                                            connected = True
+
+                                    if connected:
                                         break
                                     else:
                                         map[m][y].change(raw.RockFloor)
@@ -226,7 +277,13 @@ def makePrefabRoom(Rooms, map, Prefab = None):
                                 continue
                             else:
                                 while n > 0 and n < var.MapHeight - 1:
-                                    if map[x][n].isWalkable():
+                                    connected = False
+
+                                    for m in range(x - 1, x + 2):
+                                        if map[m][n].isWalkable():
+                                            connected = True
+
+                                    if connected:
                                         break
                                     else:
                                         map[x][n].change(raw.RockFloor)
@@ -527,15 +584,21 @@ def postProcess(map):
     print "Starting post-processing dungeon."
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
-            # TODO: Move all of those into script file.
-            if (map[x][y].hasFlag('GROUND') and var.rand_chance(3)):
-                map[x][y].change(raw.Vines)
+            # TODO: Make this better.
+            which = random.choice([
+            raw.Vines,
+            raw.Vines,
+            raw.Vines,
+            raw.RockPile,
+            #raw.BonePile,
+            #raw.Grave,
+            raw.ShallowWater,
+            raw.ShallowWater,
+            #raw.Mud
+            ])
 
-            elif (map[x][y].hasFlag('GROUND') and var.rand_chance(2)):
-                map[x][y].change(raw.ShallowWater)
-
-            elif (map[x][y].hasFlag('GROUND') and var.rand_chance(2)):
-                map[x][y].change(raw.RockPile)
+            if (map[x][y].hasFlag('GROUND') and var.rand_chance(10)):
+                map[x][y].change(which)
 
     while var.rand_chance(15):
         print "Making a lake."
@@ -691,7 +754,8 @@ class Room(object):
         for x in range(min(self.CenterX, OtherX), max(self.CenterX, OtherX) + 1):
             if (x == self.x1 or x == self.x2):
                 if var.rand_chance(5):
-                    map[x][self.CenterY].change(raw.SecretDoor)
+                    which = random.choice([raw.SecretDoor, raw.ClosedPort, raw.Curtain])
+                    map[x][self.CenterY].change(which)
                 else:
                     map[x][self.CenterY].change(raw.WoodDoor)
             else:
@@ -703,7 +767,8 @@ class Room(object):
         for y in range(min(self.CenterY, OtherY), max(self.CenterY, OtherY) + 1):
             if (y == self.y1 or y == self.y2):
                 if var.rand_chance(5):
-                    map[self.CenterX][y].change(raw.SecretDoor)
+                    which = random.choice([raw.SecretDoor, raw.ClosedPort, raw.Curtain])
+                    map[self.CenterX][y].change(which)
                 else:
                     map[self.CenterX][y].change(raw.WoodDoor)
             else:

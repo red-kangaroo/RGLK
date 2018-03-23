@@ -44,3 +44,9 @@ while not libtcod.console_is_window_closed():
     libtcod.console_flush()
 
 print command
+
+ASCII codes
+===========
+https://en.wikipedia.org/wiki/Code_page_437
+
+chr(127) == ⌂
