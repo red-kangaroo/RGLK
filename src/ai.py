@@ -42,12 +42,12 @@ def getAICommand(Mob):
 
         if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
             Mob.flags.append('AI_FLEE')
-            print "%s flees." % Mob.name
+            ui.message("%s flee&S." % Mob.getName(True), actor = Mob)
 
         if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
               Mob.HP >= (Mob.maxHP / 2)):
             Mob.flags.remove('AI_FLEE')
-            print "%s no longer flees." % Mob.name
+            ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
 
         Target = None
 
@@ -268,6 +268,11 @@ def handleKeys(Player):
     # Inventory
     if (Key.vk == libtcod.KEY_CHAR and Key.c == ord('i')):
         Player.actionInventory()
+        return
+
+    # Equipment
+    if (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
+        Player.actionEquipment()
         return
 
     # Look
@@ -576,9 +581,9 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
 
             for i in var.Entities[var.DungeonLevel]:
                 if i.hasFlag('MOB') and i.hasFlag('SEEN') and i.x == x and i.y == y:
-                    mob = i.name
+                    mob = i.getName()
                 elif i.hasFlag('ITEM') and i.x == x and i.y == y:
-                    stuff.append(i.name)
+                    stuff.append(i.getName())
 
             if len(stuff) < 1:
                 names = None
@@ -662,7 +667,7 @@ def aiFlee(Me, Target):
             if aiMove(Me, Me.target) == True:
                 return True
 
-        ui.message("%s screams like a girl." % (str.capitalize(Me.name)), actor = Me)
+        ui.message("%s scream&S like a girl." % Me.getName(True), actor = Me)
         Me.actionWait()
         return False
 
@@ -696,7 +701,8 @@ def aiMove(Me, Target):
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             libtcod.map_set_properties(MoveMap, x, y, not var.Maps[var.DungeonLevel][x][y].BlockSight,
-                    (not var.Maps[var.DungeonLevel][x][y].BlockMove or var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
+                                       (not var.Maps[var.DungeonLevel][x][y].BlockMove or
+                                       var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
     for i in var.Entities[var.DungeonLevel]:
         if i.BlockMove and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
@@ -704,18 +710,20 @@ def aiMove(Me, Target):
     if Me.hasFlag('AI_DIJKSTRA'):
         if aiMoveDijkstra(Me, Target, MoveMap) == True:
             return True
-    if Me.Wit > -3:
-        if aiMoveAStar(Me, Target, MoveMap) == True:
-            return True
-
-    if Me.hasFlag('AI_FLEE'):
-        flee = True
+    #if Me.Wit > -3:
     else:
-        flee = False
+        aiMoveAStar(Me, Target, MoveMap)
+        return True
 
-    aiMoveBase(Me, Target.x, Target.y, flee)
+    #if Me.hasFlag('AI_FLEE'):
+    #    flee = True
+    #else:
+    #    flee = False
+    #
+    #aiMoveBase(Me, Target.x, Target.y, flee)
 
 def aiMoveAStar(Me, Target, MoveMap):
+    print "moving A*"
     path = libtcod.path_new_using_map(MoveMap, 1.41)
     libtcod.path_compute(path, Me.x, Me.y, Target.x, Target.y)
 
@@ -732,9 +740,11 @@ def aiMoveAStar(Me, Target, MoveMap):
             dy = y - Me.y
 
             if Me.actionBump(dx, dy) == True:
+                print "bumping"
                 moved = True
 
     elif aiMoveBase(Me, Target.x, Target.y) == True:
+        print "failed A*, moving base"
         moved = True
 
     libtcod.path_delete(path)

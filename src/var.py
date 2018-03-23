@@ -68,8 +68,10 @@ RoomMaxNumber = 99
 DrunkenSteps = 5000
 FloorMaxNumber = 25 # Depths of the dungeon.
 
-MonsterMaxNumber = 10 # Should depend on dungeon level.
-ItemMaxNumber = 5 # Should depend on dungeon level.
+# TODO: Should depend on dungeon level.
+MonsterMaxNumber = 10
+ItemMaxNumber = 5
+
 TurnCount = 0
 DungeonLevel = 1 # Starting level of the player.
 

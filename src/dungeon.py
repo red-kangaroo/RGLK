@@ -132,8 +132,8 @@ def makeBetterRoom(Rooms, map):
 
     return map
 
-def makePrefabRoom(Rooms, map, Prefab = None):
-    if Prefab == None:
+def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
+    if Prefab == None and Rooms != None:
         for room in Rooms:
             for Prefab in raw.RoomList:
 
@@ -147,160 +147,206 @@ def makePrefabRoom(Rooms, map, Prefab = None):
                     if not var.rand_chance(frequency):
                         break
 
-                    file = open(Prefab['file'], 'r')
-                    y = room.y1
-
-                    #if var.rand_chance(50):
-                    #    for line in file:
-                    #        line = reversed(line)
-
-                    for line in file:
-                        x = room.x1
-
-                        for i in line:
-                            try:
-                                try:
-                                    (terrain, terrainFlags, item, mob) = Prefab[i]
-                                except:
-                                    (terrain, terrainFlags, item, mob) = raw.DummyRoom[i]
-
-                                map[x][y].change(terrain)
-
-                                if terrainFlags != None:
-                                    for p in terrainFlags:
-                                        map[x][y].flags.append(p)
-
-                                if item != None:
-                                    entity.spawn(x, y, item, 'ITEM')
-
-                                if mob != None:
-                                    entity.spawn(x, y, mob, 'MOB')
-                            except:
-                                pass # This should prevent crashes on newline, if there are any.
-
-                            x += 1
-                        y += 1
-
-                    # Now dig tunnels to connect the room.
-                    y = room.y1
-                    for x in range(room.x1, room.x2 + 1):
-                        if map[x][y].isWalkable():
-                            connected = False
-                            n = y - 1
-
-                            for m in range(x - 1, x + 2):
-                                if map[m][n].isWalkable():
-                                    connected = True
-
-                            if connected:
-                                continue
-                            else:
-                                while n > 0 and n < var.MapHeight - 1:
-                                    connected = False
-
-                                    for m in range(x - 1, x + 2):
-                                        if map[m][n].isWalkable():
-                                            connected = True
-
-                                    if connected:
-                                        break
-                                    else:
-                                        map[x][n].change(raw.RockFloor)
-
-                                    n -= 1
-
-                    x = room.x2
-                    for y in range(room.y1, room.y2 + 1):
-                        if map[x][y].isWalkable():
-                            connected = False
-                            m = x + 1
-
-                            for n in range(y - 1, y + 2):
-                                if map[m][n].isWalkable():
-                                    connected = True
-
-                            if connected:
-                                continue
-                            else:
-                                while m > 0 and m < var.MapWidth - 1:
-                                    connected = False
-
-                                    for n in range(y - 1, y + 2):
-                                        if map[m][n].isWalkable():
-                                            connected = True
-
-                                    if connected:
-                                        break
-                                    else:
-                                        map[m][y].change(raw.RockFloor)
-
-                                    m += 1
-
-                    x = room.x1
-                    for y in range(room.y1, room.y2 + 1):
-                        if map[x][y].isWalkable():
-                            connected = False
-                            m = x - 1
-
-                            for n in range(y - 1, y + 2):
-                                if map[m][n].isWalkable():
-                                    connected = True
-
-                            if connected:
-                                continue
-                            else:
-                                while m > 0 and m < var.MapWidth - 1:
-                                    connected = False
-
-                                    for n in range(y - 1, y + 2):
-                                        if map[m][n].isWalkable():
-                                            connected = True
-
-                                    if connected:
-                                        break
-                                    else:
-                                        map[m][y].change(raw.RockFloor)
-
-                                    m -= 1
-
-                    y = room.y2
-                    for x in range(room.x1, room.x2 + 1):
-                        if map[x][y].isWalkable():
-                            connected = False
-                            n = y + 1
-
-                            for m in range(x - 1, x + 2):
-                                if map[m][n].isWalkable():
-                                    connected = True
-
-                            if connected:
-                                continue
-                            else:
-                                while n > 0 and n < var.MapHeight - 1:
-                                    connected = False
-
-                                    for m in range(x - 1, x + 2):
-                                        if map[m][n].isWalkable():
-                                            connected = True
-
-                                    if connected:
-                                        break
-                                    else:
-                                        map[x][n].change(raw.RockFloor)
-
-                                    n += 1
-
-                    # TODO: Monster and item placement.
+                    map = create_prefab(Prefab, room, map, DungeonLevel)
 
                     # Remove the room from Rooms so that we don't overwrite it later.
                     Rooms.remove(room)
                     break
 
         return Rooms, map
+    elif Rooms == None:
+        if Prefab == None:
+            Prefab = random.choice(raw.RoomList)
+
+        fails = 0
+        # Be careful, Room.width and Prefab['width'] and different by 1. (Yeah,
+        # I will hate myself for this.)
+        width = Prefab['width'] - 1
+        height = Prefab['height'] - 1
+
+        while fails < 100:
+            Fail = False
+            x = libtcod.random_get_int(0, 0, var.MapWidth - width - 1)
+            y = libtcod.random_get_int(0, 0, var.MapHeight - height - 1)
+
+            for n in range(y, y + height):
+                for m in range(x, x + width):
+                    if not map[m][n].hasFlag('WALL'):
+                        Fail = True
+
+            if Fail == False:
+                break
+            else:
+                fails += 1
+
+        if Fail == False:
+            NewRoom = Room(x, y, width, height)
+            map = create_prefab(Prefab, NewRoom, map, DungeonLevel)
+
+        return map
     else:
-        print "This function is not functional yet."
+        print "failed to place prefab rooms."
         return Rooms, map
 
+def create_prefab(Prefab, room, map, DungeonLevel):
+    file = open(Prefab['file'], 'r')
+    y = room.y1
+
+    #if var.rand_chance(50):
+    #    for line in file:
+    #        line = reversed(line)
+
+    for line in file:
+        x = room.x1
+
+        for i in line:
+            try:
+                try:
+                    (terrain, terrainFlags, item, mob) = Prefab[i]
+                except:
+                    (terrain, terrainFlags, item, mob) = raw.DummyRoom[i]
+
+                map[x][y].change(terrain)
+
+                if terrainFlags != None:
+                    for p in terrainFlags:
+                        map[x][y].flags.append(p)
+
+                if item != None:
+                    NewItem = entity.spawn(x, y, item, 'ITEM')
+                    var.Entities[DungeonLevel].append(NewItem)
+
+                if mob != None:
+                    NewMob = entity.spawn(x, y, mob, 'MOB')
+                    var.Entities[DungeonLevel].append(NewMob)
+
+            except:
+                pass # This should prevent crashes on newline, if there are any.
+
+            x += 1
+        y += 1
+
+    # Now dig tunnels to connect the room.
+    y = room.y1
+    for x in range(room.x1, room.x2 + 1):
+        if map[x][y].isWalkable():
+            connected = False
+            n = y - 1
+
+            for m in range(x - 1, x + 2):
+                if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                    if map[m][n].isWalkable():
+                        connected = True
+                else:
+                    break
+
+            if connected:
+                continue
+            else:
+                while n > 0 and n < var.MapHeight - 1:
+                    connected = False
+
+                    for m in range(x - 1, x + 2):
+                        if map[m][n].isWalkable():
+                            connected = True
+
+                    if connected:
+                        break
+                    else:
+                        map[x][n].change(raw.RockFloor)
+
+                    n -= 1
+
+    x = room.x2
+    for y in range(room.y1, room.y2 + 1):
+        if map[x][y].isWalkable():
+            connected = False
+            m = x + 1
+
+            for n in range(y - 1, y + 2):
+                if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                    if map[m][n].isWalkable():
+                        connected = True
+                else:
+                    break
+
+            if connected:
+                continue
+            else:
+                while m > 0 and m < var.MapWidth - 1:
+                    connected = False
+
+                    for n in range(y - 1, y + 2):
+                        if map[m][n].isWalkable():
+                            connected = True
+
+                    if connected:
+                        break
+                    else:
+                        map[m][y].change(raw.RockFloor)
+
+                    m += 1
+
+    x = room.x1
+    for y in range(room.y1, room.y2 + 1):
+        if map[x][y].isWalkable():
+            connected = False
+            m = x - 1
+
+            for n in range(y - 1, y + 2):
+                if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                    if map[m][n].isWalkable():
+                        connected = True
+                else:
+                    break
+
+            if connected:
+                continue
+            else:
+                while m > 0 and m < var.MapWidth - 1:
+                    connected = False
+
+                    for n in range(y - 1, y + 2):
+                        if map[m][n].isWalkable():
+                            connected = True
+
+                    if connected:
+                        break
+                    else:
+                        map[m][y].change(raw.RockFloor)
+
+                    m -= 1
+
+    y = room.y2
+    for x in range(room.x1, room.x2 + 1):
+        if map[x][y].isWalkable():
+            connected = False
+            n = y + 1
+
+            for m in range(x - 1, x + 2):
+                if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                    if map[m][n].isWalkable():
+                        connected = True
+                else:
+                    break
+
+            if connected:
+                continue
+            else:
+                while n > 0 and n < var.MapHeight - 1:
+                    connected = False
+
+                    for m in range(x - 1, x + 2):
+                        if map[m][n].isWalkable():
+                            connected = True
+
+                    if connected:
+                        break
+                    else:
+                        map[x][n].change(raw.RockFloor)
+
+                    n += 1
+    return map
 
 def makeClosets(map):
     pass
@@ -448,7 +494,7 @@ def buildTraditionalDungeon(map, DungeonLevel):
                 if Fail == True:
                     map[x][y].change(raw.RockFloor)
 
-    Rooms, map = makePrefabRoom(Rooms, map)
+    Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
     map = makeBetterRoom(Rooms, map)
     map = makeStairs(map, DungeonLevel, Rooms)
 
@@ -507,6 +553,10 @@ def buildDrunkenCave(map, DungeonLevel):
             Fails += 1
 
     map = postProcess(map)
+
+    while var.rand_chance(15):
+        map = makePrefabRoom(map, DungeonLevel)
+
     map = makeStairs(map, DungeonLevel)
 
     return map
@@ -614,13 +664,10 @@ def populate(DungeonLevel):
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
-        # TODO: Rework.
-        if var.rand_chance(80):
-            NewMob = entity.spawn(x, y, raw.Orc, 'MOB')
-        else:
-            NewMob = entity.spawn(x, y, raw.Troll, 'MOB')
+        which = weighted_choice(raw.MobList, 'MOB')
+        NewMob = entity.spawn(x, y, which, 'MOB')
 
-        if NewMob.isBlocked(x, y):
+        if NewMob.isBlocked(x, y, DungeonLevel):
             NewMob = None
 
         if NewMob != None:
@@ -637,9 +684,10 @@ def populate(DungeonLevel):
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
-        NewItem = entity.spawn(x, y, random.choice(raw.ItemList), 'ITEM')
+        which = weighted_choice(raw.ItemList, 'ITEM')
+        NewItem = entity.spawn(x, y, which, 'ITEM')
 
-        if NewItem.isBlocked(x, y):
+        if NewItem.isBlocked(x, y, DungeonLevel):
             NewItem = None
 
         if NewItem != None:
@@ -647,6 +695,25 @@ def populate(DungeonLevel):
             ItemNo += 1
 
         NewItem = None
+
+def weighted_choice(stuff, type = None):
+    choices = []
+
+    for i in stuff:
+        frequency = 0
+
+        try:
+            frequency = i['frequency']
+        except:
+            if type == 'MOB':
+                frequency = raw.DummyMonster['frequency']
+            elif type == 'ITEM':
+                frequency = raw.DummyItem['frequency']
+
+        if var.rand_chance(frequency):
+            choices.append(i)
+
+    return random.choice(choices)
 
 ###############################################################################
 #  Objects

@@ -13,7 +13,7 @@ import ui
 import var
 
 ###############################################################################
-#  Entities
+#  Functions
 ###############################################################################
 
 def spawn(x, y, BluePrint, type):
@@ -81,7 +81,7 @@ def spawn(x, y, BluePrint, type):
             addIntrinsics = []
 
         New = Mob(x, y, char, color, name, material, size,
-                     Str, Dex, End, Wit, Ego, speed, sight)
+                     Str, Dex, End, Wit, Ego, speed, sight, addFlags)
 
         New.BaseAttack = attack
         New.diet = diet
@@ -111,12 +111,10 @@ def spawn(x, y, BluePrint, type):
         except:
             addIntrinsics = []
 
-        New = Item(x, y, char, color, name, material, size, BlockMove)
+        New = Item(x, y, char, color, name, material, size, BlockMove,
+                   addFlags)
     else:
         print "Failed to spawn unknown entity type."
-
-    for i in addFlags:
-        New.flags.append(i)
 
     try:
         New.intrinsics.append(addIntrinsics)
@@ -124,6 +122,10 @@ def spawn(x, y, BluePrint, type):
         print "Failed to spawn with intrinsics."
 
     return New
+
+###############################################################################
+#  Entities
+###############################################################################
 
 # Player, monsters...
 class Entity(object):
@@ -174,15 +176,15 @@ class Entity(object):
 
         return math.sqrt(dx ** 2 + dy ** 2)
 
-    def isBlocked(self, x, y):
+    def isBlocked(self, x, y, DungeonLevel = var.DungeonLevel):
         if (x < 0 or x > var.MapWidth - 1 or
             y < 0 or y > var.MapHeight - 1):
             return True
 
-        if var.Maps[var.DungeonLevel][x][y].BlockMove:
+        if var.Maps[DungeonLevel][x][y].BlockMove:
             return True
 
-        for i in var.Entities[var.DungeonLevel]:
+        for i in var.Entities[DungeonLevel]:
             if (i.BlockMove and i.x == x and i.y == y):
                 return True
 
@@ -197,15 +199,24 @@ class Entity(object):
     def hasIntrinsic(self, intrinsic):
         pass
 
+    def getName(self, capitalize = False, full = False):
+        name = self.name
+
+        if capitalize == True:
+            name = name.capitalize()
+
+        return name
+
     # Heartbeat of all entities.
     def Be(self):
         # How else to check if entity has a speed variable?
-        try:
-            self.regainActions()
-            self.regainHealth()
-            self.regainMana()
-            self.regainStamina()
-        except:
+        if self.hasFlag('MOB'):
+            if self.checkDeath() == False:
+                self.regainActions()
+                self.regainHealth()
+                self.regainMana()
+                self.regainStamina()
+        else:
             self.AP += 1
         # TODO: Check terrain for special effects.
         # TODO: Intrinsics and status effects.
@@ -214,7 +225,7 @@ class Entity(object):
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, material, size, #These are base Entity arguments.
-                 Str, Dex, End, Wit, Ego, speed = 1.0, FOVRadius = 6):
+                 Str, Dex, End, Wit, Ego, speed = 1.0, FOVRadius = 6, addFlags = []):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
         super(Mob, self).__init__(x, y, char, color, name, material, BlockMove)
@@ -247,9 +258,49 @@ class Mob(Entity):
         # General:
         self.carry = self.recalculateCarryingCapacity()
         self.BaseAttack = None # Special case this as a slam attack in attack code.
-        #self.material = 'AETHER' # Dummy material.
+        self.givenName = None
+
         self.flags.append('MOB')
+        for i in addFlags:
+            self.flags.append(i)
+
         self.bodyparts = []
+        self.gainBody()
+
+    def gainBody(self):
+        body = None
+        for i in self.flags:
+            if i in raw.BodyTypes.keys():
+                body = i
+                break
+
+        if body != None:
+            BodyParts = raw.BodyTypes[body]
+        else:
+            return # No body parts. This will kill us next heartbeat.
+
+        for part in BodyParts:
+            try:
+                name = part['name']
+            except:
+                name = raw.DummyPart['name']
+            try:
+                cover = part['cover']
+            except:
+                cover = raw.DummyPart['cover']
+            try:
+                addFlags = part['flags']
+            except:
+                addFlags = raw.DummyPart['flags']
+
+            New = BodyPart(name, self, cover, addFlags)
+
+            self.bodyparts.append(New)
+
+        for part in self.bodyparts:
+            if part.hasFlag('ARM'):
+                part.flags.append('MAIN')
+                break
 
     def recalculateFOV(self):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
@@ -328,6 +379,23 @@ class Mob(Entity):
     def getMoveAPCost(self):
         return 1
 
+    def getName(self, capitalize = False, full = False):
+        name = self.name
+
+        # TODO:
+        # full should make the function return whole name and title
+
+        if self.givenName != None:
+            name = self.givenName + ' the ' + name
+
+        if self.hasFlag('AVATAR'):
+            name = 'you'
+
+        if capitalize == True:
+            name = name.capitalize()
+
+        return name
+
     def handleIntrinsics(self):
         pass
 
@@ -378,8 +446,9 @@ class Mob(Entity):
             self.XP -= 1000
         return True
 
-    def receiveAttack(self, attacker, multiplier):
-        pass
+    def receiveAttack(self, attacker, multiplier = 0):
+        self.target = attacker
+        # TODO
 
     def receiveDamage(self, damage, type = None):
         # TODO
@@ -388,14 +457,30 @@ class Mob(Entity):
 
         self.checkDeath()
 
-    def checkDeath(self):
+    def checkDeath(self, forceDie = False):
+        if self.hasFlag('DEAD'):
+            return True
+
         if self.HP <= 0:
-            ui.message("%s dies." % str.capitalize(self.name), libtcod.red, self)
+            forceDie = True
+
+        vitalBodyParts = 0
+
+        for part in self.bodyparts:
+            if part.hasFlag('VITAL'):
+                vitalBodyParts += 1
+
+        if vitalBodyParts == 0:
+            forceDie = True
+
+        if forceDie:
+            ui.message("%s die&S." % self.getName(True), libtcod.red, self)
+
+            self.actionDrop(True)
+
             self.flags.remove('MOB')
             self.flags.append('ITEM')
             self.flags.append('DEAD')
-
-            self.actionDrop(True)
 
             if self.hasFlag('AVATAR'):
                 game.save() # No savescumming for you! (Unless you prepare for this, of course.)
@@ -434,7 +519,7 @@ class Mob(Entity):
                 ui.message("You can only attack creatures.")
             return False
 
-        #ui.message("%s attacks %s." % (str.capitalize(self.name), victim.name))
+        victim.receiveAttack(self)
 
         forcedHit = False
         forcedMiss = False
@@ -447,31 +532,31 @@ class Mob(Entity):
             forcedMiss = True
 
         # Debug:
-        print "-" * 10
-        print "%s to hit roll: %s; %s to dodge roll: %s" % (self.name, toHit,
-                                                            victim.name, toDodge)
+        #print "-" * 10
+        #print "%s to hit roll: %s; %s to dodge roll: %s" % (self.name, toHit,
+        #                                                    victim.name, toDodge)
 
         toHit += self.getAccuracyBonus()
         toDodge += victim.getDodgeBonus()
 
-        print "modified hit chance: %s vs %s" % (toHit, toDodge)
+        #print "modified hit chance: %s vs %s" % (toHit, toDodge)
 
         if forcedMiss == False or forcedHit == True:
             if (forcedHit == True or toHit > toDodge):
                 if forcedHit == True:
-                    ui.message("%s easily hits %s." % (str.capitalize(self.name), victim.name), actor = self)
+                    ui.message("%s easily hit&S %s." % (self.getName(True), victim.getName()), actor = self)
                 else:
-                    ui.message("%s hits %s." % (str.capitalize(self.name), victim.name), actor = self)
+                    ui.message("%s hit&S %s." % (self.getName(True), victim.getName()), actor = self)
 
                 # TODO:
                 # Different attacks, crits.
                 damage = libtcod.random_get_int(0, 1, 6) + self.Str
                 victim.receiveDamage(damage)
-                print "%s receives %s damage" % (victim.name, damage)
+                #print "%s receives %s damage" % (victim.name, damage)
             else:
-                ui.message("%s misses %s." % (str.capitalize(self.name), victim.name), actor = self)
+                ui.message("%s miss&ES %s." % (self.getName(True), victim.getName()), actor = self)
         else:
-            ui.message("%s completely misses %s." % (str.capitalize(self.name), victim.name), actor = self)
+            ui.message("%s completely miss&ES %s." % (self.getName(True), victim.getName()), actor = self)
             # TODO: if toHit + bonus < 0, fumble
 
         self.AP -= self.getAttackAPCost()
@@ -544,7 +629,7 @@ class Mob(Entity):
                         var.Maps[var.DungeonLevel][x][y].change(raw.WoodDoor)
 
                     var.changeFOVMap(x, y)
-                    ui.message("%s closes the door." % str.capitalize(self.name), actor = self)
+                    ui.message("%s clos&ES the door." % self.getName(True), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 else:
@@ -559,7 +644,7 @@ class Mob(Entity):
         if self.AP < 1:
             return False
         if self.SP < 5:
-            ui.message("%s is too tired to climb the stairs." % str.capitalize(self.name), actor = self)
+            ui.message("%s &ISARE too tired to climb the stairs." % self.getName(True), actor = self)
             self.AP -= self.getMoveAPCost()
             return False
 
@@ -586,7 +671,7 @@ class Mob(Entity):
                     var.calculateFOVMap()
                     libtcod.console_clear(var.MapConsole)
 
-                ui.message("%s climbs the stairs." % str.capitalize(self.name), actor = self)
+                ui.message("%s climb&S the stairs." % self.getName(True), actor = self)
                 self.SP -= 8 # It's a bit more tiring to go upstairs.
                 self.AP -= self.getMoveAPCost()
                 return True
@@ -616,7 +701,7 @@ class Mob(Entity):
                     var.calculateFOVMap()
                     libtcod.console_clear(var.MapConsole)
 
-                ui.message("%s climbs the stairs." % str.capitalize(self.name), actor = self)
+                ui.message("%s climb&S the stairs." % self.getName(True), actor = self)
                 # TODO: Knock back entities that are standing on the stairs.
                 #       Enemies and pets follow you. (Requires findNearestFreeSpot().)
                 self.SP -= 3
@@ -627,15 +712,15 @@ class Mob(Entity):
                 return False
         else:
             if dz > 0:
-                ui.message("%s jumps up and down." % str.capitalize(self.name), actor = self)
+                ui.message("%s jump&S up and down." % self.getName(True), actor = self)
             elif dz < 0:
-                ui.message("%s crouches a bit." % str.capitalize(self.name), actor = self)
+                ui.message("%s crouch&ES a bit." % self.getName(True), actor = self)
             self.AP -= self.getMoveAPCost()
             return True
 
     def actionDrop(self, dropAll = False):
-        if self.AP < 1:
-            return False
+        #if self.AP < 1:
+        #    return False
 
         if len(self.inventory) == 0:
             if self.hasFlag('AVATAR') and not self.hasFlag('DEAD'):
@@ -665,7 +750,7 @@ class Mob(Entity):
                 item.x = self.x
                 item.y = self.y
                 var.Entities[var.DungeonLevel].append(item)
-                ui.message("%s drops %s." % (str.capitalize(self.name), item.name),
+                ui.message("%s drop&S %s." % (self.getName(True), item.getName()),
                            actor = self)
                 self.AP -= (self.getActionAPCost() / 3) # It's quick.
 
@@ -705,7 +790,7 @@ class Mob(Entity):
                     # TODO
                     #i.selectAction(self)
                     if not self.hasFlag('AVATAR') and not i.hasFlag('AVATAR'):
-                        ui.message("%s chats with %s." % (str.capitalize(self.name), i.name),
+                        ui.message("%s chat&S with %s." % (self.getName(True), i.getName()),
                                    actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
@@ -725,6 +810,15 @@ class Mob(Entity):
             return False
         else:
             ui.option_menu("You carry the following:", self.inventory)
+            return True
+
+    def actionEquipment(self):
+        if len(self.bodyparts) == 0:
+            ui.message("You should be dead.", actor = self)
+            self.checkDeath()
+            return False
+        else:
+            ui.option_menu("Your equipment:", self.bodyparts)
             return True
 
     def actionJump(self, where):
@@ -763,11 +857,11 @@ class Mob(Entity):
 
         if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny) and
             libtcod.map_is_in_fov(var.FOVMap, nnx, nny)):
-            ui.message("%s leaps." % str.capitalize(self.name), actor = self)
+            ui.message("%s leap&S." % self.getName(True), actor = self)
             self.move(dx * 2, dy * 2)
             moved = True
         else:
-            ui.message("%s balks at the leap." % str.capitalize(self.name), actor = self)
+            ui.message("%s balk&S at the leap." % self.getName(True), actor = self)
 
         self.AP -= self.getMoveAPCost()
         self.SP -= 5
@@ -788,7 +882,7 @@ class Mob(Entity):
 
                     # TODO: LOCKED flag.
                     if var.Maps[var.DungeonLevel][x][y].hasFlag('SECRET'):
-                        ui.message("%s discovers a secret door!" % str.capitalize(self.name),
+                        ui.message("%s discover&S a secret door!" % self.getName(True),
                                    libtcod.azure, actor = self)
 
                     if var.Maps[var.DungeonLevel][x][y].hasFlag('PORTCULLIS'):
@@ -797,7 +891,7 @@ class Mob(Entity):
                         var.Maps[var.DungeonLevel][x][y].change(raw.OpenDoor)
 
                     var.changeFOVMap(x, y)
-                    ui.message("%s opens the door." % str.capitalize(self.name), actor = self)
+                    ui.message("%s open&S the door." % self.getName(True), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 else:
@@ -838,7 +932,7 @@ class Mob(Entity):
             for i in options:
                 self.inventory.append(i)
                 var.Entities[var.DungeonLevel].remove(i)
-                ui.message("%s picks up %s." % (str.capitalize(self.name), i.name), actor = self)
+                ui.message("%s pick&S up %s." % (self.getName(True), i.getName()), actor = self)
                 self.AP -= self.getActionAPCost()
         else:
             if not self.hasFlag('AVATAR'):
@@ -851,7 +945,7 @@ class Mob(Entity):
             else:
                 self.inventory.append(options[toPick])
                 var.Entities[var.DungeonLevel].remove(options[toPick])
-                ui.message("%s picks up %s." % (str.capitalize(self.name), options[toPick].name),
+                ui.message("%s pick&S up %s." % (self.getName(True), options[toPick].getName()),
                            actor = self)
                 self.AP -= self.getActionAPCost()
 
@@ -867,7 +961,7 @@ class Mob(Entity):
         if self.AP < 1:
             return False
         if self == Other:
-            ui.message("%s tries to swap with themselves and fails." % (str.capitalize(self.name)), actor = self)
+            ui.message("%s attempt&S to swap with &OBJself and fails." % self.getName(True), actor = self)
             return False
 
         x1 = self.x
@@ -880,7 +974,7 @@ class Mob(Entity):
         Other.x = x1
         Other.y = y1
 
-        ui.message("%s swaps places with %s." % (str.capitalize(self.name), Other.name), actor = self)
+        ui.message("%s swap&S places with %s." % (self.getName(True), Other.getName()), actor = self)
 
         self.AP -= self.getMoveAPCost()
 
@@ -911,16 +1005,27 @@ class Mob(Entity):
         return moved
 
 class Item(Entity):
-    def __init__(self, x, y, char, color, name, material, size, BlockMove #These are base Entity arguments.
-                 ):
-        super(Item, self).__init__(x, y, char, color, name, material, BlockMove)
+    def __init__(self, x, y, char, color, name, material, size, BlockMove, #These are base Entity arguments.
+                 addFlags):
+        super(Item, self).__init__(x, y, char, color, name, material, size, BlockMove)
 
         self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
 
-        flags = ['ITEM']
-
-        for i in flags:
+        self.flags.append('ITEM')
+        for i in addFlags:
             self.flags.append(i)
+
+    def getName(self, capitalize = False, full = True):
+        name = self.name
+
+        # TODO:
+        # all different stuff
+        # if full == False, show only base name
+
+        if capitalize == True:
+            name = name.capitalize()
+
+        return name
 
     def beEaten(self, Eater):
         # return if too full
@@ -938,6 +1043,44 @@ class Item(Entity):
 
     def handleIntrinsics(self):
         pass
+
+class BodyPart(Entity):
+    def __init__(self, name, #These are base Entity arguments.
+                 mob, cover, addFlags):
+        x = mob.x
+        y = mob.y
+        char = '~'
+        color = libtcod.red
+        material = mob.material
+        size = min(2, max(-2, mob.size))
+
+        super(BodyPart, self).__init__(x, y, char, color, name, material, size)
+
+        self.flags.append('ITEM')
+        self.flags.append('BODY_PART')
+        for i in addFlags:
+            self.flags.append(i)
+
+        self.cover = cover
+        self.wounded = False
+
+    def getName(self, capitalize = False, full = True):
+        name = self.name
+
+        if self.hasFlag('ARM') and self.hasFlag('MAIN'):
+            name = 'main ' + name
+
+        if self.wounded == True:
+            name = 'wounded ' + name
+
+        #if full == True:
+        #    if len(self.inventory) > 0:
+        #        name = name + self.inventory[0].getName()
+
+        if capitalize == True:
+            name = name.capitalize()
+
+        return name
 
 #    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
 #                 ):

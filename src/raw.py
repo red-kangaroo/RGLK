@@ -3,6 +3,14 @@
 
 import libtcodpy as libtcod
 
+# Sizes:
+# ------
+# -2 - tiny
+# -1 - small
+#  0 - medium
+#  1 - large
+#  2 - huge
+
 ###############################################################################
 #  Attack Types
 ###############################################################################
@@ -55,7 +63,15 @@ DummyItem = {
 'size': -1,
 'intrinsics': [],
 'flags': [],
-'frequency': 1000
+'frequency': 100
+}
+
+GoldPiece = {
+'char': '$',
+'color': libtcod.yellow,
+'name': 'gold nugget',
+'material': 'GOLD',
+'size': -2
 }
 
 Boulder = {
@@ -65,11 +81,12 @@ Boulder = {
 'BlockMove': True,
 'size': 2,
 'flags': [], # TODO: Block sight.
-'frequency': 10
+'frequency': 5
 }
 
 # Item list must be last to have all items already defined.
 ItemList = [
+GoldPiece,
 Boulder
 ]
 
@@ -93,17 +110,9 @@ DummyMonster = {
 'size': 0,
 'diet': ['FLESH', 'WATER'],
 'intrinsics': [],
-'flags': [],
-'frequency': 1000
+'flags': ['HUMANOID'],
+'frequency': 100
 }
-
-# Sizes:
-# ------
-# -2 - tiny
-# -1 - small
-#  0 - medium
-#  1 - large
-#  2 - huge
 
 Player = {
 'char': '@',
@@ -117,7 +126,7 @@ Player = {
 'speed': 1.2,
 'sight': 6,
 'intrinsics': [],
-'flags': ['AVATAR'],
+'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
 }
 
@@ -130,7 +139,7 @@ Orc = {
 'End': 0,
 'Wit': 0,
 'Ego': 0,
-'flags': ['AI_SCAVENGER']
+'flags': ['HUMANOID', 'AI_SCAVENGER']
 }
 
 Troll = {
@@ -145,8 +154,67 @@ Troll = {
 'speed': 1.0,
 'size': 1,
 'intrinsics': [],
-'flags': [],
-'frequency': 100
+'flags': ['HUMANOID'],
+'frequency': 10
+}
+
+MobList = [
+Orc,
+Troll
+]
+
+###############################################################################
+#  Body Parts
+###############################################################################
+
+DummyPart = {
+'name': 'BUG: dummy body part',
+'cover': 100, # Chance of being hit there is based on cover.
+'flags': []
+}
+
+Head = {
+'name': 'head',
+'cover': 30,
+'flags': ['HEAD', 'VITAL']
+}
+
+Torso = {
+'name': 'torso',
+'flags': ['TORSO', 'VITAL']
+}
+
+Groin = {
+'name': 'groin',
+'cover': 40,
+'flags': ['GROIN', 'VITAL']
+}
+
+Arm = {
+'name': 'arm',
+'cover': 60,
+'flags': ['ARM']
+}
+
+Leg = {
+'name': 'leg',
+'cover': 70,
+'flags': ['LEG']
+}
+
+# Body type lists:
+HumanoidList = [
+Head,
+Torso,
+Groin,
+Arm,
+Arm,
+Leg,
+Leg
+]
+
+BodyTypes = {
+'HUMANOID': HumanoidList
 }
 
 ###############################################################################

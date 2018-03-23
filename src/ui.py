@@ -95,7 +95,7 @@ def render_UI(Player):
 
     # Player's name:
     libtcod.console_print_ex(var.UIPanel, 1, 1, libtcod.BKGND_NONE, libtcod.LEFT,
-                             Player.name)
+                             Player.getName(True))
 
     # Health bar:
     render_bar(1, 3, 18, 'Health ', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
@@ -171,7 +171,7 @@ def render_UI(Player):
     if Player.target != None:
         libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
         libtcod.console_print_ex(var.UIPanel, 1, 54, libtcod.BKGND_NONE, libtcod.LEFT,
-                                 Player.target.name)
+                                 Player.target.getName(True))
 
         # This will one day only work in WizMode:
         render_bar(1, 56, 18, 'HP', int(math.floor(Player.target.HP)), int(math.floor(Player.target.maxHP)),
@@ -202,7 +202,7 @@ def option_menu(header, options):
     index = ord('a')
     y = 3
     for option in options:
-        text = chr(index) + ') ' + option.name
+        text = chr(index) + ') ' + option.getName()
         libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
                                  text)
         index += 1
@@ -343,22 +343,47 @@ def render_bar(x, y, totalWidth, name, value, maxValue, barColor, backColor):
                              name + ': ' + str(value) + '/'+ str(maxValue))
 
 def message(text, color = var.TextColor, actor = None):
-    seen = True
     if actor != None:
         try:
             if not actor.hasFlag('SEEN'):
-                seen = False
+                return
         except:
             pass # No need for special message here.
-    if seen == True:
-        textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
-        turn = var.TurnCount
 
-        # Save message as a tuple:
-        for i in textWrapped:
-            var.MessageHistory.append((i, color, turn))
+    # Some grammar:
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&S', '')
+    else:
+        text = text.replace('&S', 's')
 
-#def grammar(text, actor):
-#    text = str.replace(&D, getPronoun(actor.sex, 'DEFINITE'))
-#    text = str.replace(&D, getPronoun(actor.sex, 'INDEFINITE'))
-#    return text
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&ES', '')
+    else:
+        text = text.replace('&ES', 'es')
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&ISARE', 'are')
+    else:
+        text = text.replace('&ISARE', 'is')
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&SUBJ', 'you')
+    else:
+        text = text.replace('&SUBJ', 'he') # TODO
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&OBJ', 'your')
+    else:
+        text = text.replace('&OBJ', 'him') # TODO
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&POSS', 'your')
+    else:
+        text = text.replace('&POSS', 'his') # TODO
+
+    textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
+    turn = var.TurnCount
+
+    # Save message as a tuple:
+    for i in textWrapped:
+        var.MessageHistory.append((i, color, turn))
