@@ -23,6 +23,7 @@ Entity
 General:
 MOB                Any creature.
 ITEM               Any item.
+BODY_PART
 FEATURE            Any dungeon feature (altar, chair, ...)
 
 Type:
@@ -39,6 +40,11 @@ AI_KITE            Tries to stay at range from enemy.
 *AI_PREDATOR        Attacks anything with flag BEAST and without AI_PREDATOR.
 AI_SCAVENGER       Hoards items.
 
+Combat:
+USE_HEAD
+USE_LEGS
+USE_NATURAL
+
 Special:
 AVATAR             Player-controlled entity.
 DEAD               A creature that died.
@@ -52,6 +58,29 @@ Generation:
   These flags are removed at item generation, setting object properties.
 *ALWAYS_BLESSED
 *ALWAYS_CURSED
+
+
+Body
+====
+
+Body types:
+HUMANOID
+ANIMAL
+BIRD
+SLIME
+
+Body parts:
+HEAD
+TORSO
+GROIN
+ARM
+LEG
+WING
+TAIL
+
+Special:
+GRASP
+VITAL
 
 
 Terrain
@@ -79,5 +108,6 @@ SECRET
 SLIDE              Walking may cause you to fumble. More knockback.
 STICKY             Walking may fail.
 SWIM               Requires stamina to move. Drowns with no stamina.
+WADE               Drains stamina as you move, but no negative effect at 0 SP.
 
 (*) TODO

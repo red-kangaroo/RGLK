@@ -8,6 +8,7 @@ import sys
 
 import entity
 import game
+import raw
 import ui
 import var
 
@@ -47,9 +48,9 @@ def getAICommand(Mob):
 
         if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
               Mob.HP >= (Mob.maxHP / 2)):
-            for i in Mob.flags:
-                if i == 'AI_FLEE':
-                    Mob.flags.remove('AI_FLEE')
+            for i in Mob.flags:                 # I had a bug here that would cause
+                if i == 'AI_FLEE':              # mobs to nevr stop fleeing. This
+                    Mob.flags.remove('AI_FLEE') # cannot happen anymore.
                     ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
 
         Target = None
@@ -238,6 +239,7 @@ def handleKeys(Player):
             ui.message("Walking through walls deactivated.")
         return
 
+    # True sight
     if Key.vk == libtcod.KEY_F2:
         var.WizModeTrueSight = not var.WizModeTrueSight
 
@@ -247,12 +249,18 @@ def handleKeys(Player):
             ui.message("True sight deactivated.")
         return
 
-
+    # Instakill
     if Key.vk == libtcod.KEY_F3:
         for i in var.Entities[var.DungeonLevel]:
-            if not i.hasFlag('AVATAR'):
+            if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
                 i.receiveDamage(i.maxHP)
         return
+
+    # Create items
+    if Key.vk == libtcod.KEY_F4:
+        for i in raw.ItemList:
+            NewItem = entity.spawn(Player.x, Player.y, i, 'ITEM')
+            var.Entities[var.DungeonLevel].append(NewItem)
 
     # Regenerate map
     if Key.vk == libtcod.KEY_F12:
@@ -322,6 +330,7 @@ def handleKeys(Player):
         if (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
             while Player.actionEquipment() == True:
                 pass # Return to menu if something remains to pick up.
+            ui.message("You change equipment.")
             return
 
         # Inventory

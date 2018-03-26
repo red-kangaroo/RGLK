@@ -67,8 +67,15 @@ def makeLake(liquid, map):
     y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
     while (StepsTaken < (var.DrunkenSteps / 4) and Fails < 2000):
-        # Create waraw.
+        # Create water.
         map[x][y].change(liquid)
+
+        # Other possibilities:
+        #  lava
+        #  mud
+        #  quicksand
+        #  deep snow
+        #  tall grass
 
         step = libtcod.random_get_int(0, 1, 4)
         dx = 0
@@ -830,7 +837,7 @@ class Room(object):
         for x in range(min(self.CenterX, OtherX), max(self.CenterX, OtherX) + 1):
             if (x == self.x1 or x == self.x2):
                 if var.rand_chance(5):
-                    which = random.choice([raw.SecretDoor, raw.ClosedPort, raw.Curtain])
+                    which = random.choice([raw.SecretDoor, raw.ClosedPort])
                     map[x][self.CenterY].change(which)
                 else:
                     map[x][self.CenterY].change(raw.WoodDoor)
@@ -843,7 +850,7 @@ class Room(object):
         for y in range(min(self.CenterY, OtherY), max(self.CenterY, OtherY) + 1):
             if (y == self.y1 or y == self.y2):
                 if var.rand_chance(5):
-                    which = random.choice([raw.SecretDoor, raw.ClosedPort, raw.Curtain])
+                    which = random.choice([raw.SecretDoor, raw.ClosedPort])
                     map[self.CenterX][y].change(which)
                 else:
                     map[self.CenterX][y].change(raw.WoodDoor)

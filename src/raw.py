@@ -11,6 +11,16 @@ import libtcodpy as libtcod
 #  1 - large
 #  2 - huge
 
+# Scaling:
+# ------
+#  S - 200 %
+#  A - 150 %
+#  B - 100 %
+#  C -  75 %
+#  D -  50 %
+#  E -  25 %
+#  F -   0 %
+
 ###############################################################################
 #  Attack Types
 ###############################################################################
@@ -22,7 +32,24 @@ DummyAttack = {
 'DiceValue': 1,
 'DamageBonus': 0,
 'DamageType': 'BLUNT',
+'range': 1,
 'flags': []
+}
+
+# TODO:
+#  special effects
+#  ranged
+#  explosions / clouds
+#
+#  peck, lick, touch, slap
+
+# Natural attacks:
+Slam = {
+'verb': 'slam&S',
+'ToHitBonus': -2,
+'DiceNumber': 1,
+'DiceValue': 3,
+'flags': ['NATURAL']
 }
 
 Punch = {
@@ -45,7 +72,6 @@ LargeClaw = {
 'verb': 'claw&S',
 'DiceNumber': 2,
 'DiceValue': 3,
-'DamageBonus': 1,
 'DamageType': 'SLASH',
 'flags': ['NATURAL']
 }
@@ -54,6 +80,7 @@ Bite = {
 'verb': 'bite&S',
 'DiceNumber': 1,
 'DiceValue': 4,
+'DamageType': 'PIERCE',
 'flags': ['NATURAL']
 }
 
@@ -64,6 +91,37 @@ Kick = {
 'flags': ['NATURAL']
 }
 
+Buffet = {
+'verb': 'buffet&S',
+'ToHitBonus': -1,
+'DiceNumber': 2,
+'DiceValue': 2,
+'flags': ['NATURAL']
+}
+
+# Weapon attacks:
+NonWeapon = {
+'verb': 'bash&S',
+'ToHitBonus': -2,
+'DiceNumber': 1,
+'DiceValue': 2
+}
+
+Club = {
+'verb': 'club&S',
+'DiceNumber': 1,
+'DiceValue': 4,
+'DamageBonus': 1
+}
+
+Whip = {
+'verb': 'whip&S',
+'ToHitBonus': 1,
+'DiceNumber': 1,
+'DiceValue': 5,
+'DamageType': 'SLASH'
+}
+
 BoulderRoll = {
 'verb': 'crush&ES',
 'ToHitBonus': -4,
@@ -72,25 +130,13 @@ BoulderRoll = {
 'DamageBonus': 2
 }
 
-Slam = {
-'verb': 'body slam&S',
-'DiceNumber': 1,
-'DiceValue': 6,
-'flags': ['NATURAL']
-}
-
-NonWeapon = {
-'verb': 'bash&S',
-'ToHitBonus': -2,
-'DiceNumber': 1,
-'DiceValue': 2
-}
-
+# Ranged attacks:
 MisThrown = {
 'verb': 'hit&S',
 'ToHitBonus': -4,
 'DiceNumber': 1,
 'DiceValue': 2,
+'range': 2,
 'flags': ['RANGED']
 }
 
@@ -155,14 +201,6 @@ Boulder = {
 'frequency': 5
 }
 
-# Item list must be last to have all items already defined.
-ItemList = [
-BrownRobe,
-WhiteRobe,
-GoldPiece,
-Boulder
-]
-
 ###############################################################################
 #  Monsters
 ###############################################################################
@@ -195,7 +233,7 @@ Player = {
 'End': 4,
 'Wit': 0,
 'Ego': 0,
-'speed': 1.2,
+'speed': 1.0,
 'sight': 6,
 'intrinsics': [],
 'flags': ['HUMANOID', 'AVATAR'],
@@ -211,7 +249,10 @@ Kobold = {
 'End': -3,
 'Wit': 1,
 'Ego': 0,
-'flags': ['HUMANOID']
+'speed': 1.1,
+'sight': 8,
+'size': -1,
+'flags': ['HUMANOID', 'AI_SCAVENGER', 'MUTATION_CLAWS']
 }
 
 Orc = {
@@ -223,7 +264,7 @@ Orc = {
 'End': 0,
 'Wit': 0,
 'Ego': 0,
-'flags': ['HUMANOID', 'AI_SCAVENGER']
+'flags': ['HUMANOID']
 }
 
 Troll = {
@@ -235,17 +276,11 @@ Troll = {
 'End': 3,
 'Wit': -1,
 'Ego': 0,
-'speed': 1.0,
 'size': 1,
 'intrinsics': [],
 'flags': ['HUMANOID', 'USE_HEAD', 'MUTATION_LARGE_CLAWS'],
 'frequency': 10
 }
-
-MobList = [
-Orc,
-Troll
-]
 
 ###############################################################################
 #  Body Parts
@@ -270,17 +305,50 @@ Torso = {
 'flags': ['TORSO', 'VITAL']
 }
 
+SlimeTorso = {
+'name': 'blob',
+'flags': ['TORSO', 'VITAL', 'GRASP']
+}
+
+AnimalTorso = {
+'name': 'upper body',
+'flags': ['TORSO', 'VITAL']
+}
+
 Groin = {
 'name': 'groin',
 'cover': 40,
 'flags': ['GROIN', 'VITAL']
 }
 
+AnimalGroin = {
+'name': 'lower body',
+'flags': ['GROIN', 'VITAL']
+}
+
+Tail = {
+'name': 'tail',
+'attack': Club,
+'flags': ['TAIL']
+}
+
+PrehensiveTail = {
+'name': 'tail',
+'flags': ['TAIL', 'GRASP']
+}
+
 Arm = {
 'name': 'hand',
 'cover': 60,
 'attack': Punch,
-'flags': ['ARM']
+'flags': ['ARM', 'GRASP']
+}
+
+TentacleArm = {
+'name': 'tentacle',
+'cover': 60,
+'attack': Whip,
+'flags': ['ARM', 'GRASP']
 }
 
 Leg = {
@@ -290,24 +358,37 @@ Leg = {
 'flags': ['LEG']
 }
 
-# Body type lists:
-HumanoidList = [
-Head,
-Torso,
-Groin,
-Arm,
-Arm,
-Leg,
-Leg
-]
-
-BodyTypes = {
-'HUMANOID': HumanoidList
+TentacleLeg = {
+'name': 'tentacle',
+'cover': 70,
+'attack': Club,
+'flags': ['LEG']
 }
 
-MutationTypes = [
-'MUTATION_LARGE_CLAWS'
-]
+Paw = {
+'name': 'paw',
+'cover': 70,
+'attack': Claw,
+'flags': ['LEG']
+}
+
+Wing = {
+'name': 'wing',
+'cover': 90,
+'attack': Buffet,
+'flags': ['WING']
+}
+
+###############################################################################
+#  Clouds
+###############################################################################
+
+# TODO:
+#  flames
+#  frost vapours
+#  thick smoke
+#  acid smoke
+#  toxic smoke
 
 ###############################################################################
 #  Terrains
@@ -405,6 +486,24 @@ WoodFloor = {
 'flags': ['GROUND', 'CAN_BE_BURNED']
 }
 
+EarthFloor = {
+'char': '.',
+'color': libtcod.dark_orange,
+'name': 'dirt floor',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND']
+}
+
+Carpet = {
+'char': '.',
+'color': libtcod.fuchsia,
+'name': 'carpet',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND', 'CAN_BE_BURNED']
+}
+
 IceFloor = {
 'char': '.',
 'color': libtcod.cyan,
@@ -421,6 +520,42 @@ GrassFloor = {
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'CAN_BE_BURNED']
+}
+
+Snow = {
+'char': '.',
+'color': libtcod.white,
+'name': 'snow',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND', 'CAN_BE_MELTED']
+}
+
+DeepSnow = {
+'char': ',',
+'color': libtcod.white,
+'name': 'deep snow',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND', 'CAN_BE_MELTED', 'WADE']
+}
+
+Sand = {
+'char': '.',
+'color': libtcod.light_yellow,
+'name': 'sand',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND']
+}
+
+DeepSand = {
+'char': ',',
+'color': libtcod.light_yellow,
+'name': 'quicksand',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND', 'SWIM']
 }
 
 # Doors:
@@ -492,7 +627,7 @@ LeafyTree = {
 'char': chr(5), # Ie. ♣
 'color': libtcod.green,
 'name': 'tree',
-'BlockMove': False, # TODO: Or maybe True?
+'BlockMove': True, # TODO: Or maybe False?
 'BlockSight': True,
 'flags': ['CAN_BE_BURNED', 'PLANT']
 }
@@ -501,7 +636,7 @@ ConifTree = {   # Coniferous tree
 'char': chr(6), # Ie. ♠
 'color': libtcod.dark_green,
 'name': 'tree',
-'BlockMove': False, # TODO: Or maybe True?
+'BlockMove': True, # TODO: Or maybe False?
 'BlockSight': True,
 'flags': ['CAN_BE_BURNED', 'PLANT']
 }
@@ -559,7 +694,7 @@ ShallowWater = {
 'name': 'shallow water',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['LIQUID']
+'flags': ['LIQUID', 'WADE']
 }
 
 DeepWater = {
@@ -586,7 +721,7 @@ Mud = {
 'name': 'mud',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['LIQUID', 'STICKY']
+'flags': ['LIQUID', 'STICKY', 'WADE']
 }
 
 # Features:
@@ -823,7 +958,72 @@ Pillars3 = {
 'height': 9,
 }
 
-# Room list must be last to have all rooms already defined.
+###############################################################################
+#  Lists
+###############################################################################
+
+# Lists must be last to have all stuff already defined.
+
+ItemList = [
+BrownRobe,
+WhiteRobe,
+GoldPiece,
+Boulder
+]
+
+MobList = [
+Kobold,
+Orc,
+Troll
+]
+
+# Body type lists:
+HumanoidList = [
+Head,
+Torso,
+Arm,
+Arm,
+Groin,
+Leg,
+Leg
+]
+
+AnimalList = [
+Head,
+AnimalTorso,
+AnimalGroin,
+Paw,
+Paw,
+Paw,
+Paw
+]
+
+BirdList = [
+Head,
+AnimalTorso,
+Wing,
+Wing,
+AnimalGroin,
+Paw,
+Paw
+]
+
+SlimeList = [
+SlimeTorso
+]
+
+BodyTypes = {
+'HUMANOID': HumanoidList,
+'ANIMAL': AnimalList,
+'BIRD': BirdList,
+'SLIME': SlimeList
+}
+
+MutationTypes = [
+'MUTATION_CLAWS',
+'MUTATION_LARGE_CLAWS'
+]
+
 RoomList = [
 Cages,
 Checkers,

@@ -141,7 +141,11 @@ class Entity(object):
         self.material = material
         self.size = size
         self.BlockMove = BlockMove
+
         self.AP = 0.0 # Start with 0 turns to take.
+        self.attack = raw.Slam
+        self.ranged = raw.MisThrown
+        self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
 
         self.flags = []
         self.inventory = [] # For both mobs and containers.
@@ -163,7 +167,7 @@ class Entity(object):
     def draw(self):
         # Set color and draw character on screen.
         if (libtcod.map_is_in_fov(var.FOVMap, self.x, self.y) or var.WizModeTrueSight):
-            libtcod.console_set_default_foreground(var.MapConsole, self.color)
+            libtcod.console_set_default_foreground(var.MapConsole, self.getColor())
             libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_SCREEN)
             self.flags.append('SEEN')
 
@@ -209,6 +213,9 @@ class Entity(object):
             name = name.capitalize()
 
         return name
+
+    def getColor(self):
+        return self.color
 
     # Heartbeat of all entities.
     def Be(self):
@@ -307,6 +314,7 @@ class Mob(Entity):
 
         armNo = 1
         legNo = 1
+        wingNo = 1
         for part in self.bodyparts:
             if part.hasFlag('ARM'):
                 if armNo == 1:
@@ -329,12 +337,31 @@ class Mob(Entity):
                 else:
                     part.flags.append('OTHER')
                     legNo += 1
+            elif part.hasFlag('WING'):
+                if legNo == 1:
+                    part.flags.append('RIGHT')
+                    wingNo += 1
+                elif legNo == 2:
+                    part.flags.append('LEFT')
+                    wingNo += 1
+                else:
+                    part.flags.append('OTHER')
+                    wingNo += 1
+
+        # TODO:
+        # self.baseArms
+        # self.baseLegs
+        # self.baseWings -> self.canFly()
 
     def gainMutation(self):
         # TODO
         for i in self.flags:
             if i in raw.MutationTypes:
-                if i == 'MUTATION_LARGE_CLAWS':
+                if i == 'MUTATION_CLAWS':
+                    for part in self.bodyparts:
+                        if part.hasFlag('ARM'):
+                            part.attack = raw.Claw
+                elif i == 'MUTATION_LARGE_CLAWS':
                     for part in self.bodyparts:
                         if part.hasFlag('ARM'):
                             part.attack = raw.LargeClaw
@@ -371,14 +398,16 @@ class Mob(Entity):
         self.AP += self.speed
 
         # Energy randomization:
-        #if var.rand_chance(5):
-        #    self.AP += 0.1
-        #elif var.rand_chance(5):
-        #    self.AP -= 0.1
+        if var.rand_chance(5):
+            self.AP += 0.1
+        elif var.rand_chance(5):
+            self.AP -= 0.1
 
     def getAccuracyBonus(self, weapon = None):
         # TODO:
-        #      size difference
+        # Size difference
+        # Scaling
+
         toHit = self.Dex
 
         if weapon != None:
@@ -391,6 +420,13 @@ class Mob(Entity):
             return libtcod.random_get_int(0, 0, toHit)
         else:
             return toHit
+
+    def getDamageBonus(self):
+        # TODO:
+        # Size difference
+        # Scaling
+
+        return self.Str
 
     def getDodgeBonus(self):
         # TODO:
@@ -424,6 +460,16 @@ class Mob(Entity):
             return 0
         else:
             return 1
+
+    def getColor(self):
+        if self.hasFlag('AVATAR'):
+            for i in self.bodyparts:
+                if i.hasFlag('TORSO') and len(i.inventory) > 0:
+                    for n in i.inventory:
+                        return n.color
+            return self.color
+        else:
+            return self.color
 
     def getActionAPCost(self):
         return 1
@@ -585,7 +631,7 @@ class Mob(Entity):
                 damage = var.rand_dice(DiceNumber, DiceValue, DamageBonus)
 
                 print "    + " + str(attacker.Str) + " ="
-                damage += attacker.Str # TODO
+                damage += attacker.getDamageBonus() # TODO
 
                 print "    " + str(damage) + " damage"
 
@@ -678,19 +724,27 @@ class Mob(Entity):
         attacks = []
         weapons = False
         for i in self.bodyparts:
-            if i.hasFlag('ARM'):
-                if len(i.inventory) == 0 and weapons == False:
-                    # You attack unarmed if you are wielding no weapons.
-                    attacks.append(i)
-                else:
+            if i.hasFlag('GRASP'):
+                if len(i.inventory) > 0:
                     for n in i.inventory: # If this produces more than one weapon,
                         attacks.append(n) # we have a bug in equipping.
                     weapons = True
+            if i.hasFlag('ARM') and weapons == False:
+                # You attack unarmed only if you are wielding no weapons.
+                attacks.append(i)
             elif (i.hasFlag('LEG') and (self.hasFlag('USE_LEGS') or armNo == 0)):
                 attacks.append(i)
             elif (i.hasFlag('HEAD') and (self.hasFlag('USE_HEAD') or
                   (armNo == 0 and legNo == 0))):
                 attacks.append(i)
+            elif ((i.hasFlag('TAIL') or i.hasFlag('WING')) and self.hasFlag('USE_NATURAL')):
+                attacks.append(i)
+
+        # If we found no attacks, we will use the first available.
+        if len(attacks) == 0:
+            for i in self.bodyparts:
+                attacks.append(i)
+                break
 
         # Get multiplier:
         multiplier = 1.0
@@ -704,6 +758,7 @@ class Mob(Entity):
                 victim.receiveAttack(self, i, multiplier)
 
         self.AP -= self.getAttackAPCost()
+        # self.NP -= 5
         return True
 
     def actionBump(self, dx, dy):
@@ -957,7 +1012,7 @@ class Mob(Entity):
 
     def actionEquipment(self):
         if len(self.bodyparts) == 0:
-            ui.message("You should be dead.", actor = self)
+            ui.message("%s should be dead." % self.getName(True), actor = self)
             self.checkDeath()
             return False
         else:
@@ -974,20 +1029,23 @@ class Mob(Entity):
             else:
                 slot = None
                 for i in self.bodyparts[part].flags:
-                    if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG']:
-                        slot = i
+                    if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG', 'WING', 'TAIL', 'GRASP']:
+                        slot = i # 'GRASP' must be last!
 
                 options = []
                 if slot == None:
                     ui.message("You cannot equip anything on that body part.", actor = self)
                     ui.render_all(self)
                     return True
-                elif slot == 'ARM':
+                elif slot == 'GRASP':
                     options = self.inventory
                 else:
                     for i in self.inventory:
                         if i.hasFlag(slot):
                             options.append(i)
+
+                # TODO:
+                # Items of size larger than self are two-handed.
 
                 if len(options) == 0:
                     ui.message("You carry nothing to equip on that body part.", actor = self)
@@ -1053,6 +1111,7 @@ class Mob(Entity):
 
         self.AP -= self.getMoveAPCost()
         self.SP -= 5
+        # self.NP -= 10
         return moved
 
     def actionOpen(self, x, y):
@@ -1166,6 +1225,10 @@ class Mob(Entity):
 
         self.AP -= self.getMoveAPCost()
 
+    def actionVomit(self):
+        # self.NP -= 100
+        pass
+
     def actionWait(self):
         #print "%s waits." % self.name
         self.AP -= 1
@@ -1199,7 +1262,6 @@ class Item(Entity):
 
         self.attack = attack
         self.ranged = ranged
-        self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
 
         self.flags.append('ITEM')
         for i in addFlags:
@@ -1308,8 +1370,17 @@ class BodyPart(Entity):
                 self.inventory.remove(item)
                 return item
 
-#    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
-#                 ):
-#        super(Mob, self).__init__(x, y, char, color, name)
+#class Cloud(Entity):
+#    def __init__(self, x, y, color, name, #These are base Entity arguments.
+#                 attack, addFlags):
+#        char = chr(177)
+#        material = 'AIR'
+#        size = 2 # Clouds should count as huge.
 #
-#        self.flags.append('FEATURE')
+#        super(Cloud, self).__init__(x, y, char, color, name, material, size)
+#
+#        self.flags.append('CLOUD')
+#        for i in addFlags:
+#            self.flags.append(i)
+#
+#        self.attack = attack

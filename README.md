@@ -48,6 +48,7 @@ Wizard mode:
 ```
  F1           toggle walking through walls
  F2           toggle seeing through walls
- F3           kill all
+ F3           kill all creatures
+ F3           gain all items
  F12          generate new level
 ```
