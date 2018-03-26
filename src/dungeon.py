@@ -97,7 +97,7 @@ def makeLake(liquid, map):
 def makeBetterRoom(Rooms, map):
     for room in Rooms:
         if var.rand_chance(2):
-            which = libtcod.random_get_int(0, 1, 3)
+            which = libtcod.random_get_int(0, 1, 4)
             # TODO: Add so much more rooms.
 
             # Wooden room:
@@ -129,6 +129,14 @@ def makeBetterRoom(Rooms, map):
                                 map[x][y].change(raw.GrassFloor)
                             else:
                                 map[x][y].change(raw.TallGrass)
+            # Brick room:
+            elif which == 4:
+                for x in range(room.x1, room.x2 + 1):
+                    for y in range(room.y1, room.y2 + 1):
+                        if map[x][y].hasFlag('WALL'):
+                            map[x][y].change(raw.BrickWall)
+                        elif not map[x][y].hasFlag('DOOR'):
+                            map[x][y].change(raw.RockFloor)
 
     return map
 
@@ -145,7 +153,8 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
                     except:
                         frequency = raw.DummyRoom['frequency']
                     if not var.rand_chance(frequency):
-                        break
+                        continue # Not break, or some rooms will never get generated,
+                                 # because they have same size as others.
 
                     map = create_prefab(Prefab, room, map, DungeonLevel)
 
@@ -159,7 +168,7 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
             Prefab = random.choice(raw.RoomList)
 
         fails = 0
-        # Be careful, Room.width and Prefab['width'] and different by 1. (Yeah,
+        # Be careful, Room.width and Prefab['width'] are different by 1. (Yeah,
         # I will hate myself for this.)
         width = Prefab['width'] - 1
         height = Prefab['height'] - 1
@@ -554,7 +563,7 @@ def buildDrunkenCave(map, DungeonLevel):
 
     map = postProcess(map)
 
-    while var.rand_chance(15):
+    while var.rand_chance(30):
         map = makePrefabRoom(map, DungeonLevel)
 
     map = makeStairs(map, DungeonLevel)

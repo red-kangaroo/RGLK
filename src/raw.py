@@ -130,6 +130,18 @@ Player = {
 'frequency': 0
 }
 
+Kobold = {
+'char': 'k',
+'color': libtcod.light_red,
+'name': 'kobold',
+'Str': 0,
+'Dex': 3,
+'End': -3,
+'Wit': 1,
+'Ego': 0,
+'flags': ['HUMANOID']
+}
+
 Orc = {
 'char': 'o',
 'color': libtcod.desaturated_green,
@@ -235,6 +247,15 @@ RockWall = {
 'char': '#',
 'color': libtcod.dark_grey,
 'name': 'rock wall',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['WALL', 'CAN_BE_DUG']
+}
+
+BrickWall = {
+'char': '#',
+'color': libtcod.light_grey,
+'name': 'brick wall',
 'BlockMove': True,
 'BlockSight': True,
 'flags': ['WALL', 'CAN_BE_DUG']
@@ -533,19 +554,21 @@ RockWall: RockPile
 ##############################################################################
 
 DummyRoom = {
-'frequency': 20,
+'frequency': 15,
+' ': (RockWall, None, None, None),
 '#': (RockWall, None, None, None),
 '.': (RockFloor, None, None, None),
 '+': (WoodDoor, None, None, None),
-'S': (SecretDoor, None, None, None)
+'S': (SecretDoor, None, None, None),
+'x': (WoodDoor, ['BLOCKED'], None, None),
+'$': (RockFloor, None, GoldPiece, None)
 }
 
 # Several small cages.
 Cages = {
 'file': 'rooms/cages',
 'width': 9,
-'height': 7,
-'+': (WoodDoor, ['BLOCKED'], None, None)
+'height': 7
 }
 
 # Prison cells.
@@ -553,24 +576,123 @@ Prison = {
 'file': 'rooms/prison',
 'width': 10,
 'height': 6,
+'#': (BrickWall, None, None, None),
 '+': (WoodDoor, ['LOCKED'], None, None)
 }
 
-# The letter X.
+# The letters.
 LetterX = {
 'file': 'rooms/xxx',
 'width': 5,
 'height': 5
 }
 
-# A very secretly hidden room.
-SuperSecret = {
-'file': 'rooms/supersecret',
-'frequency': 10,
+LetterS = {
+'file': 'rooms/ss',
+'width': 6,
+'height': 7
+}
+
+Curved = {
+'file': 'rooms/curved',
+'width': 10,
+'height': 8
+}
+
+Foursome1 = {
+'file': 'rooms/foursome1',
+'width': 10,
+'height': 8
+}
+
+Foursome2 = {
+'file': 'rooms/foursome2',
+'width': 10,
+'height': 8
+}
+
+# A very secretly hidden rooms.
+Secret1 = {
+'file': 'rooms/secret1',
+'frequency': 5,
 'width': 11,
 'height': 11,
 '#': (WoodWall, None, None, None),
-'X': (RockWall, None, None, None)
+'X': (RockWall, None, None, None),
+'.': (WoodFloor, None, None, None),
+',': (RockFloor, None, None, None)
+}
+
+Secret2 = {
+'file': 'rooms/secret2',
+'frequency': 10,
+'width': 10,
+'height': 8
+}
+
+Secret3 = {
+'file': 'rooms/secret3',
+'frequency': 10,
+'width': 10,
+'height': 8
+}
+
+Secret4 = {
+'file': 'rooms/secret4',
+'frequency': 10,
+'width': 10,
+'height': 9
+}
+
+# Guard stations.
+Guard1 = {
+'file': 'rooms/guard1',
+'width': 10,
+'height': 8,
+'!': (IronBars, None, None, None)
+}
+
+Guard2 = {
+'file': 'rooms/guard2',
+'width': 10,
+'height': 8,
+'!': (IronBars, None, None, None)
+}
+
+Guard3 = {
+'file': 'rooms/guard3',
+'width': 10,
+'height': 8,
+'!': (IronBars, None, None, None)
+}
+
+Guard4 = {
+'file': 'rooms/guard4',
+'width': 10,
+'height': 8,
+'!': (IronBars, None, None, None)
+}
+
+Guard5 = {
+'file': 'rooms/guard5',
+'width': 8,
+'height': 7,
+'!': (IronBars, None, None, None)
+}
+
+# Several rooms in one.
+SmallRooms1 = {
+'file': 'rooms/smallrooms1',
+'width': 10,
+'height': 8,
+}
+
+SmallRooms2 = {
+'file': 'rooms/smallrooms2',
+'width': 18, # This may be too much.
+'height': 11,
+'x': (ClosedPort, None, None, None),
+'!': (IronBars, None, None, None)
 }
 
 # Why not?
@@ -606,6 +728,7 @@ Pillars1 = {
 'file': 'rooms/pillars1',
 'width': 11,
 'height': 11,
+'>': (DownStairs, None, None, None)
 }
 
 Pillars2 = {
@@ -624,12 +747,26 @@ Pillars3 = {
 RoomList = [
 Cages,
 Checkers,
+Curved,
+Foursome1,
+Foursome2,
+Guard1,
+Guard2,
+Guard3,
+Guard4,
+Guard5,
+LetterS,
 LetterX,
 Pillars1,
 Pillars2,
 Pillars3,
 Prison,
-SuperSecret,
+Secret1,
+Secret2,
+Secret3,
+Secret4,
+SmallRooms1,
+SmallRooms2,
 TJunction,
 Why1,
 Why2

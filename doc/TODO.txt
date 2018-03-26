@@ -1,5 +1,10 @@
 List of things to do and include:
 
+Fixes
+=====
+* fix A* !!!!!!!!
+
+
 BSPDungeon:
 http://www.roguebasin.com/index.php?title=Complete_Roguelike_Tutorial,_using_Python%2Blibtcod,_extras#BSP_Dungeon_Generator
 
@@ -17,6 +22,9 @@ https://imgur.com/a/AnB4T#14
 
 Noise forest:
 http://roguecentral.org/doryen/data/libtcod/doc/1.5.1/html2/noise_get.html?c=false&cpp=false&cs=false&py=true&lua=false
+
+More vaults:
+https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/crawl-ref/source/dat/des/builder
 
 
 * add description optional attribute to tiles, which would be printed when player
@@ -57,11 +65,6 @@ enchantment
 
 Terrain
 =======
-grass
-tall grass
 acid
 blood
 charred floor
-
-ConifTree
-LeafyTree
