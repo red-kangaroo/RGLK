@@ -28,6 +28,7 @@ General:
 
  c            close
  d            drop item
+ E            equipment menu
  g  or  ,     pick up item
  Ctrl + g     pick up all
  i            inventory

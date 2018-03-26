@@ -45,7 +45,7 @@ def makeMap(Populate, DungeonLevel):
     if Populate:
         populate(DungeonLevel)
 
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.Entities[DungeonLevel]:
         # On the off-chance we trap someone in dungeon generation:
         if i.isBlocked(i.x, i.y):
             x = 0

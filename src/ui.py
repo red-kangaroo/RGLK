@@ -225,6 +225,52 @@ def option_menu(header, options):
             if what in range(0, len(options) + 1):
                 return what
 
+def equip_menu(bodyparts):
+    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+    libtcod.console_clear(var.MenuPanel)
+
+    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                  "Your equipment: [press letter; Esc to exit]")
+
+    index = ord('a')
+    y = 3
+    for part in bodyparts:
+        text = chr(index) + ') ' + part.getName() + ':'
+        libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 text)
+        index += 1
+        y += 1
+
+    y = 3
+    for part in bodyparts:
+        if len(part.inventory) == 0:
+            text = ""
+        else:
+            text = part.inventory[0].getName()
+
+        libtcod.console_print_ex(var.MenuPanel, 20, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 text)
+        index += 1
+        y += 1
+
+    libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+
+    # Draw it and wait for input:
+    libtcod.console_flush()
+
+    while True:
+        Key = libtcod.console_wait_for_keypress(True)
+
+        if Key.vk == libtcod.KEY_ESCAPE:
+            return None
+        else:
+            what = Key.c - ord('a')
+
+            if what in range(0, len(bodyparts) + 1):
+                return what
+
 def text_menu(header, text):
     libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
     libtcod.console_set_default_background(var.MenuPanel, libtcod.black)

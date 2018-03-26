@@ -18,8 +18,8 @@ import libtcodpy as libtcod
 DummyAttack = {
 'verb': 'BUG: dummy attack',
 'ToHitBonus': 0,
-'DiceNumber': 0,
-'DiceValue': 0,
+'DiceNumber': 1,
+'DiceValue': 1,
 'DamageBonus': 0,
 'DamageType': 'BLUNT',
 'flags': []
@@ -28,7 +28,7 @@ DummyAttack = {
 Punch = {
 'verb': 'punch',
 'DiceNumber': 1,
-'DiceValue': 2,
+'DiceValue': 3,
 'flags': ['UNARMED', 'NATURAL']
 }
 
@@ -41,11 +41,57 @@ Claw = {
 'flags': ['NATURAL']
 }
 
+LargeClaw = {
+'verb': 'claw',
+'DiceNumber': 2,
+'DiceValue': 3,
+'DamageBonus': 1,
+'DamageType': 'SLASH',
+'flags': ['NATURAL']
+}
+
+Bite = {
+'verb': 'bite',
+'DiceNumber': 1,
+'DiceValue': 4,
+'flags': ['NATURAL']
+}
+
+Kick = {
+'verb': 'kick',
+'DiceNumber': 1,
+'DiceValue': 5,
+'flags': ['NATURAL']
+}
+
+BoulderRoll = {
+'verb': 'crush',
+'ToHitBonus': -4,
+'DiceNumber': 1,
+'DiceValue': 10,
+'DamageBonus': 2
+}
+
+Slam = {
+'verb': 'slam',
+'DiceNumber': 1,
+'DiceValue': 6,
+'flags': ['NATURAL']
+}
+
 NonWeapon = {
 'verb': 'bash',
 'ToHitBonus': -2,
 'DiceNumber': 1,
 'DiceValue': 2
+}
+
+MisThrown = {
+'verb': 'hit',
+'ToHitBonus': -4,
+'DiceNumber': 1,
+'DiceValue': 2,
+'flags': ['RANGED']
 }
 
 ###############################################################################
@@ -61,6 +107,8 @@ DummyItem = {
 'BlockMove': False,
 'material': 'STONE',
 'size': -1,
+'attack': NonWeapon,
+'ranged': MisThrown,
 'intrinsics': [],
 'flags': [],
 'frequency': 100
@@ -80,6 +128,7 @@ Boulder = {
 'name': 'boulder',
 'BlockMove': True,
 'size': 2,
+'attack': BoulderRoll,
 'flags': [], # TODO: Block sight.
 'frequency': 5
 }
@@ -105,7 +154,6 @@ DummyMonster = {
 'Ego': 0,
 'speed': 1.0,
 'sight': 6,
-'BaseAttack': Punch,
 'material': 'FLESH',
 'size': 0,
 'diet': ['FLESH', 'WATER'],
@@ -182,12 +230,14 @@ Troll
 DummyPart = {
 'name': 'BUG: dummy body part',
 'cover': 100, # Chance of being hit there is based on cover.
+'attack': Slam,
 'flags': []
 }
 
 Head = {
 'name': 'head',
 'cover': 30,
+'attack': Bite,
 'flags': ['HEAD', 'VITAL']
 }
 
@@ -203,14 +253,16 @@ Groin = {
 }
 
 Arm = {
-'name': 'arm',
+'name': 'hand',
 'cover': 60,
+'attack': Punch,
 'flags': ['ARM']
 }
 
 Leg = {
 'name': 'leg',
 'cover': 70,
+'attack': Kick,
 'flags': ['LEG']
 }
 

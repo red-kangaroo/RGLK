@@ -265,16 +265,6 @@ def handleKeys(Player):
         Player.actionWait()
         return
 
-    # Inventory
-    if (Key.vk == libtcod.KEY_CHAR and Key.c == ord('i')):
-        Player.actionInventory()
-        return
-
-    # Equipment
-    if (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
-        Player.actionEquipment()
-        return
-
     # Look
     if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('l'))):
         examined = askForTarget(Player, "Looking around.")
@@ -321,6 +311,17 @@ def handleKeys(Player):
         if Key.vk == libtcod.KEY_CHAR and Key.c == ord('d'):
             while Player.actionDrop() == True:
                 pass # Return to menu if something remains to drop.
+            return
+
+        # Equipment
+        if (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
+            while Player.actionEquipment() == True:
+                pass # Return to menu if something remains to pick up.
+            return
+
+        # Inventory
+        if (Key.vk == libtcod.KEY_CHAR and Key.c == ord('i')):
+            Player.actionInventory()
             return
 
         # Jump

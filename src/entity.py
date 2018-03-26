@@ -64,10 +64,6 @@ def spawn(x, y, BluePrint, type):
         except:
             sight = raw.DummyMonster['sight']
         try:
-            attack = BluePrint['BaseAttack']
-        except:
-            attack = raw.DummyMonster['BaseAttack']
-        try:
             diet = BluePrint['diet']
         except:
             diet = raw.DummyMonster['diet']
@@ -83,7 +79,6 @@ def spawn(x, y, BluePrint, type):
         New = Mob(x, y, char, color, name, material, size,
                      Str, Dex, End, Wit, Ego, speed, sight, addFlags)
 
-        New.BaseAttack = attack
         New.diet = diet
     elif type == 'ITEM':
         #try:
@@ -99,6 +94,14 @@ def spawn(x, y, BluePrint, type):
         except:
             size = raw.DummyItem['size']
         try:
+            attack = BluePrint['attack']
+        except:
+            attack = raw.DummyItem['attack']
+        try:
+            ranged = BluePrint['ranged']
+        except:
+            ranged = raw.DummyItem['ranged']
+        try:
             BlockMove = BluePrint['BlockMove']
         except:
             BlockMove = raw.DummyItem['BlockMove']
@@ -112,7 +115,7 @@ def spawn(x, y, BluePrint, type):
             addIntrinsics = []
 
         New = Item(x, y, char, color, name, material, size, BlockMove,
-                   addFlags)
+                   attack, ranged, addFlags)
     else:
         print "Failed to spawn unknown entity type."
 
@@ -289,18 +292,42 @@ class Mob(Entity):
             except:
                 cover = raw.DummyPart['cover']
             try:
+                attack = part['attack']
+            except:
+                attack = raw.DummyPart['attack']
+            try:
                 addFlags = part['flags']
             except:
                 addFlags = raw.DummyPart['flags']
 
-            New = BodyPart(name, self, cover, addFlags)
+            New = BodyPart(name, self, cover, attack, addFlags)
 
             self.bodyparts.append(New)
 
+        armNo = 1
+        legNo = 1
         for part in self.bodyparts:
             if part.hasFlag('ARM'):
-                part.flags.append('MAIN')
-                break
+                if armNo == 1:
+                    part.flags.append('RIGHT')
+                    part.flags.append('MAIN') # TODO: Left-handedness.
+                    armNo += 1
+                elif armNo == 2:
+                    part.flags.append('LEFT')
+                    armNo += 1
+                else:
+                    part.flags.append('OTHER')
+                    armNo += 1
+            elif part.hasFlag('LEG'):
+                if legNo == 1:
+                    part.flags.append('RIGHT')
+                    legNo += 1
+                elif legNo == 2:
+                    part.flags.append('LEFT')
+                    legNo += 1
+                else:
+                    part.flags.append('OTHER')
+                    legNo += 1
 
     def recalculateFOV(self):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
@@ -818,8 +845,46 @@ class Mob(Entity):
             self.checkDeath()
             return False
         else:
-            ui.option_menu("Your equipment:", self.bodyparts)
-            return True
+            part = ui.equip_menu(self.bodyparts)
+
+            if part == None:
+                return False
+
+            if len(self.bodyparts[part].inventory) != 0:
+                item = self.bodyparts[part].doDeEquip()
+                self.inventory.append(item)
+                return True
+            else:
+                slot = None
+                for i in self.bodyparts[part].flags:
+                    if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG']:
+                        slot = i
+
+                options = []
+                if slot == None:
+                    ui.message("You cannot equip anything on that body part.", actor = self)
+                    return False
+                elif slot == 'ARM':
+                    options = self.inventory
+                else:
+                    for i in self.inventory:
+                        if i.hasFlag[slot]:
+                            options.append(i)
+
+                if len(options) == 0:
+                    ui.message("You carry nothing to equip on that body part.", actor = self)
+                    return False
+                else:
+                    item = ui.option_menu("What do you want to equip:", options)
+
+                    if item == None:
+                        return False
+
+                    if self.bodyparts[part].doEquip(options[item]) == True:
+                        self.inventory.remove(options[item])
+                        return True
+                    else:
+                        return False
 
     def actionJump(self, where):
         if self.AP < 1:
@@ -1006,9 +1071,11 @@ class Mob(Entity):
 
 class Item(Entity):
     def __init__(self, x, y, char, color, name, material, size, BlockMove, #These are base Entity arguments.
-                 addFlags):
+                 attack, ranged, addFlags):
         super(Item, self).__init__(x, y, char, color, name, material, size, BlockMove)
 
+        self.attack = attack
+        self.ranged = ranged
         self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
 
         self.flags.append('ITEM')
@@ -1046,7 +1113,7 @@ class Item(Entity):
 
 class BodyPart(Entity):
     def __init__(self, name, #These are base Entity arguments.
-                 mob, cover, addFlags):
+                 mob, cover, attack, addFlags):
         x = mob.x
         y = mob.y
         char = '~'
@@ -1061,14 +1128,24 @@ class BodyPart(Entity):
         for i in addFlags:
             self.flags.append(i)
 
+        self.attack = attack
         self.cover = cover
         self.wounded = False
 
     def getName(self, capitalize = False, full = True):
         name = self.name
 
+        if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('RIGHT'):
+            name = 'right ' + name
+
+        if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('LEFT'):
+            name = 'left ' + name
+
+        if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('OTHER'):
+            name = 'other ' + name
+
         if self.hasFlag('ARM') and self.hasFlag('MAIN'):
-            name = 'main ' + name
+            name = name + '*'
 
         if self.wounded == True:
             name = 'wounded ' + name
@@ -1081,6 +1158,32 @@ class BodyPart(Entity):
             name = name.capitalize()
 
         return name
+
+    def doEquip(self, item):
+        if len(self.inventory) > 0:
+            return False
+
+        slot = None
+        for i in self.flags:
+            if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG']:
+                slot = i
+
+        if slot != None:
+            if not (slot in item.flags or slot == 'ARM'):
+                return False
+        else:
+            return False
+
+        self.inventory.append(item)
+        return True
+
+    def doDeEquip(self):
+        if len(self.inventory) == 0:
+            return None
+        else:
+            for item in self.inventory:
+                self.inventory.remove(item)
+                return item
 
 #    def __init__(self, x, y, char, color, name, #These are base Entity arguments.
 #                 ):
