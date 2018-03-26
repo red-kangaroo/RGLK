@@ -267,12 +267,16 @@ class Mob(Entity):
 
         # General:
         self.carry = self.recalculateCarryingCapacity()
-        self.BaseAttack = None # Special case this as a slam attack in attack code.
         self.givenName = None
 
         self.flags.append('MOB')
         for i in addFlags:
             self.flags.append(i)
+
+        self.baseArms = 0
+        self.baseLegs = 0
+        self.baseWings = 0
+        self.baseEyes = 0
 
         self.bodyparts = []
         self.gainBody()
@@ -300,6 +304,10 @@ class Mob(Entity):
             except:
                 cover = raw.DummyPart['cover']
             try:
+                eyes = part['eyes']
+            except:
+                eyes = raw.DummyPart['eyes']
+            try:
                 attack = part['attack']
             except:
                 attack = raw.DummyPart['attack']
@@ -308,50 +316,54 @@ class Mob(Entity):
             except:
                 addFlags = raw.DummyPart['flags']
 
-            New = BodyPart(name, self, cover, attack, addFlags)
+            New = BodyPart(name, self, cover, eyes, attack, addFlags)
 
             self.bodyparts.append(New)
 
-        armNo = 1
-        legNo = 1
-        wingNo = 1
+        armNo = 0
+        legNo = 0
+        wingNo = 0
+        eyeNo = 0
+
         for part in self.bodyparts:
+            eyeNo += part.eyes
+
             if part.hasFlag('ARM'):
-                if armNo == 1:
+                if armNo == 0:
                     part.flags.append('RIGHT')
                     part.flags.append('MAIN') # TODO: Left-handedness.
                     armNo += 1
-                elif armNo == 2:
+                elif armNo == 1:
                     part.flags.append('LEFT')
                     armNo += 1
                 else:
                     part.flags.append('OTHER')
                     armNo += 1
             elif part.hasFlag('LEG'):
-                if legNo == 1:
+                if legNo == 0:
                     part.flags.append('RIGHT')
                     legNo += 1
-                elif legNo == 2:
+                elif legNo == 1:
                     part.flags.append('LEFT')
                     legNo += 1
                 else:
                     part.flags.append('OTHER')
                     legNo += 1
             elif part.hasFlag('WING'):
-                if legNo == 1:
+                if legNo == 0:
                     part.flags.append('RIGHT')
                     wingNo += 1
-                elif legNo == 2:
+                elif legNo == 1:
                     part.flags.append('LEFT')
                     wingNo += 1
                 else:
                     part.flags.append('OTHER')
                     wingNo += 1
 
-        # TODO:
-        # self.baseArms
-        # self.baseLegs
-        # self.baseWings -> self.canFly()
+        self.baseArms = armNo
+        self.baseLegs = legNo
+        self.baseWings = wingNo
+        self.baseEyes = eyeNo
 
     def gainMutation(self):
         # TODO
@@ -471,6 +483,14 @@ class Mob(Entity):
         else:
             return self.color
 
+    def getEquipment(self):
+        equipment = []
+        for part in self.bodyparts:
+            for item in part.inventory:
+                equipment.append(item)
+
+        return equipment
+
     def getActionAPCost(self):
         return 1
 
@@ -484,10 +504,24 @@ class Mob(Entity):
         name = self.name
 
         # TODO:
-        # full should make the function return whole name and title
+        if full == True:
+            # Whole name and title:
+            if self.givenName != None:
+                name = self.givenName + ' the ' + name
+            # BUC:
+            if self.hasFlag('ITEM'):
+                name = '+0 ' + name # No enchanting of corpses. For now.
 
-        if self.givenName != None:
-            name = self.givenName + ' the ' + name
+                if self.beautitude > 1:
+                    name = "holy " + name
+                elif self.beautitude == 1:
+                    name = "blessed " + name
+                elif self.beautitude == 0:
+                    name = "uncursed " + name
+                elif self.beautitude == -1:
+                    name = "cursed " + name
+                elif self.beautitude < -1:
+                    name = "doomed " + name
 
         if self.hasFlag('AVATAR'):
             name = 'you'
@@ -496,6 +530,75 @@ class Mob(Entity):
             name = name.capitalize()
 
         return name
+
+    def hasHead(self):
+        for part in self.bodyparts:
+            if part.hasFlag('HEAD'):
+                return True
+
+        return False
+
+    def hasEyes(self, boolean = True):
+        eyeNo = 0
+
+        for part in self.bodyparts:
+            eyeNo += part.eyes
+
+        if boolean:
+            if eyeNo >= self.baseEyes:
+                return True
+            else:
+                return False
+        else:
+            return eyeNo
+
+    def hasArms(self, boolean = True):
+        armNo = 0
+
+        for part in self.bodyparts:
+            if part.hasFlag('ARM'):
+                armNo += 1
+
+        if boolean:
+            if armNo >= self.baseArms:
+                return True
+            else:
+                return False
+        else:
+            return armNo
+
+    def hasLegs(self, boolean = True):
+        legNo = 0
+
+        for part in self.bodyparts:
+            if part.hasFlag('LEG'):
+                legNo += 1
+
+        if boolean:
+            if legNo >= self.baseLegs:
+                return True
+            else:
+                return False
+        else:
+            return legNo
+
+    def hasWings(self, boolean = True):
+        # Also used for check whether you can fly - you need at least two wings,
+        # otherwise you need to go for magical levitation.
+
+        wingNo = 0
+
+        for part in self.bodyparts:
+            if part.hasFlag('WING'):
+                wingNo += 1
+
+        if boolean:
+            if wingNo >= self.baseWings and wingNo >= 2:
+                return True
+            else:
+                return False
+        else:
+            return wingNo
 
     def handleIntrinsics(self):
         pass
@@ -670,6 +773,11 @@ class Mob(Entity):
         if forceDie:
             ui.message("%s die&S." % self.getName(True), libtcod.red, self)
 
+            # Drop all equipped and carried items.
+            for part in self.bodyparts:
+                item = part.doDeEquip()
+                if item != None:
+                    self.inventory.append(item)
             self.actionDrop(True)
 
             self.flags.remove('MOB')
@@ -827,7 +935,7 @@ class Mob(Entity):
                         var.Maps[var.DungeonLevel][x][y].change(raw.WoodDoor)
 
                     var.changeFOVMap(x, y)
-                    ui.message("%s clos&ES the door." % self.getName(True), actor = self)
+                    ui.message("%s close&S the door." % self.getName(True), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 else:
@@ -926,6 +1034,9 @@ class Mob(Entity):
             return False
         elif dropAll == True:
             for item in self.inventory:
+                if item == None: # I somehow managed to end up with some None items
+                    continue     # in inventory and then crashed on death...
+
                 self.inventory.remove(item)
 
                 item.x = self.x
@@ -1175,7 +1286,7 @@ class Mob(Entity):
 
             self.AP -= (self.getActionAPCost() / 2)
             return False
-        elif pickAll == True:
+        elif pickAll == True or len(options) == 1:
             for i in options:
                 self.inventory.append(i)
                 var.Entities[var.DungeonLevel].remove(i)
@@ -1208,7 +1319,7 @@ class Mob(Entity):
         if self.AP < 1:
             return False
         if self == Other:
-            ui.message("%s attempt&S to swap with &OBJself and fails." % self.getName(True), actor = self)
+            ui.message("%s attempt&S to swap with &OBJself and fail&S." % self.getName(True), actor = self)
             return False
 
         x1 = self.x
@@ -1267,12 +1378,30 @@ class Item(Entity):
         for i in addFlags:
             self.flags.append(i)
 
-    def getName(self, capitalize = False, full = True):
+        self.enchantment = 0
+
+    def getName(self, capitalize = False, full = False):
         name = self.name
 
         # TODO:
-        # all different stuff
         # if full == False, show only base name
+        if full == True:
+            # Enchantment:
+            if self.enchantment < 0:
+                name = str(self.enchantment) + ' ' + name
+            else:
+                name = '+' + str(self.enchantment) + ' ' + name
+            # BUC:
+            if self.beautitude > 1:
+                name = "holy " + name
+            elif self.beautitude == 1:
+                name = "blessed " + name
+            elif self.beautitude == 0:
+                name = "uncursed " + name
+            elif self.beautitude == -1:
+                name = "cursed " + name
+            elif self.beautitude < -1:
+                name = "doomed " + name
 
         if capitalize == True:
             name = name.capitalize()
@@ -1298,12 +1427,14 @@ class Item(Entity):
 
 class BodyPart(Entity):
     def __init__(self, name, #These are base Entity arguments.
-                 mob, cover, attack, addFlags):
+                 mob, cover, eyes, attack, addFlags):
         x = mob.x
         y = mob.y
         char = '~'
         color = libtcod.red
         material = mob.material
+        # TODO: Different body parts are differently smaller then mob, plus cannot
+        #       equip items smaller than the body part.
         size = min(2, max(-2, mob.size))
 
         super(BodyPart, self).__init__(x, y, char, color, name, material, size)
@@ -1315,6 +1446,8 @@ class BodyPart(Entity):
 
         self.attack = attack
         self.cover = cover
+        self.eyes = eyes
+
         self.wounded = False
 
     def getName(self, capitalize = False, full = True):

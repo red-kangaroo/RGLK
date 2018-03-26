@@ -19,6 +19,9 @@ import var
 
 libtcod.console_set_custom_font('graphics/terminal.png',
   libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
+# TODO: Add this as an option:
+#libtcod.console_set_custom_font('graphics/terminal12.png',
+#  libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
 libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 #libtcod.sys_set_fps(30)
 

@@ -202,7 +202,7 @@ def option_menu(header, options):
     index = ord('a')
     y = 3
     for option in options:
-        text = chr(index) + ') ' + option.getName()
+        text = chr(index) + ') ' + option.getName(False, True)
         libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
                                  text)
         index += 1

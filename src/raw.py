@@ -55,7 +55,7 @@ Slam = {
 Punch = {
 'verb': 'punch&ES',
 'DiceNumber': 1,
-'DiceValue': 3,
+'DiceValue': 2,
 'flags': ['UNARMED', 'NATURAL']
 }
 
@@ -140,6 +140,14 @@ MisThrown = {
 'flags': ['RANGED']
 }
 
+ClubThrown = {
+'verb': 'hit&S',
+'DiceNumber': 1,
+'DiceValue': 4,
+'range': 4,
+'flags': ['RANGED']
+}
+
 ###############################################################################
 #  Items
 ###############################################################################
@@ -160,7 +168,40 @@ DummyItem = {
 'frequency': 100
 }
 
+# Weapons:
+Cudgel = {
+'char': ')',
+'color': libtcod.darkest_orange,
+'name': 'cudgel',
+'material': 'WOOD',
+'size': -1,
+'attack': Club,
+'ranged': ClubThrown,
+'intrinsics': ['MELEE']
+}
+
+# Headgear:
+Bandana = {
+'char': '-',
+'color': libtcod.dark_green,
+'name': 'bandana',
+'material': 'CLOTH',
+'size': -1,
+'flags': ['HEAD'],
+'frequency': 50
+}
+
 # Armor:
+BlackRobe = {
+'char': ']',
+'color': libtcod.darker_grey,
+'name': 'black robe',
+'material': 'CLOTH',
+'size': 0,
+'flags': ['TORSO'],
+'frequency': 50
+}
+
 BrownRobe = {
 'char': ']',
 'color': libtcod.darkest_orange,
@@ -168,7 +209,7 @@ BrownRobe = {
 'material': 'CLOTH',
 'size': 0,
 'flags': ['TORSO'],
-'frequency': 100
+'frequency': 50
 }
 
 WhiteRobe = {
@@ -178,7 +219,18 @@ WhiteRobe = {
 'material': 'CLOTH',
 'size': 0,
 'flags': ['TORSO'],
-'frequency': 100
+'frequency': 50
+}
+
+# Belts:
+Belt = {
+'char': '-',
+'color': libtcod.darkest_orange,
+'name': 'leather belt',
+'material': 'LEATHER',
+'size': 0,
+'flags': ['GROIN'],
+'frequency': 50
 }
 
 # General:
@@ -289,6 +341,7 @@ Troll = {
 DummyPart = {
 'name': 'BUG: dummy body part',
 'cover': 100, # Chance of being hit there is based on cover.
+'eyes': 0,
 'attack': Slam,
 'flags': []
 }
@@ -296,6 +349,7 @@ DummyPart = {
 Head = {
 'name': 'head',
 'cover': 30,
+'eyes': 2,
 'attack': Bite,
 'flags': ['HEAD', 'VITAL']
 }
@@ -307,6 +361,7 @@ Torso = {
 
 SlimeTorso = {
 'name': 'blob',
+'eyes': 3,
 'flags': ['TORSO', 'VITAL', 'GRASP']
 }
 
@@ -965,8 +1020,12 @@ Pillars3 = {
 # Lists must be last to have all stuff already defined.
 
 ItemList = [
+Cudgel,
+Bandana,
+BlackRobe,
 BrownRobe,
 WhiteRobe,
+Belt,
 GoldPiece,
 Boulder
 ]

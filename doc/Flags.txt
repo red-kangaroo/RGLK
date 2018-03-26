@@ -59,6 +59,8 @@ Generation:
 *ALWAYS_BLESSED
 *ALWAYS_CURSED
 
+MELEE
+RANGED
 
 Body
 ====
