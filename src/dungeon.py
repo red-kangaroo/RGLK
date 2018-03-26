@@ -47,11 +47,11 @@ def makeMap(Populate, DungeonLevel):
 
     for i in var.Entities[DungeonLevel]:
         # On the off-chance we trap someone in dungeon generation:
-        if i.isBlocked(i.x, i.y):
+        if i.isBlocked(i.x, i.y, DungeonLevel):
             x = 0
             y = 0
 
-            while i.isBlocked(x, y):
+            while i.isBlocked(x, y, DungeonLevel):
                 x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
                 y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 

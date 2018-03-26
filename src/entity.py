@@ -179,15 +179,15 @@ class Entity(object):
 
         return math.sqrt(dx ** 2 + dy ** 2)
 
-    def isBlocked(self, x, y, DungeonLevel = var.DungeonLevel):
+    def isBlocked(self, x, y, DL):
         if (x < 0 or x > var.MapWidth - 1 or
             y < 0 or y > var.MapHeight - 1):
             return True
 
-        if var.Maps[DungeonLevel][x][y].BlockMove:
+        if var.Maps[DL][x][y].BlockMove:
             return True
 
-        for i in var.Entities[DungeonLevel]:
+        for i in var.Entities[DL]:
             if (i.BlockMove and i.x == x and i.y == y):
                 return True
 
@@ -863,28 +863,32 @@ class Mob(Entity):
                 options = []
                 if slot == None:
                     ui.message("You cannot equip anything on that body part.", actor = self)
-                    return False
+                    ui.render_all(self)
+                    return True
                 elif slot == 'ARM':
                     options = self.inventory
                 else:
                     for i in self.inventory:
-                        if i.hasFlag[slot]:
+                        if i.hasFlag(slot):
                             options.append(i)
 
                 if len(options) == 0:
                     ui.message("You carry nothing to equip on that body part.", actor = self)
-                    return False
+                    ui.render_all(self)
+                    return True
                 else:
                     item = ui.option_menu("What do you want to equip:", options)
 
                     if item == None:
-                        return False
+                        return True
 
                     if self.bodyparts[part].doEquip(options[item]) == True:
                         self.inventory.remove(options[item])
                         return True
                     else:
-                        return False
+                        ui.message("You fail to equip %s." % options[item].getName())
+                        ui.render_all(self)
+                        return True
 
     def actionJump(self, where):
         if self.AP < 1:
@@ -920,7 +924,8 @@ class Mob(Entity):
             self.AP -= (self.getMoveAPCost() / 2)
             return False
 
-        if (not self.isBlocked(nx, ny) and not self.isBlocked(nnx, nny) and
+        if (not self.isBlocked(nx, ny, var.DungeonLevel) and
+            not self.isBlocked(nnx, nny, var.DungeonLevel) and
             libtcod.map_is_in_fov(var.FOVMap, nnx, nny)):
             ui.message("%s leap&S." % self.getName(True), actor = self)
             self.move(dx * 2, dy * 2)
@@ -1014,7 +1019,7 @@ class Mob(Entity):
                            actor = self)
                 self.AP -= self.getActionAPCost()
 
-        if len(options) > 1:
+        if len(options) >= 1:
             return True
         else:
             return False # Closes window after picking up the only item on ground.
@@ -1057,7 +1062,7 @@ class Mob(Entity):
 
         moved = False
 
-        if (not self.isBlocked(self.x + dx, self.y + dy) or
+        if (not self.isBlocked(self.x + dx, self.y + dy, var.DungeonLevel) or
            (self.hasFlag('AVATAR') and var.WizModeNoClip)):
             self.move(dx, dy)
             moved = True

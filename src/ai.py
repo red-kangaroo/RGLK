@@ -115,10 +115,11 @@ def getAICommand(Mob):
                     friends = False
 
                     for i in var.Entities[var.DungeonLevel]:
-                        if (i != Mob and i != Target and i.range(Mob) < 2 and
-                            i.getRelation(Target) < 1):
-                            friends = True
-                            break
+                        if i.hasFlag('MOB'):
+                            if (i != Mob and i != Target and i.range(Mob) < 2 and
+                                i.getRelation(Target) < 1):
+                                friends = True
+                                break
 
                     if friends == True and var.rand_chance(20):
                         for y in range(Mob.y - 1, Mob.y + 2):
@@ -254,6 +255,7 @@ def handleKeys(Player):
     if Key.vk == libtcod.KEY_F12:
         # Heh heh, if I don't clear the console, it looks quite trippy after
         # redrawing a new map over the old one.
+        libtcod.console_clear(var.MapConsole)
         var.WizModeNewMap = True
         return
 
@@ -816,7 +818,7 @@ def aiWander(Me):
     x = 0
     y = 0
 
-    while Me.isBlocked(x, y) == True:
+    while Me.isBlocked(x, y, var.DungeonLevel) == True:
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 

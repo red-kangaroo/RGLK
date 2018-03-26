@@ -114,6 +114,28 @@ DummyItem = {
 'frequency': 100
 }
 
+# Armor:
+BrownRobe = {
+'char': ']',
+'color': libtcod.darkest_orange,
+'name': 'brown robe',
+'material': 'CLOTH',
+'size': 0,
+'flags': ['TORSO'],
+'frequency': 100
+}
+
+WhiteRobe = {
+'char': ']',
+'color': libtcod.white,
+'name': 'white robe',
+'material': 'CLOTH',
+'size': 0,
+'flags': ['TORSO'],
+'frequency': 100
+}
+
+# General:
 GoldPiece = {
 'char': '$',
 'color': libtcod.yellow,
@@ -135,6 +157,8 @@ Boulder = {
 
 # Item list must be last to have all items already defined.
 ItemList = [
+BrownRobe,
+WhiteRobe,
 GoldPiece,
 Boulder
 ]
