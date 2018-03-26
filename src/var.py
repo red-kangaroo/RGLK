@@ -18,6 +18,17 @@ def rand_chance(percent):
     else:
         return True
 
+def rand_dice(DiceNumber, DiceValue, Bonus):
+    result = 0
+
+    while DiceNumber > 0:
+        result += libtcod.random_get_int(0, 1, DiceValue)
+        DiceNumber -= 1
+
+    result += Bonus
+
+    return result
+
 def rand_gaussian_d20():
     roll1 = libtcod.random_get_int(0, 1, 20)
     roll2 = libtcod.random_get_int(0, 1, 20)

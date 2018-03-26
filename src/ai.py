@@ -41,13 +41,16 @@ def getAICommand(Mob):
             return
 
         if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
-            Mob.flags.append('AI_FLEE')
-            ui.message("%s flee&S." % Mob.getName(True), actor = Mob)
+            if not Mob.hasFlag('AI_FLEE'):
+                Mob.flags.append('AI_FLEE')
+                ui.message("%s flee&S." % Mob.getName(True), actor = Mob)
 
         if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
               Mob.HP >= (Mob.maxHP / 2)):
-            Mob.flags.remove('AI_FLEE')
-            ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
+            for i in Mob.flags:
+                if i == 'AI_FLEE':
+                    Mob.flags.remove('AI_FLEE')
+                    ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
 
         Target = None
 
@@ -743,11 +746,10 @@ def aiMoveAStar(Me, Target, MoveMap):
             dy = y - Me.y
 
             if Me.actionBump(dx, dy) == True:
-                print "bumping"
                 moved = True
 
     elif aiMoveBase(Me, Target.x, Target.y) == True:
-        print "failed A*, moving base"
+        #print "failed A*, moving base"
         moved = True
 
     libtcod.path_delete(path)

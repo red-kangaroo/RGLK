@@ -269,6 +269,7 @@ class Mob(Entity):
 
         self.bodyparts = []
         self.gainBody()
+        self.gainMutation()
 
     def gainBody(self):
         body = None
@@ -329,6 +330,15 @@ class Mob(Entity):
                     part.flags.append('OTHER')
                     legNo += 1
 
+    def gainMutation(self):
+        # TODO
+        for i in self.flags:
+            if i in raw.MutationTypes:
+                if i == 'MUTATION_LARGE_CLAWS':
+                    for part in self.bodyparts:
+                        if part.hasFlag('ARM'):
+                            part.attack = raw.LargeClaw
+
     def recalculateFOV(self):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
 
@@ -366,9 +376,16 @@ class Mob(Entity):
         #elif var.rand_chance(5):
         #    self.AP -= 0.1
 
-    def getAccuracyBonus(self):
-        # TODO
+    def getAccuracyBonus(self, weapon = None):
+        # TODO:
+        #      size difference
         toHit = self.Dex
+
+        if weapon != None:
+            try:
+                toHit += weapon.attack['ToHitBonus']
+            except:
+                pass # No accuracy modifier.
 
         if toHit >= 1:
             return libtcod.random_get_int(0, 0, toHit)
@@ -377,17 +394,28 @@ class Mob(Entity):
 
     def getDodgeBonus(self):
         # TODO:
-        # Penalty for adjacent walls.
         # Bonus after move.
         # Unarmored / Light Armor
 
         toDodge = self.Dex
 
+        # Modify by number of adjacent walls:
+        AdjacentWalls = 0
+        for y in range(self.y - 1, self.y + 2):
+            for x in range(self.x - 1, self.x + 2):
+                if x in range(0, var.MapWidth) and y in range(0, var.MapHeight):
+                    if x != self.x and y != self.y:
+                        if var.Maps[var.DungeonLevel][x][y].BlockMove == True:
+                            AdjacentWalls += 1
+        print "%s: adjacent walls: " % self.name + str(AdjacentWalls)
+        # We get a modifier between +2 and -2, based on how many walls are adjacent.
+        wallMod = 2 - int(math.floor(AdjacentWalls / 2))
+        toDodge += wallMod
+
         if toDodge >= 1:
             return libtcod.random_get_int(0, 0, toDodge)
         else:
             return toDodge
-
 
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
@@ -473,11 +501,104 @@ class Mob(Entity):
             self.XP -= 1000
         return True
 
-    def receiveAttack(self, attacker, multiplier = 0):
+    def receiveAttack(self, attacker, weapon, multiplier):
+        # TODO: launcher, blocking
         self.target = attacker
-        # TODO
 
-    def receiveDamage(self, damage, type = None):
+        forcedHit = False
+        forcedMiss = False
+        toHit = var.rand_gaussian_d20()
+        toDodge = var.rand_gaussian_d20()
+
+        if toHit == 20:
+            forcedHit = True
+        elif (toHit == 1 or toDodge == 20):
+            forcedMiss = True
+
+        # Debug:
+        print "-" * 10
+        print "%s to hit roll: %s; %s to dodge roll: %s" % (attacker.name, toHit,
+                                                            self.name, toDodge)
+
+        toHit += attacker.getAccuracyBonus(weapon)
+        toDodge += self.getDodgeBonus()
+
+        print "modified hit chance: %s vs %s" % (toHit, toDodge)
+
+        try:
+            if weapon == None:
+                verb = raw.Slam['verb']
+            else:
+                verb = weapon.attack['verb']
+        except:
+            verb = 'hit&S'
+
+        if forcedMiss == False or forcedHit == True:
+            if (forcedHit == True or toHit > toDodge):
+                if forcedHit == True:
+                    ui.message("%s easily %s %s." % (attacker.getName(True), verb, self.getName()),
+                               actor = attacker)
+                else:
+                    ui.message("%s %s %s." % (attacker.getName(True), verb, self.getName()),
+                               actor = attacker)
+
+                # TODO:
+                # Different attacks, materials, crits.
+                try:
+                    if weapon == None:
+                        DiceNumber = raw.Slam['DiceNumber']
+                    else:
+                        DiceNumber = weapon.attack['DiceNumber']
+                except:
+                    print "BUG: dummy attack"
+                    DiceNumber = raw.DummyAttack['DiceNumber']
+                try:
+                    if weapon == None:
+                        DiceValue = raw.Slam['DiceValue']
+                    else:
+                        DiceValue = weapon.attack['DiceValue']
+                except:
+                    DiceValue = raw.DummyAttack['DiceValue']
+                try:
+                    if weapon == None:
+                        DamageBonus = raw.Slam['DamageBonus']
+                    else:
+                        DamageBonus = weapon.attack['DamageBonus']
+                except:
+                    DamageBonus = raw.DummyAttack['DamageBonus']
+                try:
+                    if weapon == None:
+                        DamageType = raw.Slam['DamageType']
+                    else:
+                        DamageType = weapon.attack['DamageType']
+                except:
+                    DamageType = raw.DummyAttack['DamageType']
+                try:
+                    if weapon == None:
+                        AttackFlags = raw.Slam['AttackFlags']
+                    else:
+                        AttackFlags = weapon.attack['flags']
+                except:
+                    AttackFlags = raw.DummyAttack['flags']
+
+                print "rolling " + str(DiceNumber) + "d" + str(DiceValue) + "+" + str(DamageBonus)
+                damage = var.rand_dice(DiceNumber, DiceValue, DamageBonus)
+
+                print "    + " + str(attacker.Str) + " ="
+                damage += attacker.Str # TODO
+
+                print "    " + str(damage) + " damage"
+
+                self.receiveDamage(damage, multiplier, DamageType, AttackFlags)
+            else:
+                ui.message("%s miss&ES %s." % (attacker.getName(True), self.getName()), actor = attacker)
+        else:
+            ui.message("%s completely miss&ES %s." % (attacker.getName(True), self.getName()), actor = attacker)
+            # TODO: if toHit + bonus < 0, fumble
+
+        attacker.SP -= 2
+
+    def receiveDamage(self, damage, multiplier = 1, type = None, flags = []):
         # TODO
         if damage > 0:
             self.HP -= damage
@@ -513,7 +634,7 @@ class Mob(Entity):
                 game.save() # No savescumming for you! (Unless you prepare for this, of course.)
                 ai.waitForMore(self)
                 var.WizModeTrueSight = True
-                ui.message("You have failed in your quest!")
+                ui.message("You have failed in your quest! You can (L)ook around, or (Ctrl + q)uit the game.")
 
             self.char = '%'
             self.color = libtcod.red
@@ -533,10 +654,9 @@ class Mob(Entity):
         # Set our victim as AI target:
         self.target = victim
 
+        # Prevent weird cases:
         if self.AP < 1:
             return False
-
-        # TODO
         if self.SP <= 0:
             if self.hasFlag('AVATAR'):
                 ui.message("You are too exhausted to fight.")
@@ -546,48 +666,44 @@ class Mob(Entity):
                 ui.message("You can only attack creatures.")
             return False
 
-        victim.receiveAttack(self)
+        # Get all useable body parts:
+        armNo = 0
+        legNo = 0
+        for i in self.bodyparts:
+            if i.hasFlag('ARM'):
+                armNo += 1
+            elif i.hasFlag('LEG'):
+                legNo += 1
 
-        forcedHit = False
-        forcedMiss = False
-        toHit = var.rand_gaussian_d20()
-        toDodge = var.rand_gaussian_d20()
-
-        if toHit == 20:
-            forcedHit = True
-        elif (toHit == 1 or toDodge == 20):
-            forcedMiss = True
-
-        # Debug:
-        #print "-" * 10
-        #print "%s to hit roll: %s; %s to dodge roll: %s" % (self.name, toHit,
-        #                                                    victim.name, toDodge)
-
-        toHit += self.getAccuracyBonus()
-        toDodge += victim.getDodgeBonus()
-
-        #print "modified hit chance: %s vs %s" % (toHit, toDodge)
-
-        if forcedMiss == False or forcedHit == True:
-            if (forcedHit == True or toHit > toDodge):
-                if forcedHit == True:
-                    ui.message("%s easily hit&S %s." % (self.getName(True), victim.getName()), actor = self)
+        attacks = []
+        weapons = False
+        for i in self.bodyparts:
+            if i.hasFlag('ARM'):
+                if len(i.inventory) == 0 and weapons == False:
+                    # You attack unarmed if you are wielding no weapons.
+                    attacks.append(i)
                 else:
-                    ui.message("%s hit&S %s." % (self.getName(True), victim.getName()), actor = self)
+                    for n in i.inventory: # If this produces more than one weapon,
+                        attacks.append(n) # we have a bug in equipping.
+                    weapons = True
+            elif (i.hasFlag('LEG') and (self.hasFlag('USE_LEGS') or armNo == 0)):
+                attacks.append(i)
+            elif (i.hasFlag('HEAD') and (self.hasFlag('USE_HEAD') or
+                  (armNo == 0 and legNo == 0))):
+                attacks.append(i)
 
-                # TODO:
-                # Different attacks, crits.
-                damage = libtcod.random_get_int(0, 1, 6) + self.Str
-                victim.receiveDamage(damage)
-                #print "%s receives %s damage" % (victim.name, damage)
-            else:
-                ui.message("%s miss&ES %s." % (self.getName(True), victim.getName()), actor = self)
+        # Get multiplier:
+        multiplier = 1.0
+
+        # TODO: body parts
+
+        if len(attacks) == 0:
+            victim.receiveAttack(self, None, multiplier)
         else:
-            ui.message("%s completely miss&ES %s." % (self.getName(True), victim.getName()), actor = self)
-            # TODO: if toHit + bonus < 0, fumble
+            for i in attacks:
+                victim.receiveAttack(self, i, multiplier)
 
         self.AP -= self.getAttackAPCost()
-        self.SP -= 2 # TODO
         return True
 
     def actionBump(self, dx, dy):
@@ -853,6 +969,7 @@ class Mob(Entity):
             if len(self.bodyparts[part].inventory) != 0:
                 item = self.bodyparts[part].doDeEquip()
                 self.inventory.append(item)
+                self.AP -= self.getActionAPCost()
                 return True
             else:
                 slot = None
@@ -884,6 +1001,7 @@ class Mob(Entity):
 
                     if self.bodyparts[part].doEquip(options[item]) == True:
                         self.inventory.remove(options[item])
+                        self.AP -= self.getActionAPCost()
                         return True
                     else:
                         ui.message("You fail to equip %s." % options[item].getName())
@@ -1019,7 +1137,7 @@ class Mob(Entity):
                            actor = self)
                 self.AP -= self.getActionAPCost()
 
-        if len(options) >= 1:
+        if len(options) > 1:
             return True
         else:
             return False # Closes window after picking up the only item on ground.

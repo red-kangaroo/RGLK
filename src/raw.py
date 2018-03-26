@@ -26,14 +26,14 @@ DummyAttack = {
 }
 
 Punch = {
-'verb': 'punch',
+'verb': 'punch&ES',
 'DiceNumber': 1,
 'DiceValue': 3,
 'flags': ['UNARMED', 'NATURAL']
 }
 
 Claw = {
-'verb': 'claw',
+'verb': 'claw&S',
 'DiceNumber': 1,
 'DiceValue': 3,
 'DamageBonus': 1,
@@ -42,7 +42,7 @@ Claw = {
 }
 
 LargeClaw = {
-'verb': 'claw',
+'verb': 'claw&S',
 'DiceNumber': 2,
 'DiceValue': 3,
 'DamageBonus': 1,
@@ -51,21 +51,21 @@ LargeClaw = {
 }
 
 Bite = {
-'verb': 'bite',
+'verb': 'bite&S',
 'DiceNumber': 1,
 'DiceValue': 4,
 'flags': ['NATURAL']
 }
 
 Kick = {
-'verb': 'kick',
+'verb': 'kick&S',
 'DiceNumber': 1,
 'DiceValue': 5,
 'flags': ['NATURAL']
 }
 
 BoulderRoll = {
-'verb': 'crush',
+'verb': 'crush&ES',
 'ToHitBonus': -4,
 'DiceNumber': 1,
 'DiceValue': 10,
@@ -73,21 +73,21 @@ BoulderRoll = {
 }
 
 Slam = {
-'verb': 'slam',
+'verb': 'body slam&S',
 'DiceNumber': 1,
 'DiceValue': 6,
 'flags': ['NATURAL']
 }
 
 NonWeapon = {
-'verb': 'bash',
+'verb': 'bash&S',
 'ToHitBonus': -2,
 'DiceNumber': 1,
 'DiceValue': 2
 }
 
 MisThrown = {
-'verb': 'hit',
+'verb': 'hit&S',
 'ToHitBonus': -4,
 'DiceNumber': 1,
 'DiceValue': 2,
@@ -191,7 +191,7 @@ Player = {
 'color': libtcod.white,
 'name': 'Player',
 'Str': 2,
-'Dex': 2,
+'Dex': 0,
 'End': 4,
 'Wit': 0,
 'Ego': 0,
@@ -238,7 +238,7 @@ Troll = {
 'speed': 1.0,
 'size': 1,
 'intrinsics': [],
-'flags': ['HUMANOID'],
+'flags': ['HUMANOID', 'USE_HEAD', 'MUTATION_LARGE_CLAWS'],
 'frequency': 10
 }
 
@@ -304,6 +304,10 @@ Leg
 BodyTypes = {
 'HUMANOID': HumanoidList
 }
+
+MutationTypes = [
+'MUTATION_LARGE_CLAWS'
+]
 
 ###############################################################################
 #  Terrains
