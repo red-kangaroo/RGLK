@@ -825,7 +825,7 @@ Curtain = {
 # Plants:
 LeafyTree = {
 'char': chr(5), # Ie. ♣
-'color': libtcod.green,
+'color': libtcod.dark_green,
 'name': 'tree',
 'BlockMove': True, # TODO: Or maybe False?
 'BlockSight': True,
@@ -834,7 +834,7 @@ LeafyTree = {
 
 ConifTree = {   # Coniferous tree
 'char': chr(6), # Ie. ♠
-'color': libtcod.dark_green,
+'color': libtcod.darker_green,
 'name': 'tree',
 'BlockMove': True, # TODO: Or maybe False?
 'BlockSight': True,

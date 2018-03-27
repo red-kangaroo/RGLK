@@ -27,7 +27,7 @@ def makeMap(Populate, DungeonLevel):
             map[x][y].change(raw.RockWall)
 
     # TODO: Dungeon levels.
-    which = libtcod.random_get_int(0, 1, 6)
+    which = libtcod.random_get_int(0, 1, 7)
     if which in range(1, 4):
         print "Building traditional dungeon."
         map = buildTraditionalDungeon(map, DungeonLevel)
@@ -37,9 +37,12 @@ def makeMap(Populate, DungeonLevel):
     elif which == 5:
         print "Building a cave."
         map = buildDrunkenCave(map, DungeonLevel)
-    else:
+    elif which == 6:
         print "Building a maze."
         map = buildMaze(map, DungeonLevel)
+    else:
+        print "Building a city."
+        map = buildCity(map, DungeonLevel)
 
     # Set map to the correct dungeon level.
     var.Maps[DungeonLevel] = map
@@ -106,8 +109,8 @@ def makeLake(liquid, map):
 
 def makeBetterRoom(Rooms, map):
     for room in Rooms:
-        if var.rand_chance(2):
-            which = libtcod.random_get_int(0, 1, 4)
+        if var.rand_chance(4):
+            which = libtcod.random_get_int(0, 1, 9)
             # TODO: Add so much more rooms.
 
             # Wooden room:
@@ -125,7 +128,12 @@ def makeBetterRoom(Rooms, map):
                         if map[x][y].hasFlag('WALL'):
                             map[x][y].change(raw.IceWall)
                         elif not map[x][y].hasFlag('LIQUID'):
-                            map[x][y].change(raw.IceFloor)
+                            if var.rand_chance(5):
+                                map[x][y].change(raw.DeepSnow)
+                            elif var.rand_chance(15):
+                                map[x][y].change(raw.Snow)
+                            else:
+                                map[x][y].change(raw.IceFloor)
             # Grass room:
             elif which == 3:
                 for x in range(room.x1, room.x2 + 1):
@@ -139,14 +147,71 @@ def makeBetterRoom(Rooms, map):
                                 map[x][y].change(raw.GrassFloor)
                             else:
                                 map[x][y].change(raw.TallGrass)
-            # Brick room:
+            # Nice room:
             elif which == 4:
                 for x in range(room.x1, room.x2 + 1):
                     for y in range(room.y1, room.y2 + 1):
                         if map[x][y].hasFlag('WALL'):
                             map[x][y].change(raw.BrickWall)
                         elif not map[x][y].hasFlag('DOOR'):
+                            map[x][y].change(raw.Carpet)
+                        elif map[x][y].hasFlag('DOOR'):
+                            map[x][y].change(raw.Curtain)
+            # Crypt:
+            elif which == 5:
+                for x in range(room.x1, room.x2 + 1):
+                    for y in range(room.y1, room.y2 + 1):
+                        if map[x][y].hasFlag('WALL'):
+                            map[x][y].change(raw.BrickWall)
+                        elif not map[x][y].hasFlag('DOOR'):
+                            if var.rand_chance(3):
+                                map[x][y].change(raw.BonePile)
+                            elif var.rand_chance(20):
+                                map[x][y].change(raw.Grave)
+                        elif map[x][y].hasFlag('DOOR'):
+                            if var.rand_chance(20):
+                                map[x][y].change(raw.BrokenDoor)
+            # Prison room:
+            elif which == 6:
+                for x in range(room.x1, room.x2 + 1):
+                    for y in range(room.y1, room.y2 + 1):
+                        if map[x][y].hasFlag('WALL'):
+                            map[x][y].change(raw.IronWall)
+                        elif map[x][y].hasFlag('DOOR'):
+                            if var.rand_chance(5):
+                                map[x][y].change(raw.IronBars)
+                            else:
+                                map[x][y].change(raw.ClosedPort)
+                        else:
                             map[x][y].change(raw.RockFloor)
+            # Sandy room:
+            elif which == 7:
+                for x in range(room.x1, room.x2 + 1):
+                    for y in range(room.y1, room.y2 + 1):
+                        if not map[x][y].hasFlag('WALL'):
+                            if var.rand_chance(5):
+                                map[x][y].change(raw.DeepSand)
+                            else:
+                                map[x][y].change(raw.Sand)
+            # Secret room:
+            elif which == 8:
+                for x in range(room.x1, room.x2 + 1):
+                    for y in range(room.y1, room.y2 + 1):
+                        if map[x][y].hasFlag('DOOR'):
+                            map[x][y].change(raw.SecretDoor)
+            # Pool room:
+            elif which == 9:
+                which = random.choice([
+                raw.ShallowWater,
+                raw.DeepWater,
+                raw.Lava,
+                raw.Mud
+                ])
+                for x in range(room.x1, room.x2 + 1):
+                    for y in range(room.y1, room.y2 + 1):
+                        if (not map[x][y].hasFlag('DOOR') and
+                            not map[x][y].hasFlag('WALL')):
+                            map[x][y].change(which)
 
     return map
 
@@ -866,6 +931,64 @@ def buildPerlinForest(map, DungeonLevel):
     libtcod.noise_delete(noise)
     return map
 
+def buildCity(map, DungeonLevel):
+    # Make open arena.
+    for y in range(1, var.MapHeight - 1):
+        for x in range(1, var.MapWidth - 1):
+            map[x][y].change(raw.RockFloor)
+
+    Rooms = []
+
+    # Add rooms.
+    for i in range(var.RoomMaxNumber):
+        width = libtcod.random_get_int(0, var.RoomMinSize, var.RoomMaxSize)
+        height = libtcod.random_get_int(0, var.RoomMinSize, var.RoomMaxSize)
+
+        x = libtcod.random_get_int(0, 0, var.MapWidth - width - 1)
+        y = libtcod.random_get_int(0, 0, var.MapHeight - height - 1)
+
+        NewRoom = Room(x, y, width, height)
+        Fail = False
+
+        for OtherRoom in Rooms:
+            if NewRoom.intersect(OtherRoom):
+                Fail = True
+                break
+
+        if not Fail:
+            map = NewRoom.create_square_room(map, True)
+            map = NewRoom.create_entrance(map)
+
+            Rooms.append(NewRoom)
+
+    # Clean door generation and add some decorations.
+    map = postProcess(map, 'CITY')
+
+    for y in range(var.MapHeight):
+        for x in range(var.MapWidth):
+
+            if map[x][y].hasFlag('DOOR'):
+                #AdjacentWalls = 0
+                Fail = True
+
+                if (x - 1 > 0 and x + 1 < var.MapWidth):
+                    if (map[x - 1][y].hasFlag('WALL') and
+                        map[x + 1][y].hasFlag('WALL')):
+                        Fail = False
+                if (y - 1 > 0 and y + 1 < var.MapHeight):
+                    if (map[x][y - 1].hasFlag('WALL') and
+                        map[x][y + 1].hasFlag('WALL')):
+                        Fail = False
+
+                if Fail == True:
+                    map[x][y].change(raw.RockFloor)
+
+    Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
+    map = makeBetterRoom(Rooms, map)
+    map = makeStairs(map, DungeonLevel, Rooms)
+
+    return map
+
 def postProcess(map, type = None):
     print "Starting post-processing dungeon."
     # TODO: Make this better.
@@ -923,8 +1046,39 @@ def postProcess(map, type = None):
                     map[x][y].change(raw.RockWall)
 
     while var.rand_chance(15):
+        if type == 'DUNGEON':
+            liquid = raw.ShallowWater
+        elif type == 'CATACOMB':
+            liquid = random.choice([
+            raw.Sand,
+            raw.Sand,
+            raw.DeepSand
+            ])
+        elif type == 'SEWERS':
+            liquid = random.choice([
+            raw.Mud,
+            raw.ShallowWater,
+            raw.ShallowWater,
+            raw.ShallowWater,
+            raw.DeepWater
+            ])
+        else:
+            liquid = random.choice([
+            raw.EarthFloor,
+            raw.GrassFloor,
+            raw.IceFloor,
+            raw.Sand,
+            raw.Snow,
+            raw.DeepSnow,
+            raw.TallGrass,
+            raw.ShallowWater,
+            raw.ShallowWater,
+            raw.ShallowWater,
+            raw.DeepWater
+            ])
+
         print "Making a lake."
-        map = makeLake(raw.ShallowWater, map)
+        map = makeLake(liquid, map)
 
     return map
 
@@ -1050,8 +1204,9 @@ class Terrain(object):
             return False
 
     def isWalkable(self):
-        if (self.hasFlag('GROUND') or self.hasFlag('DOOR') or
-            self.hasFlag('LIQUID') or self.hasFlag('FEATURE')):
+        if ((self.hasFlag('GROUND') or self.hasFlag('DOOR') or
+            self.hasFlag('LIQUID') or self.hasFlag('FEATURE')) and
+            not self.hasFlag('SWIM')):
             return True
         else:
             return False
@@ -1072,10 +1227,19 @@ class Room(object):
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
     # TODO: Move floor, wall etc. parameters into script files.
-    def create_square_room(self, map):
+    def create_square_room(self, map, makeWalls = False):
         for x in range(self.x1 + 1, self.x2):
             for y in range(self.y1 + 1, self.y2):
                 map[x][y].change(raw.RockFloor)
+
+        if makeWalls == True:
+            for x in [self.x1, self.x2]:
+                for y in range(self.y1, self.y2 + 1):
+                    map[x][y].change(raw.RockWall)
+            for y in [self.y1, self.y2]:
+                for x in range(self.x1, self.x2 + 1):
+                    map[x][y].change(raw.RockWall)
+
         return map
 
     def create_circular_room(self, map):
@@ -1292,6 +1456,7 @@ class Room(object):
         return map
 
     def create_entrance(self, map):
+        # Not really recommanded for circle rooms.
         # Find possible placement of doors:
         possible = []
         for x in [self.x1, self.x2]:
@@ -1301,21 +1466,23 @@ class Room(object):
             for x in range(self.x1 + 1, self.x2):
                 possible.append((x, y))
 
-        doorMax = libtcod.random_get_int(0, 1, 6)
+        doorMax = libtcod.random_get_int(0, 1, 5)
         doorNo = 0
+        # Let's have same door for one room:
+        which = random.choice([
+        raw.RockFloor,
+        raw.WoodDoor,
+        raw.WoodDoor,
+        raw.WoodDoor,
+        raw.WoodDoor,
+        raw.ClosedPort,
+        raw.ClosedPort,
+        #raw.Curtain,
+        raw.SecretDoor
+        ])
 
         while doorNo < doorMax:
             x, y = random.choice(possible)
-            which = random.choice([
-            raw.RockFloor,
-            raw.RockFloor,
-            raw.WoodDoor,
-            raw.WoodDoor,
-            raw.WoodDoor,
-            raw.ClosedPort,
-            raw.Curtain,
-            raw.SecretDoor
-            ])
 
             map[x][y].change(which)
             doorNo += 1
