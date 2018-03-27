@@ -73,9 +73,12 @@ MenuHeight = 30
 MainWidth = 40
 MainHeight = 12
 
+# Dungeon generation:
 RoomMinSize = 5
 RoomMaxSize = 10
 RoomMaxNumber = 99
+BSPMaxDepth = 10
+BSPMinSize = 4
 DrunkenSteps = 5000
 FloorMaxNumber = 25 # Depths of the dungeon.
 

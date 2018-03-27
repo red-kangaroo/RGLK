@@ -11,11 +11,6 @@ http://www.roguebasin.com/index.php?title=Complete_Roguelike_Tutorial,_using_Pyt
 Rivers:
 http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
 
-Maze:
-http://code.activestate.com/recipes/252127-maze-generator/
-http://pcg.wdfiles.com/local--files/pcg-algorithm%3Amaze/growingtree.py
-http://pcg.wikidot.com/pcg-algorithm:maze
-
 Hallways:
 https://www.reddit.com/r/roguelikedev/comments/552hd5/method_for_randomly_generating_a_map_with_rooms/d870l0v/
 https://imgur.com/a/AnB4T#14
@@ -46,13 +41,11 @@ Sex
 CAN_READ, CAN_OPEN, CAN_TALK, CAN_EQUIP, CAN_FLEE, CAN_ZAP, CAN_THROW, UNIQUE, EXTRA_COWARD,
 NO_CORPSE (body parts also disappear), ALWAYS_CORPSE, DESTROY_WALLS, ROOTED, TAMING_DIFFICULTY,
 SADIST, MASOCHIST, ALLOW_UNDEAD, ALCOHOLIC
-rarity/frequency = None, No
 bloodColor
 nameGiven
 Stand verb?
 block sight?
 a / an
-unarmed / kick / bite Attack
 allowed dungeon types = SEWER, DUNGEON, CATACOMB, MAZE
 
 ITEM

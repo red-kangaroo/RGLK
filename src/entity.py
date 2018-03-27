@@ -466,6 +466,9 @@ class Mob(Entity):
         for i in equipment:
             toDodge += i.getDefenseValue()
 
+        if base == True:
+            return toDodge
+
         # Modify by number of adjacent walls:
         AdjacentWalls = 0
         for y in range(self.y - 1, self.y + 2):
@@ -474,8 +477,7 @@ class Mob(Entity):
                     if x != self.x and y != self.y:
                         if var.Maps[var.DungeonLevel][x][y].BlockMove == True:
                             AdjacentWalls += 1
-        print "%s: adjacent walls: " % self.name + str(AdjacentWalls)
-        # We get a modifier between +2 and -2, based on how many walls are adjacent.
+                # We get a modifier between +2 and -2, based on how many walls are adjacent.
         wallMod = 2 - int(math.floor(AdjacentWalls / 2))
         toDodge += wallMod
 
@@ -487,9 +489,7 @@ class Mob(Entity):
             if attacker.size > self.size:
                 toDodge += abs(self.size - attacker.size)
 
-        if base == True:
-            return toDodge
-        elif toDodge >= 1:
+        if toDodge >= 1:
             return libtcod.random_get_int(0, 0, toDodge)
         else:
             return toDodge
