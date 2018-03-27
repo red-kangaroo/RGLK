@@ -114,7 +114,72 @@ Club = {
 'DamageBonus': 1
 }
 
-Whip = {
+MaceAttack = {
+'verb': 'smash&ES',
+'DiceNumber': 2,
+'DiceValue': 4
+}
+
+Hammer = {
+'verb': 'crush&ES',
+'DiceNumber': 3,
+'DiceValue': 4
+}
+
+SmallSword = {
+'verb': 'slash&ES',
+'DiceNumber': 1,
+'DiceValue': 6,
+'DamageType': 'SLASH'
+}
+
+MediumSword = {
+'verb': 'slash&ES',
+'DiceNumber': 1,
+'DiceValue': 8,
+'DamageType': 'SLASH'
+}
+
+LargeSword = {
+'verb': 'slash&ES',
+'DiceNumber': 2,
+'DiceValue': 5,
+'DamageType': 'SLASH'
+}
+
+HugeSword = {
+'verb': 'slash&ES',
+'DiceNumber': 2,
+'DiceValue': 5,
+'DamageBonus': 2,
+'DamageType': 'SLASH'
+}
+
+SmallShield = {
+'verb': 'bash&ES',
+'DiceNumber': 1,
+'DiceValue': 3
+}
+
+MediumShield = {
+'verb': 'bash&ES',
+'DiceNumber': 2,
+'DiceValue': 3
+}
+
+LargeShield = {
+'verb': 'bash&ES',
+'DiceNumber': 3,
+'DiceValue': 3
+}
+
+HugeShield = {
+'verb': 'bash&ES',
+'DiceNumber': 4,
+'DiceValue': 3
+}
+
+WhipAttack = {
 'verb': 'whip&S',
 'ToHitBonus': 1,
 'DiceNumber': 1,
@@ -163,6 +228,8 @@ DummyItem = {
 'size': -1,
 'attack': NonWeapon,
 'ranged': MisThrown,
+'DV': 0,
+'PV': 0,
 'intrinsics': [],
 'flags': [],
 'frequency': 100
@@ -177,7 +244,18 @@ Cudgel = {
 'size': -1,
 'attack': Club,
 'ranged': ClubThrown,
-'intrinsics': ['MELEE']
+'flags': ['MELEE', 'WEAPON']
+}
+
+ShortSword = {
+'char': ')',
+'color': libtcod.silver,
+'name': 'short sword',
+'material': 'IRON',
+'size': -1,
+'DV': 1,
+'attack': SmallSword,
+'flags': ['MELEE', 'WEAPON']
 }
 
 # Headgear:
@@ -186,8 +264,9 @@ Bandana = {
 'color': libtcod.dark_green,
 'name': 'bandana',
 'material': 'CLOTH',
+'DV': 1,
 'size': -1,
-'flags': ['HEAD'],
+'flags': ['HEAD', 'ARMOR'],
 'frequency': 50
 }
 
@@ -198,7 +277,9 @@ BlackRobe = {
 'name': 'black robe',
 'material': 'CLOTH',
 'size': 0,
-'flags': ['TORSO'],
+'DV': 0,
+'PV': 1,
+'flags': ['TORSO', 'ARMOR'],
 'frequency': 50
 }
 
@@ -208,7 +289,9 @@ BrownRobe = {
 'name': 'brown robe',
 'material': 'CLOTH',
 'size': 0,
-'flags': ['TORSO'],
+'DV': 0,
+'PV': 1,
+'flags': ['TORSO', 'ARMOR'],
 'frequency': 50
 }
 
@@ -218,18 +301,22 @@ WhiteRobe = {
 'name': 'white robe',
 'material': 'CLOTH',
 'size': 0,
-'flags': ['TORSO'],
+'DV': 1,
+'PV': 0,
+'flags': ['TORSO', 'ARMOR'],
 'frequency': 50
 }
 
 # Belts:
 Belt = {
 'char': '-',
-'color': libtcod.darkest_orange,
+'color': libtcod.darker_orange,
 'name': 'leather belt',
 'material': 'LEATHER',
 'size': 0,
-'flags': ['GROIN'],
+'DV': 0,
+'PV': 1,
+'flags': ['GROIN', 'ARMOR'],
 'frequency': 50
 }
 
@@ -239,18 +326,76 @@ GoldPiece = {
 'color': libtcod.yellow,
 'name': 'gold nugget',
 'material': 'GOLD',
-'size': -2
+'size': -2,
+'frequency': 30
 }
 
+Berry = {
+'char': chr(236),
+'color': libtcod.blue,
+'name': 'berry',
+'material': 'PLANT',
+'size': -2,
+'flags': ['FOOD'],
+'frequency': 30
+}
+
+# Furniture, containers and similar:
 Boulder = {
 'char': '0',
 'color': libtcod.dark_grey,
 'name': 'boulder',
 'BlockMove': True,
 'size': 2,
+'DV': -10,
 'attack': BoulderRoll,
-'flags': [], # TODO: Block sight.
+'flags': ['FEATURE'], # TODO: Block sight.
 'frequency': 5
+}
+
+Chest = {
+'char': chr(127),
+'color': libtcod.darker_orange,
+'name': 'chest',
+'material': 'WOOD',
+'size': 1,
+'DV': -10,
+'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED'],
+'frequency': 10
+}
+
+Chair = {
+'char': chr(249),
+'color': libtcod.darker_orange,
+'name': 'chair',
+'material': 'WOOD',
+'size': 0,
+'DV': -10,
+'flags': ['FEATURE'],
+'frequency': 0
+}
+
+Table = {
+'char': chr(250),
+'color': libtcod.darker_orange,
+'name': 'table',
+'BlockMove': True,
+'material': 'WOOD',
+'size': 1,
+'DV': -10,
+'flags': ['FEATURE'],
+'frequency': 0
+}
+
+Bed = {
+'char': chr(251),
+'color': libtcod.darker_orange,
+'name': 'bed',
+'material': 'WOOD',
+'size': 1,
+'DV': -10,
+'flags': ['FEATURE'],
+'frequency': 0
 }
 
 ###############################################################################
@@ -402,7 +547,7 @@ Arm = {
 TentacleArm = {
 'name': 'tentacle',
 'cover': 60,
-'attack': Whip,
+'attack': WhipAttack,
 'flags': ['ARM', 'GRASP']
 }
 
@@ -534,7 +679,7 @@ RockFloor = {
 
 WoodFloor = {
 'char': '.',
-'color': libtcod.dark_orange,
+'color': libtcod.darker_orange,
 'name': 'parquet',
 'BlockMove': False,
 'BlockSight': False,
@@ -753,7 +898,7 @@ ShallowWater = {
 }
 
 DeepWater = {
-'char': '~',
+'char': chr(247),
 'color': libtcod.darker_blue,
 'name': 'deep water',
 'BlockMove': False,
@@ -762,7 +907,7 @@ DeepWater = {
 }
 
 Lava = {
-'char': '~',
+'char': chr(247),
 'color': libtcod.dark_red,
 'name': 'lava',
 'BlockMove': False,
@@ -796,6 +941,15 @@ DownStairs = {
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['FEATURE', 'STAIRS_DOWN']
+}
+
+BookShelf = {
+'char': chr(252),
+'color': libtcod.darker_orange,
+'name': 'bookshelf',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED']
 }
 
 '''
@@ -993,6 +1147,14 @@ Checkers = {
 'height': 7
 }
 
+# A small library.
+Library = {
+'file': 'rooms/library',
+'width': 7,
+'height': 7,
+'X': (BookShelf, None, None, None)
+}
+
 # Pillars in a room.
 Pillars1 = {
 'file': 'rooms/pillars1',
@@ -1021,13 +1183,19 @@ Pillars3 = {
 
 ItemList = [
 Cudgel,
+ShortSword,
 Bandana,
 BlackRobe,
 BrownRobe,
 WhiteRobe,
 Belt,
 GoldPiece,
-Boulder
+Berry,
+Boulder,
+Chest,
+#Chair,
+#Table,
+#Bed
 ]
 
 MobList = [
@@ -1096,6 +1264,7 @@ Guard4,
 Guard5,
 LetterS,
 LetterX,
+Library,
 Pillars1,
 Pillars2,
 Pillars3,

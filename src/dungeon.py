@@ -570,7 +570,7 @@ def buildDrunkenCave(map, DungeonLevel):
 
     map = postProcess(map)
 
-    while var.rand_chance(30):
+    while var.rand_chance(50):
         map = makePrefabRoom(map, DungeonLevel)
 
     map = makeStairs(map, DungeonLevel)

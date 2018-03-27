@@ -130,7 +130,8 @@ def render_UI(Player):
     #                         '$: ' + Player.getGold())
     libtcod.console_print_ex(var.UIPanel, 10, 11, libtcod.BKGND_NONE, libtcod.LEFT,
                              'XP: ' + str(Player.XL) + '/' + str(Player.XP))
-    # DV
+    libtcod.console_print_ex(var.UIPanel, 10, 12, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'DV: ' + str(Player.getDodgeBonus(base = True)))
     # PV
 
     y = 14

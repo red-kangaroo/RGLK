@@ -48,5 +48,3 @@ print command
 ASCII codes
 ===========
 https://en.wikipedia.org/wiki/Code_page_437
-
-chr(127) == ⌂

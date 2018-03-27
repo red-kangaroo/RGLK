@@ -102,6 +102,14 @@ def spawn(x, y, BluePrint, type):
         except:
             ranged = raw.DummyItem['ranged']
         try:
+            DV = BluePrint['DV']
+        except:
+            DV = raw.DummyItem['DV']
+        try:
+            PV = BluePrint['PV']
+        except:
+            PV = raw.DummyItem['PV']
+        try:
             BlockMove = BluePrint['BlockMove']
         except:
             BlockMove = raw.DummyItem['BlockMove']
@@ -115,7 +123,7 @@ def spawn(x, y, BluePrint, type):
             addIntrinsics = []
 
         New = Item(x, y, char, color, name, material, size, BlockMove,
-                   attack, ranged, addFlags)
+                   attack, ranged, DV, PV, addFlags)
     else:
         print "Failed to spawn unknown entity type."
 
@@ -146,6 +154,7 @@ class Entity(object):
         self.attack = raw.Slam
         self.ranged = raw.MisThrown
         self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
+        self.enchantment = 0
 
         self.flags = []
         self.inventory = [] # For both mobs and containers.
@@ -216,6 +225,12 @@ class Entity(object):
 
     def getColor(self):
         return self.color
+
+    def getDefenseValue(self):
+        return 0
+
+    def getProtectionValue(self):
+        return 0
 
     # Heartbeat of all entities.
     def Be(self):
@@ -418,15 +433,14 @@ class Mob(Entity):
     def getAccuracyBonus(self, weapon = None):
         # TODO:
         # Size difference
-        # Scaling
 
-        toHit = self.Dex
+        toHit = self.Dex # TODO: Scaling
 
         if weapon != None:
             try:
-                toHit += weapon.attack['ToHitBonus']
+                toHit += weapon.getAccuracyValue()
             except:
-                pass # No accuracy modifier.
+                pass # Body parts have no accuracy bonus.
 
         if toHit >= 1:
             return libtcod.random_get_int(0, 0, toHit)
@@ -440,12 +454,17 @@ class Mob(Entity):
 
         return self.Str
 
-    def getDodgeBonus(self):
+    def getDodgeBonus(self, attacker = None, weapon = None, base = False):
         # TODO:
         # Bonus after move.
         # Unarmored / Light Armor
 
         toDodge = self.Dex
+
+        # Get equipment bonus:
+        equipment = self.getEquipment(False)
+        for i in equipment:
+            toDodge += i.getDefenseValue()
 
         # Modify by number of adjacent walls:
         AdjacentWalls = 0
@@ -460,7 +479,17 @@ class Mob(Entity):
         wallMod = 2 - int(math.floor(AdjacentWalls / 2))
         toDodge += wallMod
 
-        if toDodge >= 1:
+        # Modify by size difference:
+        if weapon != None:
+            if weapon.size > self.size:
+                toDodge += abs(self.size - weapon.size)
+        elif attacker != None:
+            if attacker.size > self.size:
+                toDodge += abs(self.size - attacker.size)
+
+        if base == True:
+            return toDodge
+        elif toDodge >= 1:
             return libtcod.random_get_int(0, 0, toDodge)
         else:
             return toDodge
@@ -483,11 +512,21 @@ class Mob(Entity):
         else:
             return self.color
 
-    def getEquipment(self):
+    def getEquipment(self, all = True):
         equipment = []
         for part in self.bodyparts:
             for item in part.inventory:
-                equipment.append(item)
+                if all == True:
+                    equipment.append(item)
+                else: # Used to only get relevant equipment.
+                    slot = part.getSlot()
+
+                    if slot != None:
+                        if (slot == 'GRASP' and (item.hasFlag('WEAPON')
+                            or item.hasFlag('SHIELD') or item.hasFlag('FEATURE'))):
+                            equipment.append(item)   # Wielded items only give bonuses
+                        elif item.hasFlag(slot):     # if they are supposed to be wielded.
+                            equipment.append(item)
 
         return equipment
 
@@ -508,10 +547,15 @@ class Mob(Entity):
             # Whole name and title:
             if self.givenName != None:
                 name = self.givenName + ' the ' + name
-            # BUC:
-            if self.hasFlag('ITEM'):
-                name = '+0 ' + name # No enchanting of corpses. For now.
 
+            # Corpses:
+            if self.hasFlag('ITEM'):
+                # Enchantment:
+                if self.enchantment < 0:
+                    name = str(self.enchantment) + ' ' + name
+                else:
+                    name = '+' + str(self.enchantment) + ' ' + name
+                # Beautitude:
                 if self.beautitude > 1:
                     name = "holy " + name
                 elif self.beautitude == 1:
@@ -670,7 +714,7 @@ class Mob(Entity):
                                                             self.name, toDodge)
 
         toHit += attacker.getAccuracyBonus(weapon)
-        toDodge += self.getDodgeBonus()
+        toDodge += self.getDodgeBonus(attacker, weapon)
 
         print "modified hit chance: %s vs %s" % (toHit, toDodge)
 
@@ -1112,6 +1156,7 @@ class Mob(Entity):
             return True
 
         # TODO: More actions.
+        #   actionOpen for containers, both ITEM and FEATURE
 
     def actionInventory(self):
         if len(self.inventory) == 0:
@@ -1138,10 +1183,7 @@ class Mob(Entity):
                 self.AP -= self.getActionAPCost()
                 return True
             else:
-                slot = None
-                for i in self.bodyparts[part].flags:
-                    if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG', 'WING', 'TAIL', 'GRASP']:
-                        slot = i # 'GRASP' must be last!
+                slot = self.bodyparts[part].getSlot()
 
                 options = []
                 if slot == None:
@@ -1368,17 +1410,17 @@ class Mob(Entity):
 
 class Item(Entity):
     def __init__(self, x, y, char, color, name, material, size, BlockMove, #These are base Entity arguments.
-                 attack, ranged, addFlags):
+                 attack, ranged, DV, PV, addFlags):
         super(Item, self).__init__(x, y, char, color, name, material, size, BlockMove)
 
         self.attack = attack
         self.ranged = ranged
+        self.DefenseValue = DV
+        self.ProtectionValue = PV
 
         self.flags.append('ITEM')
         for i in addFlags:
             self.flags.append(i)
-
-        self.enchantment = 0
 
     def getName(self, capitalize = False, full = False):
         name = self.name
@@ -1402,11 +1444,55 @@ class Item(Entity):
                 name = "cursed " + name
             elif self.beautitude < -1:
                 name = "doomed " + name
+            # Stats:
+            try:
+                DiceNumber = self.attack['DiceNumber']
+            except:
+                DiceNumber = raw.DummyAttack['DiceNumber']
+            try:
+                DiceValue = self.attack['DiceValue']
+            except:
+                DiceValue = raw.DummyAttack['DiceValue']
+            try:
+                DamageBonus = self.attack['DamageBonus']
+            except:
+                DamageBonus = raw.DummyAttack['DamageBonus']
+
+            # TODO:
+            #damage = (" (" + str(self.getAccuracyValue()) + ", " + str(DiceNumber) +
+            #          "d" + str(DiceValue) + "+" + str(DamageBonus))
+            #
+            #defense = " [" + str(self.getDefenseValue) + ", " + str(self.getProtectionValue()) + "]"
+            #
+            #name = name + damage + defense
 
         if capitalize == True:
             name = name.capitalize()
 
         return name
+
+    def getAccuracyValue(self):
+        try:
+            toHit = weapon.attack['ToHitBonus']
+        except:
+            toHit = 0
+
+        toHit += self.enchantment
+        return toHit
+
+    def getDefenseValue(self):
+        DV = self.DefenseValue
+
+        if self.hasFlag('ARMOR') or self.hasFlag('SHIELD'):
+            DV += self.enchantment
+        return DV
+
+    def getProtectionValue(self):
+        PV = self.ProtectionValue
+
+        if self.hasFlag('ARMOR') or self.hasFlag('SHIELD'):
+            PV += self.enchantment
+        return PV
 
     def beEaten(self, Eater):
         # return if too full
@@ -1477,17 +1563,21 @@ class BodyPart(Entity):
 
         return name
 
+    def getSlot(self):
+        slot = None
+        for i in self.flags:
+            if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG', 'WING', 'TAIL', 'GRASP']:
+                slot = i # Grasp must be last!
+        return slot
+
     def doEquip(self, item):
         if len(self.inventory) > 0:
             return False
 
-        slot = None
-        for i in self.flags:
-            if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG']:
-                slot = i
+        slot = self.getSlot()
 
         if slot != None:
-            if not (slot in item.flags or slot == 'ARM'):
+            if not (slot in item.flags or slot == 'GRASP'):
                 return False
         else:
             return False
