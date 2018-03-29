@@ -252,7 +252,7 @@ Cudgel = {
 
 ShortSword = {
 'char': ')',
-'color': libtcod.grey,
+'color': libtcod.silver,
 'name': 'short sword',
 'material': 'IRON',
 'size': -1,
@@ -264,7 +264,7 @@ ShortSword = {
 # Shields:
 Buckler = {
 'char': '[',
-'color': libtcod.grey,
+'color': libtcod.silver,
 'name': 'buckler',
 'material': 'IRON',
 'size': -2,
@@ -677,7 +677,7 @@ EarthWall = {
 
 IronWall = {
 'char': '#',
-'color': libtcod.grey,
+'color': libtcod.silver,
 'name': 'iron wall',
 'BlockMove': True,
 'BlockSight': True,
@@ -686,7 +686,7 @@ IronWall = {
 
 IronBars = {
 'char': chr(240), # Ie. ≡
-'color': libtcod.grey,
+'color': libtcod.silver,
 'name': 'iron bars',
 'BlockMove': True,
 'BlockSight': False,

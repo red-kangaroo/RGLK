@@ -29,10 +29,20 @@ def rand_dice(DiceNumber, DiceValue, Bonus):
 
     return result
 
-def rand_gaussian_d20():
-    roll1 = libtcod.random_get_int(0, 1, 20)
-    roll2 = libtcod.random_get_int(0, 1, 20)
-    return (roll1 + roll2) / 2
+def rand_gaussian_d20(rerolls = 0):
+    rollResult = 0
+    rollNo = 0
+
+    while rollNo < rerolls + 1:
+        roll1 = libtcod.random_get_int(0, 1, 20)
+        roll2 = libtcod.random_get_int(0, 1, 20)
+        result = (roll1 + roll2) / 2
+
+        if result > rollResult:
+            rollResult = result
+        rollNo += 1
+
+    return rollResult
 
 
 # FOV:

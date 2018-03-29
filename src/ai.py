@@ -44,10 +44,12 @@ def getAICommand(Mob):
         if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
             if not Mob.hasFlag('AI_FLEE'):
                 Mob.flags.append('AI_FLEE')
+                Mob.tactics = True
                 ui.message("%s flee&S." % Mob.getName(True), actor = Mob)
 
         if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
-              Mob.HP >= (Mob.maxHP / 2)):
+            Mob.HP >= (Mob.maxHP / 2)):
+            Mob.tactics = False
             for i in Mob.flags:                 # I had a bug here that would cause
                 if i == 'AI_FLEE':              # mobs to nevr stop fleeing. This
                     Mob.flags.remove('AI_FLEE') # cannot happen anymore.
@@ -139,6 +141,7 @@ def getAICommand(Mob):
                         return
 
                     # Exterminate! Exterminate! Exterminate!
+                    Mob.tactics = False
                     Mob.actionAttack(dx, dy, Target)
                     return
                 else:

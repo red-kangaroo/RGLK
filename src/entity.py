@@ -435,8 +435,11 @@ class Mob(Entity):
         elif var.rand_chance(5):
             self.AP -= 0.1
 
-    def getAccuracyBonus(self, weapon = None):
+    def getAccuracyBonus(self, weapon = None, base = False):
         toHit = self.Dex # TODO: Scaling
+
+        if self.tactics == False:
+            toHit += 1
 
         if weapon != None:
             try:
@@ -444,10 +447,10 @@ class Mob(Entity):
             except:
                 pass # Body parts have no accuracy bonus.
 
-        if toHit >= 1:
-            return libtcod.random_get_int(0, 0, toHit)
-        else:
+        if toHit < 1 or base == True:
             return toHit
+        else:
+            return libtcod.random_get_int(0, 0, toHit)
 
     def getDamageBonus(self, weapon = None):
         # TODO:
@@ -469,6 +472,9 @@ class Mob(Entity):
         # Unarmored / Light Armor
 
         toDodge = self.Dex
+
+        if self.tactics:
+            toDodge += 1
 
         # Get equipment bonus:
         for part in self.bodyparts:
@@ -533,7 +539,7 @@ class Mob(Entity):
         for part in self.bodyparts:
             if part.hasFlag('GRASP'):
                 for item in part.inventory:
-                    if item.hasFlag('SHIELD') or self.getTactics:
+                    if item.hasFlag('SHIELD') or self.tactics:
                         choices.append(item)
         # We block with shields first.
         # choices = sorted(choices, lambda x: x.hasFlag('SHIELD'), True)
@@ -542,12 +548,21 @@ class Mob(Entity):
 
         for defender in choices:
             forcedBlock = False
-            toBlock = var.rand_gaussian_d20()
+
+            rerolls = 0
+            if self.HP < self.maxHP / 10:
+                rerolls += 1
+            # TODO: rerolls from skills
+
+            toBlock = var.rand_gaussian_d20(rerolls)
 
             if toBlock == 20:
                 forcedBlock = True
 
-            toBlock += self.getAccuracyBonus(defender)
+            if defender.hasFlag('SHIELD'):
+                toBlock += self.getAccuracyBonus(defender, True)
+            else:
+                toBlock += self.getAccuracyBonus(defender)
             print "blocking %s vs %s" % (toBlock, toHit)
 
             if forcedBlock or toBlock > toHit:
@@ -600,6 +615,8 @@ class Mob(Entity):
                     staminaMod /= 2
 
                 self.SP -= blocked * staminaMod
+                # TODO: If this bring us below 0, be off-balanced.
+
                 # Debug:
                 print "blocked %s damage" % blocked
                 cost = blocked * staminaMod
@@ -636,15 +653,6 @@ class Mob(Entity):
                 equipment.append(item)
 
         return equipment
-
-    def getTactics(self):
-        if self.hasFlag('AVATAR'):
-            return self.tactics
-        else:
-            if self.HP > self.maxHP / 2:
-                return False # Aggresive
-            else:
-                return True  # Defensive
 
     def getActionAPCost(self):
         return 1
@@ -913,8 +921,9 @@ class Mob(Entity):
                 print "    " + str(damage) + " damage"
 
                 # Try blocking the attack:
-                if DamageType in ['BLUNT', 'SLASH', 'PIERCE']:
-                    damage = self.tryBlocking(attacker, weapon, toHit, damage, forcedHit)
+                if self.SP > 0:
+                    if DamageType in ['BLUNT', 'SLASH', 'PIERCE']:
+                        damage = self.tryBlocking(attacker, weapon, toHit, damage, forcedHit)
 
                 if damage > 0:
                     self.receiveDamage(damage, multiplier, DamageType, AttackFlags)
