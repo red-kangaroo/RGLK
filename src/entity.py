@@ -1487,7 +1487,7 @@ class Mob(Entity):
                            actor = self)
                 self.AP -= self.getActionAPCost()
 
-        if len(options) > 1:
+        if len(options) > 0:
             return True
         else:
             return False # Closes window after picking up the only item on ground.
