@@ -1439,8 +1439,8 @@ class Mob(Entity):
         return False
 
     def actionPickUp(self, x, y, pickAll = False):
-        if self.AP < 1:
-            return False
+        #if self.AP < 1:
+        #    return False
 
         if len(self.inventory) >= self.carry:
             if self.hasFlag('AVATAR'):
@@ -1466,7 +1466,7 @@ class Mob(Entity):
 
             self.AP -= (self.getActionAPCost() / 2)
             return False
-        elif pickAll == True or len(options) == 1:
+        elif pickAll == True:
             for i in options:
                 self.inventory.append(i)
                 var.Entities[var.DungeonLevel].remove(i)
@@ -1487,7 +1487,7 @@ class Mob(Entity):
                            actor = self)
                 self.AP -= self.getActionAPCost()
 
-        if len(options) > 0:
+        if len(options) > 1:
             return True
         else:
             return False # Closes window after picking up the only item on ground.
