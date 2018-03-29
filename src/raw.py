@@ -3,24 +3,6 @@
 
 import libtcodpy as libtcod
 
-# Sizes:
-# ------
-# -2 - tiny
-# -1 - small
-#  0 - medium
-#  1 - large
-#  2 - huge
-
-# Scaling:
-# ------
-#  S - 200 %
-#  A - 150 %
-#  B - 100 %
-#  C -  75 %
-#  D -  50 %
-#  E -  25 %
-#  F -   0 %
-
 ###############################################################################
 #  Attack Types
 ###############################################################################
@@ -231,6 +213,8 @@ DummyItem = {
 'size': -1,
 'attack': NonWeapon,
 'ranged': MisThrown,
+'StrScaling': 'D',
+'DexScaling': 'D',
 'DV': 0,
 'PV': 0,
 'intrinsics': [],
@@ -430,6 +414,7 @@ DummyMonster = {
 'speed': 1.0,
 'sight': 6,
 'material': 'FLESH',
+'sex': 'NEUTER',
 'size': 0,
 'diet': ['FLESH', 'WATER'],
 'intrinsics': [],
@@ -448,6 +433,7 @@ Player = {
 'Ego': 0,
 'speed': 1.0,
 'sight': 6,
+'sex': 'MOF',
 'intrinsics': [],
 'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
@@ -455,7 +441,7 @@ Player = {
 
 Kobold = {
 'char': 'k',
-'color': libtcod.light_red,
+'color': libtcod.red,
 'name': 'kobold',
 'Str': 0,
 'Dex': 3,
@@ -465,7 +451,26 @@ Kobold = {
 'speed': 1.1,
 'sight': 8,
 'size': -1,
-'flags': ['HUMANOID', 'AI_SCAVENGER', 'MUTATION_CLAWS']
+'sex': 'MOF',
+'flags': ['HUMANOID', 'AI_SCAVENGER', 'MUTATION_CLAWS'],
+'frequency': 70
+}
+
+KoboldWhelp = {
+'char': 'k',
+'color': libtcod.light_red,
+'name': 'kobold whelp',
+'Str': 0,
+'Dex': 2,
+'End': -5,
+'Wit': 1,
+'Ego': 0,
+'speed': 1.1,
+'sight': 8,
+'size': -2,
+'sex': 'MOF',
+'flags': ['HUMANOID', 'AI_KITE'],
+'frequency': 50
 }
 
 Orc = {
@@ -477,6 +482,7 @@ Orc = {
 'End': 0,
 'Wit': 0,
 'Ego': 0,
+'sex': 'MOF',
 'flags': ['HUMANOID']
 }
 
@@ -490,9 +496,10 @@ Troll = {
 'Wit': -1,
 'Ego': 0,
 'size': 1,
-'intrinsics': [],
+'sex': 'MOF',
+'intrinsics': [], # TODO: Regeneration, revival.
 'flags': ['HUMANOID', 'USE_HEAD', 'MUTATION_LARGE_CLAWS'],
-'frequency': 10
+'frequency': 20
 }
 
 ###############################################################################
@@ -524,8 +531,14 @@ Torso = {
 
 SlimeTorso = {
 'name': 'blob',
-'eyes': 3,
+'eyes': 1,
 'flags': ['TORSO', 'VITAL', 'GRASP']
+}
+
+AlienTorso = {
+'name': 'torso',
+'eyes': 3,
+'flags': ['TORSO', 'VITAL']
 }
 
 AnimalTorso = {
@@ -579,6 +592,15 @@ Leg = {
 'cover': 70,
 'place': -2,
 'attack': Kick,
+'flags': ['LEG']
+}
+
+PegLeg = {
+'name': 'peg leg',
+'cover': 70,
+'place': -2,
+'attack': Club,
+'material': 'WOOD',
 'flags': ['LEG']
 }
 
@@ -1207,6 +1229,24 @@ Pillars3 = {
 
 # Lists must be last to have all stuff already defined.
 
+Sizes = {
+'huge': 2,
+'large': 1,
+'medium': 0,
+'small': -1,
+'tiny': -2
+}
+
+Scaling = {
+'S': 2.0,
+'A': 1.5,
+'B': 1.0,
+'C': 0.75,
+'D': 0.5,
+'E': 0.25,
+'F': 0.0
+}
+
 ItemList = [
 Cudgel,
 ShortSword,
@@ -1227,6 +1267,7 @@ Chest,
 
 MobList = [
 Kobold,
+KoboldWhelp,
 Orc,
 Troll
 ]
@@ -1240,6 +1281,16 @@ Arm,
 Groin,
 Leg,
 Leg
+]
+
+AlienList = [
+TentacleArm,
+TentacleArm,
+TentacleArm,
+AlienTorso,
+TentacleLeg,
+TentacleLeg,
+TentacleLeg
 ]
 
 AnimalList = [
@@ -1268,6 +1319,7 @@ SlimeTorso
 
 BodyTypes = {
 'HUMANOID': HumanoidList,
+'ALIEN': AlienList,
 'ANIMAL': AnimalList,
 'BIRD': BirdList,
 'SLIME': SlimeList

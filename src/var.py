@@ -94,12 +94,12 @@ FloorMaxNumber = 25 # Depths of the dungeon.
 
 # TODO: Should depend on dungeon level.
 MonsterMaxNumber = 10
-ItemMaxNumber = 5
+ItemMaxNumber = 10
 
 TurnCount = 0
 DungeonLevel = 1 # Starting level of the player.
 
-WizModeActivated = False
+WizModeActivated = True # For now.
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False

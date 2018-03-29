@@ -128,7 +128,8 @@ def save():
     file["message"] = var.MessageHistory
     file["turn"] = var.TurnCount
     file["level"] = var.DungeonLevel
-    file["player"] = var.Entities[var.DungeonLevel].index(Player) # Index of player in Entities list, to prevent doubling on load.
+    file["player"] = var.Entities[var.DungeonLevel].index(Player)
+        # Index of player in Entities list, to prevent doubling on load.
     file.close()
 
 def load():

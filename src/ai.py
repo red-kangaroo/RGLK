@@ -31,77 +31,26 @@ def getAICommand(Mob):
             return
 
         if var.rand_chance(1):
-            # This prevents hang-ups when I screw up some AI loop. ;)
-            Mob.target = None
-            Mob.goal = None
-            Mob.actionWait()
+            aiDoNothing(Mob)
             return
 
         if (len(Mob.inventory) > Mob.carry):
             Mob.actionDrop()
             return
 
-        if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
-            if not Mob.hasFlag('AI_FLEE'):
-                Mob.flags.append('AI_FLEE')
-                Mob.tactics = True
-                ui.message("%s flee&S." % Mob.getName(True), actor = Mob)
+        aiCheckFlee(Mob)
 
-        if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
-            Mob.HP >= (Mob.maxHP / 2)):
-            Mob.tactics = False
-            for i in Mob.flags:                 # I had a bug here that would cause
-                if i == 'AI_FLEE':              # mobs to nevr stop fleeing. This
-                    Mob.flags.remove('AI_FLEE') # cannot happen anymore.
-                    ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
-
-        Target = None
-
-        if Mob.target != None:
-            #for i in var.Entities[var.DungeonLevel]:
-            #    if i.target == Mob.target:
-            #        Mob.target = None
-            #        break
-
-            if (not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y) and
-                var.rand_chance(15)):
-                Mob.target == None
-                return
-
-            # This prevents looking for target that was picked up or something:
-            for i in var.Entities[var.DungeonLevel]:
-                if i == Mob.target:
-                    Target = Mob.target
-                    break
-
-            if Target == None:
-                Mob.target = None
-
-        if Target == None:
-            # Check for enemies:
-            for i in var.Entities[var.DungeonLevel]:
-                if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-                    if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
-                        Target = i
-                        Mob.goal = [i.x, i.y]
-                        Mob.target = Target
-                        break
-                elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-                    if Mob.hasFlag('AI_SCAVENGER') and not (len(Mob.inventory) >= Mob.carry):
-                        Target = i
-                        Mob.goal = [i.x, i.y]
-                        Mob.target = Target
-                        break
+        Target = aiFindTarget(Mob)
 
         if Target != None:
             if Mob.hasFlag('AI_FLEE'):
-                if aiFlee(Mob, Target) == True:
+                if aiDoFlee(Mob, Target) == True:
                     return
 
             # TODO: ranged attacks
 
-            if Mob.range(Target) > 1:
-                if Mob.hasFlag('AI_KITE'):
+            if Mob.range(Target) >= 2:
+                if Mob.hasFlag('AI_KITE') and Target.hasFlag('MOB'):
                     if aiKite(Mob, Target) == True:
                         return
 
@@ -114,31 +63,11 @@ def getAICommand(Mob):
                         if aiKite(Mob, Target) == True:
                             return
 
+                    if aiSidestep(Mob, Target) == True:
+                        return
+
                     dx = Target.x - Mob.x
                     dy = Target.y - Mob.y
-
-                    # We want to sometimes sidestep player to allow others to join us.
-                    friends = False
-
-                    for i in var.Entities[var.DungeonLevel]:
-                        if i.hasFlag('MOB'):
-                            if (i != Mob and i != Target and i.range(Mob) < 2 and
-                                i.getRelation(Target) < 1):
-                                friends = True
-                                break
-
-                    if friends == True and var.rand_chance(20):
-                        for y in range(Mob.y - 1, Mob.y + 2):
-                            for x in range(Mob.x - 1, Mob.x + 2):
-                                if (x in range(0, var.MapWidth - 1) and
-                                    y in range(0, var.MapHeight - 1)):
-                                    if var.Maps[var.DungeonLevel][x][y].BlockMove == False:
-                                        if Target.distance(x, y) < 2:
-                                            dx = x - Mob.x
-                                            dy = y - Mob.y
-                                            break
-                        Mob.actionBump(dx, dy)
-                        return
 
                     # Exterminate! Exterminate! Exterminate!
                     Mob.tactics = False
@@ -157,23 +86,18 @@ def getAICommand(Mob):
                         if i.target == Target:
                             i.target = None
 
-                    Target = None
                     return
+                elif Target.BlockMove:
+                    Mob.target = None
+                    Target = None
                 else:
                     if aiMoveBase(Mob, Target.x, Target.y) == False:
                         Mob.actionWait()
                     return
 
-            # We can't seem to be able to do anything, so find other target.
-            aiWander(Mob)
-            Mob.actionWait()
-            return
-
         if Mob.goal != None:
             if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]) == True:
                 return
-            elif var.rand_chance(2):
-                aiWander(Mob)
             else:
                 Mob.actionWait()
                 return
@@ -186,10 +110,11 @@ def getAICommand(Mob):
 
                         if Mob.actionInteract(where) == True:
                             return
-            else:
-                aiWander(Mob)
-                Mob.actionWait()
-                return
+
+        # We can't seem to be able to do anything, so find other target.
+        aiWander(Mob)
+        Mob.actionWait()
+        return
 
     # Even some items and features will be able to take turns, but not now.
     Mob.AP -= 1
@@ -612,7 +537,7 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
                 names = None
             elif len(stuff) == 1:
                 names = stuff[0]
-            elif len(stuff) < 3:
+            elif len(stuff) <= 3:
                 names = ', '.join(stuff)
             else:
                 names = 'many items'
@@ -631,12 +556,19 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
 
             if names != None:
                 if libtcod.map_is_in_fov(var.FOVMap, x, y):
-                    describeItems = "You see here %s." % names
+                    describeItems = "You see here %s. " % names
                 else:
-                    describeItems = "You remember here %s." % names
+                    describeItems = "You remember here %s. " % names
+
+            # Wizard mode:
+            if var.WizModeActivated:
+                dist = str(Player.distance(x, y))
+                describeWizard = "Distance: %s" % dist
+            else:
+                describeWizard = ""
 
             if square != None or mob != None or names != None:
-                ui.message(describeTile + describeMob + describeItems)
+                ui.message(describeTile + describeMob + describeItems + describeWizard)
 
             # And draw it:
             ui.render_all(Player)
@@ -664,7 +596,28 @@ def waitForMore(Player):
 ###############################################################################
 #  Monster Actions
 ###############################################################################
-def aiFlee(Me, Target):
+def aiDoNothing(Me):
+    # This prevents hang-ups when I screw up some AI loop. ;)
+    Me.target = None
+    Me.goal = None
+    Me.actionWait()
+
+def aiCheckFlee(Mob):
+    if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
+        if not Mob.hasFlag('AI_FLEE'):
+            Mob.flags.append('AI_FLEE') # Start fleeing behaviour.
+            Mob.tactics = True          # Switch to defensive.
+            ui.message("%s flee&S." % Mob.getName(True), actor = Mob)
+
+    if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
+        Mob.HP >= (Mob.maxHP / 2)):
+        Mob.tactics = False             # Switch to aggresive.
+        for i in Mob.flags:                 # I had a bug here that would cause
+            if i == 'AI_FLEE':              # mobs to nevr stop fleeing. This
+                Mob.flags.remove('AI_FLEE') # cannot happen anymore.
+                ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
+
+def aiDoFlee(Me, Target):
     if not Me.hasFlag('AI_FLEE'):
         return False
     elif Target == None or not libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y):
@@ -678,7 +631,7 @@ def aiFlee(Me, Target):
         fails = 0
         Other = None
 
-        while fails < 100:
+        while fails < 10:
             Other = random.choice(var.Entities[var.DungeonLevel])
 
             if Other.hasFlag('MOB'):
@@ -693,6 +646,45 @@ def aiFlee(Me, Target):
         ui.message("%s scream&S like a girl." % Me.getName(True), actor = Me)
         Me.actionWait()
         return False
+
+def aiFindTarget(Mob):
+    Target = None
+
+    # Check monster's remembered target:
+    if Mob.target != None:
+        # This prevents looking for target that was picked up or something:
+        for i in var.Entities[var.DungeonLevel]:
+            if i == Mob.target:
+                Target = Mob.target
+                break
+
+        if Target == None:
+            Mob.target = None
+
+        # Monsters may forget about targets they don't see.
+        if (not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y) and
+            var.rand_chance(5)):
+            Mob.target = None
+            Target = None
+
+    # Check for enemies:
+    for i in var.Entities[var.DungeonLevel]:
+        if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
+            if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
+                if Target == None or Mob.range(i) < 4:
+                    Target = i
+                    Mob.goal = [i.x, i.y]
+                    Mob.target = Target
+                    break
+        elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
+            if Mob.hasFlag('AI_SCAVENGER') and not (len(Mob.inventory) >= Mob.carry):
+                if not i.BlockMove: # We cannot pick up boulders...
+                    Target = i
+                    Mob.goal = [i.x, i.y]
+                    Mob.target = Target
+                    break
+
+    return Target
 
 def aiKite(Me, Target):
     if Me.range(Target) >= Me.FOVRadius:
@@ -717,6 +709,12 @@ def aiKite(Me, Target):
     return False
 
 def aiMove(Me, Target):
+    if Me.hasFlag('AI_DIJKSTRA'):
+        return aiMoveDijkstra(Me, Target)
+    else:
+        return aiMoveAStar(Me, Target)
+
+def aiMoveAStar(Me, Target):
     # Create a map that has the dimensions of the map.
     MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
 
@@ -724,29 +722,12 @@ def aiMove(Me, Target):
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             libtcod.map_set_properties(MoveMap, x, y, not var.Maps[var.DungeonLevel][x][y].BlockSight,
-                                       (not var.Maps[var.DungeonLevel][x][y].BlockMove or
+                                       (not Me.isBlocked(x, y, var.DungeonLevel) or
                                        var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
-    for i in var.Entities[var.DungeonLevel]:
-        if i.BlockMove and i != Me and i != Target:
-            libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
+    #for i in var.Entities[var.DungeonLevel]:
+    #    if i.BlockMove == True and i != Me and i != Target:
+    #        libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
 
-    if Me.hasFlag('AI_DIJKSTRA'):
-        if aiMoveDijkstra(Me, Target, MoveMap) == True:
-            return True
-    #if Me.Wit > -3:
-    else:
-        aiMoveAStar(Me, Target, MoveMap)
-        return True
-
-    #if Me.hasFlag('AI_FLEE'):
-    #    flee = True
-    #else:
-    #    flee = False
-    #
-    #aiMoveBase(Me, Target.x, Target.y, flee)
-
-def aiMoveAStar(Me, Target, MoveMap):
-    print "moving A*"
     path = libtcod.path_new_using_map(MoveMap, 1.41)
     libtcod.path_compute(path, Me.x, Me.y, Target.x, Target.y)
 
@@ -755,19 +736,21 @@ def aiMoveAStar(Me, Target, MoveMap):
     # if the player is in a corridor).
     moved = False
     if (not libtcod.path_is_empty(path) and libtcod.path_size(path) < 25 and
-        libtcod.path_size(path) > 1):
+        libtcod.path_size(path) >= 1):
         x, y = libtcod.path_walk(path, True)
 
         if x or y:
             dx = x - Me.x
             dy = y - Me.y
 
-            if Me.actionBump(dx, dy) == True:
-                moved = True
+            if dx != 0 or dy != 0:
+                if Me.actionBump(dx, dy) == True:
+                    moved = True
 
-    elif aiMoveBase(Me, Target.x, Target.y) == True:
-        #print "failed A*, moving base"
-        moved = True
+    if moved == False:
+        if aiMoveBase(Me, Target.x, Target.y) == True:
+            #print "failed A*, moving base"
+            moved = True
 
     libtcod.path_delete(path)
     return moved
@@ -799,7 +782,20 @@ def aiMoveBase(Me, x, y, flee = False):
         else:
             return True
 
-def aiMoveDijkstra(Me, Target, MoveMap):
+def aiMoveDijkstra(Me, Target):
+    # Create a map that has the dimensions of the map.
+    MoveMap = libtcod.map_new(var.MapWidth, var.MapHeight)
+
+    # Set non-walkable spaces:
+    for y in range(var.MapHeight):
+        for x in range(var.MapWidth):
+            libtcod.map_set_properties(MoveMap, x, y, not var.Maps[var.DungeonLevel][x][y].BlockSight,
+                                       (not var.Maps[var.DungeonLevel][x][y].BlockMove or
+                                       var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
+    for i in var.Entities[var.DungeonLevel]:
+        if i.BlockMove and i != Me and i != Target:
+            libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
+
     path = libtcod.dijkstra_new(MoveMap, 1.41)
     libtcod.dijkstra_compute(path, Me.x, Me.y)
     libtcod.dijkstra_path_set(path, Target.x, Target.y)
@@ -822,6 +818,37 @@ def aiMoveDijkstra(Me, Target, MoveMap):
 
     libtcod.dijkstra_delete(path)
     return moved
+
+def aiSidestep(Me, Target):
+    # We want to sometimes sidestep player to allow others to join us.
+    friends = False
+
+    for i in var.Entities[var.DungeonLevel]:
+        if i.hasFlag('MOB'):
+            if (i != Me and i != Target and i.range(Me) < 2 and
+                i.getRelation(Target) < 1):
+                friends = True
+                break
+
+    if friends == True and var.rand_chance(20):
+        dx = 0
+        dy = 0
+
+        for y in range(Me.y - 1, Me.y + 2):
+            for x in range(Me.x - 1, Me.x + 2):
+                if (x in range(0, var.MapWidth - 1) and
+                    y in range(0, var.MapHeight - 1)):
+                    if Me.isBlocked(x, y, var.DungeonLevel) == False:
+                        if Target.distance(x, y) < 2:
+                            dx = x - Me.x
+                            dy = y - Me.y
+                            break
+
+        if dx != 0 or dy != 0:
+            if Me.actionBump(dx, dy) == True:
+                return True
+
+    return False
 
 def aiSpite(Me, Enemy):
     pass

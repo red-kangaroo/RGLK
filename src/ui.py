@@ -96,6 +96,17 @@ def render_UI(Player):
     # Player's name:
     libtcod.console_print_ex(var.UIPanel, 1, 1, libtcod.BKGND_NONE, libtcod.LEFT,
                              Player.getName(True, True))
+    if Player.sex == 'MALE':
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.blue)
+        libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 chr(11))
+    elif Player.sex == 'FEMALE':
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.pink)
+        libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 chr(12))
+                                 
+    # Restore the text color. :D
+    libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
 
     # Health bar:
     render_bar(1, 3, 18, 'Health ', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
@@ -108,6 +119,7 @@ def render_UI(Player):
                libtcod.dark_green, libtcod.darker_green)
 
     # Attributes:
+    libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
     libtcod.console_print_ex(var.UIPanel, 1, 7, libtcod.BKGND_NONE, libtcod.LEFT,
                              'Str: ' + str(Player.Str))
     libtcod.console_print_ex(var.UIPanel, 1, 8, libtcod.BKGND_NONE, libtcod.LEFT,
@@ -438,17 +450,50 @@ def message(text, color = var.TextColor, actor = None):
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&SUBJ', 'you')
     else:
-        text = text.replace('&SUBJ', 'he') # TODO
+        if actor.sex == 'MALE':
+            text = text.replace('&SUBJ', 'he')
+        elif actor.sex == 'FEMALE':
+            text = text.replace('&SUBJ', 'she')
+        elif actor.sex == 'UNDEFINED':
+            text = text.replace('&SUBJ', 'xe')
+        else:
+            text = text.replace('&SUBJ', 'it')
 
     if actor == None or actor.hasFlag('AVATAR'):
-        text = text.replace('&OBJ', 'your')
+        text = text.replace('&OBJ', 'you')
     else:
-        text = text.replace('&OBJ', 'him') # TODO
+        if actor.sex == 'MALE':
+            text = text.replace('&OBJ', 'him')
+        elif actor.sex == 'FEMALE':
+            text = text.replace('&OBJ', 'her')
+        elif actor.sex == 'UNDEFINED':
+            text = text.replace('&OBJ', 'xem')
+        else:
+            text = text.replace('&OBJ', 'it')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&POSS', 'your')
     else:
-        text = text.replace('&POSS', 'his') # TODO
+        if actor.sex == 'MALE':
+            text = text.replace('&POSS', 'his')
+        elif actor.sex == 'FEMALE':
+            text = text.replace('&POSS', 'her')
+        elif actor.sex == 'UNDEFINED':
+            text = text.replace('&POSS', 'xyr')
+        else:
+            text = text.replace('&POSS', 'its')
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&SELF', 'yourself')
+    else:
+        if actor.sex == 'MALE':
+            text = text.replace('&SELF', 'himself')
+        elif actor.sex == 'FEMALE':
+            text = text.replace('&SELF', 'herself')
+        elif actor.sex == 'UNDEFINED':
+            text = text.replace('&SELF', 'xemself')
+        else:
+            text = text.replace('&SELF', 'itself')
 
     textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
     turn = var.TurnCount

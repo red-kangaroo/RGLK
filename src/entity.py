@@ -64,6 +64,10 @@ def spawn(x, y, BluePrint, type):
         except:
             sight = raw.DummyMonster['sight']
         try:
+            sex = BluePrint['sex']
+        except:
+            sex = raw.DummyMonster['sex']
+        try:
             diet = BluePrint['diet']
         except:
             diet = raw.DummyMonster['diet']
@@ -77,7 +81,7 @@ def spawn(x, y, BluePrint, type):
             addIntrinsics = []
 
         New = Mob(x, y, char, color, name, material, size,
-                     Str, Dex, End, Wit, Ego, speed, sight, addFlags)
+                     Str, Dex, End, Wit, Ego, sex, speed, sight, addFlags)
 
         New.diet = diet
     elif type == 'ITEM':
@@ -250,7 +254,7 @@ class Entity(object):
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, material, size, #These are base Entity arguments.
-                 Str, Dex, End, Wit, Ego, speed = 1.0, FOVRadius = 6, addFlags = []):
+                 Str, Dex, End, Wit, Ego, sex, speed = 1.0, FOVRadius = 6, addFlags = []):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
         super(Mob, self).__init__(x, y, char, color, name, material, BlockMove)
@@ -262,6 +266,15 @@ class Mob(Entity):
         self.Wit = Wit
         self.Ego = Ego
         self.speed = speed
+
+        # Sex:
+        if sex == 'MOF':
+            if var.rand_chance(50):
+                self.sex = 'MALE'
+            else:
+                self.sex = 'FEMALE'
+        else:
+            self.sex = sex
 
         # FOV:
         self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
@@ -281,7 +294,7 @@ class Mob(Entity):
         self.XP = 0
 
         # General:
-        self.carry = self.recalculateCarryingCapacity()
+        self.carry = self.recalculateCarryingCapacity() # Burdened if len(inventory) == self.carry.
         self.givenName = None
         self.tactics = True # True is defensive, False aggresive.
 
@@ -335,8 +348,12 @@ class Mob(Entity):
                 addFlags = part['flags']
             except:
                 addFlags = raw.DummyPart['flags']
+            try:
+                material = part['material']
+            except:
+                material = None
 
-            New = BodyPart(name, self, cover, place, eyes, attack, addFlags)
+            New = BodyPart(name, self, cover, place, eyes, attack, addFlags, material)
 
             self.bodyparts.append(New)
 
@@ -405,13 +422,13 @@ class Mob(Entity):
         return max(0, 10 + (2 * self.Str))
 
     def recalculateHealth(self):
-        return (20 * (1.2 ** self.End)) + self.bonusHP
+        return max(1, ((20 * (1.2 ** self.End)) + self.bonusHP))
 
     def recalculateMana(self):
-        return (20 * (1.2 ** self.Ego)) + self.bonusMP
+        return max(0, ((20 * (1.2 ** self.Ego)) + self.bonusMP))
 
     def recalculateStamina(self):
-        return (20 * (1.2 ** self.Str))
+        return max(1, (20 * (1.2 ** self.Str)))
 
     def regainHealth(self):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
@@ -447,10 +464,12 @@ class Mob(Entity):
             except:
                 pass # Body parts have no accuracy bonus.
 
-        if toHit < 1 or base == True:
+        mod = random.random() # Between 0.0 and 1.0, so can be used as a % modifier.
+
+        if base == True:
             return toHit
         else:
-            return libtcod.random_get_int(0, 0, toHit)
+            return (toHit * mod)
 
     def getDamageBonus(self, weapon = None):
         # TODO:
@@ -461,10 +480,9 @@ class Mob(Entity):
         if weapon != None:
             bonus += weapon.enchantment
 
-        if bonus >= 1:
-            return libtcod.random_get_int(0, 0, bonus)
-        else:
-            return bonus
+        mod = random.random() # Between 0.0 and 1.0, so can be used as a % modifier.
+
+        return (bonus * mod)
 
     def getDodgeBonus(self, attacker = None, weapon = None, base = False):
         # TODO:
@@ -515,10 +533,9 @@ class Mob(Entity):
             if attacker.size > self.size:
                 toDodge += abs(self.size - attacker.size)
 
-        if toDodge >= 1:
-            return libtcod.random_get_int(0, 0, toDodge)
-        else:
-            return toDodge
+        mod = random.random() # Between 0.0 and 1.0, so can be used as a % modifier.
+
+        return (toDodge * mod)
 
     def getLimbToHit(self, attacker):
         # TODO: Size difference
@@ -614,7 +631,7 @@ class Mob(Entity):
                 if defender.hasFlag('SHIELD'):
                     staminaMod /= 2
 
-                self.SP -= blocked * staminaMod
+                self.SP -= max(1, (blocked * staminaMod))
                 # TODO: If this bring us below 0, be off-balanced.
 
                 # Debug:
@@ -624,6 +641,7 @@ class Mob(Entity):
 
                 return damage
             else:
+                self.SP -= 1 # Trying to block is tirying anyway.
                 print "Failed to block."
 
         return damage
@@ -721,7 +739,7 @@ class Mob(Entity):
             eyeNo += part.eyes
 
         if boolean:
-            if eyeNo >= self.baseEyes:
+            if eyeNo >= self.baseEyes and eyeNo > 0:
                 return True
             else:
                 return False
@@ -736,7 +754,7 @@ class Mob(Entity):
                 armNo += 1
 
         if boolean:
-            if armNo >= self.baseArms:
+            if armNo >= self.baseArms and armNo > 0:
                 return True
             else:
                 return False
@@ -751,7 +769,7 @@ class Mob(Entity):
                 legNo += 1
 
         if boolean:
-            if legNo >= self.baseLegs:
+            if legNo >= self.baseLegs and legNo > 0:
                 return True
             else:
                 return False
@@ -933,6 +951,7 @@ class Mob(Entity):
             ui.message("%s completely miss&ES %s." % (attacker.getName(True), self.getName()), actor = attacker)
             # TODO: if toHit + bonus < 0, fumble
 
+        # TODO: Different SP costs, but min 1 SP.
         attacker.SP -= 2
 
     def receiveDamage(self, damage, multiplier = 1, type = None, flags = []):
@@ -1019,6 +1038,7 @@ class Mob(Entity):
             elif i.hasFlag('LEG'):
                 legNo += 1
 
+        # TODO: This does not work well!
         attacks = []
         weapons = False
         for i in self.bodyparts:
@@ -1048,12 +1068,13 @@ class Mob(Entity):
         # Get multiplier:
         multiplier = 1.0
 
-        # TODO: body parts
-
         if len(attacks) == 0:
             victim.receiveAttack(self, None, multiplier)
         else:
             for i in attacks:
+                if victim.hasFlag('DEAD'):
+                    break
+
                 victim.receiveAttack(self, i, multiplier)
 
         self.AP -= self.getAttackAPCost()
@@ -1508,7 +1529,7 @@ class Mob(Entity):
         if self.AP < 1:
             return False
         if self == Other:
-            ui.message("%s attempt&S to swap with &OBJself and fail&S." % self.getName(True), actor = self)
+            ui.message("%s attempt&S to swap with &SELF and fail&S." % self.getName(True), actor = self)
             return False
 
         x1 = self.x
@@ -1550,6 +1571,25 @@ class Mob(Entity):
         else:
             if self.hasFlag('AVATAR'):
                 ui.message("You cannot go there.")
+
+        if moved and self.hasFlag('AVATAR'):
+            stuff = []
+
+            for i in var.Entities[var.DungeonLevel]:
+                if i.hasFlag('ITEM') and i.x == self.x and i.y == self.y:
+                    stuff.append(i.getName())
+
+            if len(stuff) < 1:
+                names = None
+            elif len(stuff) == 1:
+                names = "There is a " + stuff[0] + "."
+            elif len(stuff) <= 3:
+                names = "There are " + ', '.join(stuff) + "."
+            else:
+                names = "There are many items."
+
+            if names != None:
+                ui.message(names)
 
         # Take a turn even if we walk into a wall.
         self.AP -= self.getMoveAPCost()
@@ -1660,12 +1700,15 @@ class Item(Entity):
 
 class BodyPart(Entity):
     def __init__(self, name, #These are base Entity arguments.
-                 mob, cover, place, eyes, attack, addFlags):
+                 mob, cover, place, eyes, attack, addFlags, material = None):
         x = mob.x
         y = mob.y
         char = '~'
         color = libtcod.red
-        material = mob.material
+
+        if material = None:
+            material = mob.material
+
         # TODO: Different body parts are differently smaller then mob, plus cannot
         #       equip items smaller than the body part.
         size = min(2, max(-2, mob.size))

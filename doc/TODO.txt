@@ -7,6 +7,7 @@ Fixes
 
 BSPDungeon:
 http://www.roguebasin.com/index.php?title=Complete_Roguelike_Tutorial,_using_Python%2Blibtcod,_extras#BSP_Dungeon_Generator
+http://arcade.academy/examples/procedural_caves_bsp.html
 
 Rivers:
 http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
@@ -32,12 +33,6 @@ https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/cra
 
 MOB
 ===
-Sex
-  MALE, he, him, his
-  FEMALE, she, her, her
-  MOF
-  NEUTER, it, it, its
-  UNDEFINED, xe, xem, xyr
 CAN_READ, CAN_OPEN, CAN_TALK, CAN_EQUIP, CAN_FLEE, CAN_ZAP, CAN_THROW, UNIQUE, EXTRA_COWARD,
 NO_CORPSE (body parts also disappear), ALWAYS_CORPSE, DESTROY_WALLS, ROOTED, TAMING_DIFFICULTY,
 SADIST, MASOCHIST, ALLOW_UNDEAD, ALCOHOLIC
