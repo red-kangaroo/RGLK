@@ -406,6 +406,11 @@ def handleKeys(Player):
                 ui.message("You decide not to swap with anyone.")
             return
 
+        # Tactics
+        if Key.vk == libtcod.KEY_TAB:
+            Player.tactics = not Player.tactics
+            return
+
         # MOVEMENT:
         dx = 0
         dy = 0

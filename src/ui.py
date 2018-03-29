@@ -95,7 +95,7 @@ def render_UI(Player):
 
     # Player's name:
     libtcod.console_print_ex(var.UIPanel, 1, 1, libtcod.BKGND_NONE, libtcod.LEFT,
-                             Player.getName(True))
+                             Player.getName(True, True))
 
     # Health bar:
     render_bar(1, 3, 18, 'Health ', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
@@ -145,6 +145,17 @@ def render_UI(Player):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.red)
         libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Dying')
+        y += 1
+
+    if Player.tactics == True:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.light_blue)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Defensive')
+        y += 1
+    else:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.light_red)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Aggresive')
         y += 1
 
     if Player.speed > 1.5:

@@ -157,18 +157,21 @@ HugeSword = {
 
 SmallShield = {
 'verb': 'bash&ES',
+'ToHitBonus': 1,
 'DiceNumber': 1,
 'DiceValue': 3
 }
 
 MediumShield = {
 'verb': 'bash&ES',
+'ToHitBonus': 2,
 'DiceNumber': 2,
 'DiceValue': 3
 }
 
 LargeShield = {
 'verb': 'bash&ES',
+'ToHitBonus': 1,
 'DiceNumber': 3,
 'DiceValue': 3
 }
@@ -249,13 +252,26 @@ Cudgel = {
 
 ShortSword = {
 'char': ')',
-'color': libtcod.silver,
+'color': libtcod.grey,
 'name': 'short sword',
 'material': 'IRON',
 'size': -1,
 'DV': 1,
 'attack': SmallSword,
 'flags': ['MELEE', 'WEAPON']
+}
+
+# Shields:
+Buckler = {
+'char': '[',
+'color': libtcod.grey,
+'name': 'buckler',
+'material': 'IRON',
+'size': -2,
+'attack': SmallShield,
+'DV': 1,
+'flags': ['SHIELD', '2H_OK'],
+'frequency': 30
 }
 
 # Headgear:
@@ -486,6 +502,7 @@ Troll = {
 DummyPart = {
 'name': 'BUG: dummy body part',
 'cover': 100, # Chance of being hit there is based on cover.
+'place': 0,   # How high (positive) or low (negative) on the body the part is.
 'eyes': 0,
 'attack': Slam,
 'flags': []
@@ -494,6 +511,7 @@ DummyPart = {
 Head = {
 'name': 'head',
 'cover': 30,
+'place': 2,
 'eyes': 2,
 'attack': Bite,
 'flags': ['HEAD', 'VITAL']
@@ -518,6 +536,7 @@ AnimalTorso = {
 Groin = {
 'name': 'groin',
 'cover': 40,
+'place': -1,
 'flags': ['GROIN', 'VITAL']
 }
 
@@ -528,18 +547,21 @@ AnimalGroin = {
 
 Tail = {
 'name': 'tail',
+'place': -1,
 'attack': Club,
 'flags': ['TAIL']
 }
 
 PrehensiveTail = {
 'name': 'tail',
+'place': -1,
 'flags': ['TAIL', 'GRASP']
 }
 
 Arm = {
 'name': 'hand',
 'cover': 60,
+'place': 1,
 'attack': Punch,
 'flags': ['ARM', 'GRASP']
 }
@@ -547,6 +569,7 @@ Arm = {
 TentacleArm = {
 'name': 'tentacle',
 'cover': 60,
+'place': 1,
 'attack': WhipAttack,
 'flags': ['ARM', 'GRASP']
 }
@@ -554,6 +577,7 @@ TentacleArm = {
 Leg = {
 'name': 'leg',
 'cover': 70,
+'place': -2,
 'attack': Kick,
 'flags': ['LEG']
 }
@@ -561,6 +585,7 @@ Leg = {
 TentacleLeg = {
 'name': 'tentacle',
 'cover': 70,
+'place': -2,
 'attack': Club,
 'flags': ['LEG']
 }
@@ -568,6 +593,7 @@ TentacleLeg = {
 Paw = {
 'name': 'paw',
 'cover': 70,
+'place': -2,
 'attack': Claw,
 'flags': ['LEG']
 }
@@ -651,7 +677,7 @@ EarthWall = {
 
 IronWall = {
 'char': '#',
-'color': libtcod.silver,
+'color': libtcod.grey,
 'name': 'iron wall',
 'BlockMove': True,
 'BlockSight': True,
@@ -660,7 +686,7 @@ IronWall = {
 
 IronBars = {
 'char': chr(240), # Ie. ≡
-'color': libtcod.silver,
+'color': libtcod.grey,
 'name': 'iron bars',
 'BlockMove': True,
 'BlockSight': False,
@@ -1184,6 +1210,7 @@ Pillars3 = {
 ItemList = [
 Cudgel,
 ShortSword,
+Buckler,
 Bandana,
 BlackRobe,
 BrownRobe,

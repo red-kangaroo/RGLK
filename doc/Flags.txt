@@ -62,6 +62,12 @@ Generation:
 MELEE
 RANGED
 
+WEAPON
+SHIELD
+ARMOR
+
+2H_OK              Can be equipped along with 2H weapon.
+
 Body
 ====
 
