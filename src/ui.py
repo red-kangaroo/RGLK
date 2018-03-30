@@ -104,7 +104,7 @@ def render_UI(Player):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.pink)
         libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,
                                  chr(12))
-                                 
+
     # Restore the text color. :D
     libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
 
@@ -330,7 +330,7 @@ def text_menu(header, text):
             libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
 
         libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
-                                 toPrint)
+                                 "[" + str(turn) + "] " + toPrint)
         line -= 1
         y -= 1
 

@@ -110,6 +110,7 @@ Hammer = {
 
 SmallSword = {
 'verb': 'slash&ES',
+'ToHitBonus': 1,
 'DiceNumber': 1,
 'DiceValue': 6,
 'DamageType': 'SLASH'
@@ -265,7 +266,7 @@ Bandana = {
 'name': 'bandana',
 'material': 'CLOTH',
 'DV': 1,
-'size': -1,
+'size': -2,
 'flags': ['HEAD', 'ARMOR'],
 'frequency': 50
 }
@@ -307,13 +308,25 @@ WhiteRobe = {
 'frequency': 50
 }
 
+BlueDress = {
+'char': ']',
+'color': libtcod.blue,
+'name': 'blue dress',
+'material': 'CLOTH',
+'size': -1,
+'DV': 0,
+'PV': 0,
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 10
+}
+
 # Belts:
 Belt = {
 'char': '-',
 'color': libtcod.darker_orange,
 'name': 'leather belt',
 'material': 'LEATHER',
-'size': 0,
+'size': -1,
 'DV': 0,
 'PV': 1,
 'flags': ['GROIN', 'ARMOR'],
@@ -510,15 +523,20 @@ DummyPart = {
 'name': 'BUG: dummy body part',
 'cover': 100, # Chance of being hit there is based on cover.
 'place': 0,   # How high (positive) or low (negative) on the body the part is.
+'size': 0,    # How different the size of this part is to main body.
 'eyes': 0,
+#'breasts': 0,
+#'testicles': 0,
 'attack': Slam,
+'material': 'FLESH',
 'flags': []
 }
 
 Head = {
 'name': 'head',
-'cover': 30,
+'cover': 50,
 'place': 2,
+'size': -2,
 'eyes': 2,
 'attack': Bite,
 'flags': ['HEAD', 'VITAL']
@@ -548,40 +566,48 @@ AnimalTorso = {
 
 Groin = {
 'name': 'groin',
-'cover': 40,
+'cover': 50,
 'place': -1,
+'size': -1,
 'flags': ['GROIN', 'VITAL']
 }
 
 AnimalGroin = {
 'name': 'lower body',
+'cover': 60,
+'size': -1,
 'flags': ['GROIN', 'VITAL']
 }
 
 Tail = {
 'name': 'tail',
+'cover': 60,
 'place': -1,
+'size': -1,
 'attack': Club,
 'flags': ['TAIL']
 }
 
 PrehensiveTail = {
 'name': 'tail',
+'cover': 60,
 'place': -1,
+'size': -1,
 'flags': ['TAIL', 'GRASP']
 }
 
 Arm = {
 'name': 'hand',
-'cover': 60,
+'cover': 80,
 'place': 1,
+'size': -1,
 'attack': Punch,
 'flags': ['ARM', 'GRASP']
 }
 
 TentacleArm = {
 'name': 'tentacle',
-'cover': 60,
+'cover': 90,
 'place': 1,
 'attack': WhipAttack,
 'flags': ['ARM', 'GRASP']
@@ -589,16 +615,18 @@ TentacleArm = {
 
 Leg = {
 'name': 'leg',
-'cover': 70,
+'cover': 90,
 'place': -2,
+'size': -1,
 'attack': Kick,
 'flags': ['LEG']
 }
 
 PegLeg = {
 'name': 'peg leg',
-'cover': 70,
+'cover': 90,
 'place': -2,
+'size': -1,
 'attack': Club,
 'material': 'WOOD',
 'flags': ['LEG']
@@ -606,7 +634,6 @@ PegLeg = {
 
 TentacleLeg = {
 'name': 'tentacle',
-'cover': 70,
 'place': -2,
 'attack': Club,
 'flags': ['LEG']
@@ -614,8 +641,9 @@ TentacleLeg = {
 
 Paw = {
 'name': 'paw',
-'cover': 70,
+'cover': 90,
 'place': -2,
+'size': -1,
 'attack': Claw,
 'flags': ['LEG']
 }
@@ -623,6 +651,7 @@ Paw = {
 Wing = {
 'name': 'wing',
 'cover': 90,
+'size': -1,
 'attack': Buffet,
 'flags': ['WING']
 }
@@ -1230,11 +1259,11 @@ Pillars3 = {
 # Lists must be last to have all stuff already defined.
 
 Sizes = {
-'huge': 2,
-'large': 1,
-'medium': 0,
-'small': -1,
-'tiny': -2
+2: 'huge',
+1: 'large',
+0: 'medium',
+-1: 'small',
+-2: 'tiny'
 }
 
 Scaling = {
@@ -1255,6 +1284,7 @@ Bandana,
 BlackRobe,
 BrownRobe,
 WhiteRobe,
+BlueDress,
 Belt,
 GoldPiece,
 Berry,

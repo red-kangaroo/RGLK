@@ -33,14 +33,26 @@ def rand_gaussian_d20(rerolls = 0):
     rollResult = 0
     rollNo = 0
 
-    while rollNo < rerolls + 1:
-        roll1 = libtcod.random_get_int(0, 1, 20)
-        roll2 = libtcod.random_get_int(0, 1, 20)
-        result = (roll1 + roll2) / 2
+    if rerolls >= 0:
+        while rollNo < rerolls + 1:
+            roll1 = libtcod.random_get_int(0, 1, 20)
+            roll2 = libtcod.random_get_int(0, 1, 20)
+            result = (roll1 + roll2) / 2
 
-        if result > rollResult:
-            rollResult = result
-        rollNo += 1
+            if result > rollResult:
+                rollResult = result
+            rollNo += 1
+    else:
+        while rollNo < abs(rerolls) + 1:
+            roll1 = libtcod.random_get_int(0, 1, 20)
+            roll2 = libtcod.random_get_int(0, 1, 20)
+            result = (roll1 + roll2) / 2
+
+            if rollNo == 0:
+                rollResult = result
+            elif result < rollResult:
+                rollResult = result
+            rollNo += 1
 
     return rollResult
 

@@ -257,7 +257,7 @@ class Mob(Entity):
                  Str, Dex, End, Wit, Ego, sex, speed = 1.0, FOVRadius = 6, addFlags = []):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
-        super(Mob, self).__init__(x, y, char, color, name, material, BlockMove)
+        super(Mob, self).__init__(x, y, char, color, name, material, size, BlockMove)
 
         # Attributes:
         self.Str = Str
@@ -337,6 +337,10 @@ class Mob(Entity):
             except:
                 place = raw.DummyPart['place']
             try:
+                size = part['size']
+            except:
+                size = raw.DummyPart['size']
+            try:
                 eyes = part['eyes']
             except:
                 eyes = raw.DummyPart['eyes']
@@ -353,7 +357,8 @@ class Mob(Entity):
             except:
                 material = None
 
-            New = BodyPart(name, self, cover, place, eyes, attack, addFlags, material)
+            New = BodyPart(name, self, cover, place, size, eyes, attack, addFlags,
+                           material)
 
             self.bodyparts.append(New)
 
@@ -419,7 +424,7 @@ class Mob(Entity):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
 
     def recalculateCarryingCapacity(self):
-        return max(0, 10 + (2 * self.Str))
+        return max(1, 10 + (2 * self.Str))
 
     def recalculateHealth(self):
         return max(1, ((20 * (1.2 ** self.End)) + self.bonusHP))
@@ -434,13 +439,35 @@ class Mob(Entity):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
             self.HP += 0.2
 
+        # TODO:
+        #  Regeneration
+        #  Full / Stuffed
+        #  Unhealing
+
+        if self.HP > self.maxHP:
+            self.HP = self.maxHP
+
     def regainMana(self):
         if not self.hasFlag('DEAD') and self.MP < self.maxMP:
             self.MP += 0.3
 
+        # TODO:
+        #  Starpower
+        #  Manaburn
+
+        if self.MP > self.maxMP:
+            self.MP = self.maxMP
+
     def regainStamina(self):
         if not self.hasFlag('DEAD') and self.SP < self.maxSP:
             self.SP += 0.5
+
+        # TODO:
+        #  Vigor
+        #  Fatigue
+
+        if self.SP > self.maxSP:
+            self.SP = self.maxSP
 
     def regainActions(self):
         # This works even when dead, because items can have actions, too.
@@ -471,12 +498,15 @@ class Mob(Entity):
         else:
             return (toHit * mod)
 
-    def getDamageBonus(self, weapon = None):
-        # TODO:
-        # Size difference
-        # Scaling
-        bonus = self.Str
+    def getDamageBonus(self, victim = None, weapon = None):
+        bonus = 0
+        # TODO: Intrinsics.
 
+        # Size difference:
+        if victim != None:
+            bonus += self.size - victim.size
+
+        # Enchantment:
         if weapon != None:
             bonus += weapon.enchantment
 
@@ -538,13 +568,20 @@ class Mob(Entity):
         return (toDodge * mod)
 
     def getLimbToHit(self, attacker):
-        # TODO: Size difference
-        #       Maybe armor?
+        # TODO: Maybe armor?
         choices = []
 
         for part in self.bodyparts:
-            if var.rand_chance(part.cover):
+            chance = part.cover * (1.2 ** -abs(attacker.size - part.size))
+            print "part chance: %s" % chance
+
+            if var.rand_chance(chance):
                 choices.append(part)
+
+        if len(choices) == 0:
+            for part in self.bodyparts:
+                if part.hasFlag('TORSO'):
+                    choices.append(part)
 
         return random.choice(choices)
 
@@ -605,8 +642,15 @@ class Mob(Entity):
                 else:
                     blocked = var.rand_dice(DiceNumber, DiceValue, DamageBonus)
 
-                blocked += self.getDamageBonus(defender)
+                blocked += self.getDamageBonus(attacker, defender)
                 withWhat = "&POSS " + defender.getName()
+
+                if forcedHit:
+                    how = "luckily "
+                elif forcedBlock:
+                    how = "easily "
+                else:
+                    how = ""
 
                 if blocked >= damage:
                     blocked = damage
@@ -616,7 +660,8 @@ class Mob(Entity):
                     damage -= blocked
                     partially = "partially "
 
-                message = "But %s manage&S to %sblock the attack with %s." % (self.getName(), partially, withWhat)
+                message = "But %s %smanage&S to %sblock the attack with %s." % (self.getName(),
+                               how, partially, withWhat)
                 ui.message(message, actor = self)
 
                 # Find size difference:
@@ -645,6 +690,12 @@ class Mob(Entity):
                 print "Failed to block."
 
         return damage
+
+    def resistDamage(self, damage, DamageType):
+        pass
+
+    def severLimb(self, limb):
+        pass
 
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
@@ -794,6 +845,12 @@ class Mob(Entity):
         else:
             return wingNo
 
+    def isExtreFragile(self):
+        if self.End < 0:
+            return True
+        else:
+            return False
+
     def handleIntrinsics(self):
         pass
 
@@ -845,13 +902,24 @@ class Mob(Entity):
         return True
 
     def receiveAttack(self, attacker, weapon, multiplier):
-        # TODO: launcher, blocking
+        # TODO: launcher
         self.target = attacker
 
         forcedHit = False
         forcedMiss = False
+
+        # TODO: rerolls from skills
         toHit = var.rand_gaussian_d20()
         toDodge = var.rand_gaussian_d20()
+
+        # Pseudocode:
+        # if (OffBalance || (Fumble && RandChance(25))):
+        #    forcedmiss
+        # if (tohit = 1):
+        #    if (!forcedhit):
+        #        forcedmiss
+        # if (Fumble):
+        #    DropYourWeapon
 
         if toHit == 20:
             forcedHit = True
@@ -891,8 +959,6 @@ class Mob(Entity):
                     ui.message("%s %s %s%s." % (attacker.getName(True), verb,
                                whatLimb, withWhat), actor = attacker)
 
-                # TODO:
-                # Different attacks, materials, crits.
                 try:
                     if weapon == None:
                         DiceNumber = raw.Slam['DiceNumber']
@@ -930,12 +996,35 @@ class Mob(Entity):
                 except:
                     AttackFlags = raw.DummyAttack['flags']
 
-                print "rolling " + str(DiceNumber) + "d" + str(DiceValue) + "+" + str(DamageBonus)
+                # Try crits:
+                if weapon == None:
+                    toCrit = 10
+                elif weapon.size < 0:
+                    toCrit = 4
+                elif weapon.size == 0:
+                    toCrit = 8
+                elif weapon.size > 0:
+                    toCrit = 12
+
+                CritNo = (toHit - toDodge) / toCrit
+                DiceNumber += int(math.floor(CritNo))
+                # TODO: Message.
+
+                # Add strength:
+                try:
+                    DiceValue += attacker.Str # TODO: Scaling
+                except:
+                    pass # How do we have no attacker?
+
+                # Add damage bonuses:
+                DamageBonus += attacker.getDamageBonus(self, weapon)
+
+                # Roll for damage:
                 damage = var.rand_dice(DiceNumber, DiceValue, DamageBonus)
+                damage *= multiplier
 
+                print "rolling " + str(DiceNumber) + "d" + str(DiceValue) + "+" + str(DamageBonus)
                 print "    + " + str(attacker.Str) + " ="
-                damage += attacker.getDamageBonus(weapon) # TODO
-
                 print "    " + str(damage) + " damage"
 
                 # Try blocking the attack:
@@ -944,7 +1033,7 @@ class Mob(Entity):
                         damage = self.tryBlocking(attacker, weapon, toHit, damage, forcedHit)
 
                 if damage > 0:
-                    self.receiveDamage(damage, multiplier, DamageType, AttackFlags)
+                    self.receiveDamage(damage, limb, DamageType, AttackFlags)
             else:
                 ui.message("%s miss&ES %s." % (attacker.getName(True), self.getName()), actor = attacker)
         else:
@@ -954,8 +1043,10 @@ class Mob(Entity):
         # TODO: Different SP costs, but min 1 SP.
         attacker.SP -= 2
 
-    def receiveDamage(self, damage, multiplier = 1, type = None, flags = []):
+    def receiveDamage(self, damage, limb, type = None, flags = []):
         # TODO: Resistances
+        #       Different materials.
+        #       Limb wounds, severing etc.
 
         if damage > 0:
             self.HP -= damage
@@ -1497,7 +1588,12 @@ class Mob(Entity):
             self.AP -= (self.getActionAPCost() / 2)
             return False
         elif pickAll == True:
+            # TODO: Not if monsters in sight?
             for i in options:
+                if len(self.inventory) >= self.carry:
+                    ui.message("%s cannot pick up any more items." % self.getName(True), actor = self)
+                    break
+
                 self.inventory.append(i)
                 var.Entities[var.DungeonLevel].remove(i)
                 ui.message("%s pick&S up %s." % (self.getName(True), i.getName()), actor = self)
@@ -1615,6 +1711,11 @@ class Item(Entity):
         # TODO:
         # if full == False, show only base name
         if full == True:
+            # Size:
+            if self.hasFlag('ARMOR') and self.hasFlag('TORSO') and self.size != 0:
+                size = raw.Sizes[self.size]
+                name = size + ' ' + name
+
             # Enchantment:
             if self.enchantment < 0:
                 name = str(self.enchantment) + ' ' + name
@@ -1631,7 +1732,12 @@ class Item(Entity):
                 name = "cursed " + name
             elif self.beautitude < -1:
                 name = "doomed " + name
+
             # Stats:
+            try:
+                ToHitBonus = self.attack['ToHitBonus']
+            except:
+                ToHitBonus = raw.DummyAttack['ToHitBonus']
             try:
                 DiceNumber = self.attack['DiceNumber']
             except:
@@ -1646,12 +1752,38 @@ class Item(Entity):
                 DamageBonus = raw.DummyAttack['DamageBonus']
 
             # TODO:
-            #damage = (" (" + str(self.getAccuracyValue()) + ", " + str(DiceNumber) +
-            #          "d" + str(DiceValue) + "+" + str(DamageBonus))
-            #
-            #defense = " [" + str(self.getDefenseValue) + ", " + str(self.getProtectionValue()) + "]"
-            #
-            #name = name + damage + defense
+            if ToHitBonus > 0:
+                acc = "+" + str(ToHitBonus) + ", "
+            elif ToHitBonus < 0:
+                acc = str(ToHitBonus) + ", "
+            else:
+                acc = ""
+
+            damage = str(DiceNumber) + "d" + str(DiceValue)
+            if DamageBonus != 0:
+                damage += "+" + str(DamageBonus)
+
+            if self.hasFlag('WEAPON'):
+                attack = " (" + acc + damage + ")"
+            else:
+                attack = ""
+
+            if self.getDefenseValue() != 0 or self.getProtectionValue() != 0:
+                if self.getDefenseValue() >= 0:
+                    DV = "+" + str(self.getDefenseValue()) + ", "
+                else:
+                    DV = str(self.getDefenseValue()) + ", "
+
+                if self.getProtectionValue() >= 0:
+                    PV = "+" + str(self.getProtectionValue())
+                else:
+                    PV = str(self.getProtectionValue())
+
+                defense = " [" + DV + PV + "]"
+            else:
+                defense = ""
+
+            name = name + attack + defense
 
         if capitalize == True:
             name = name.capitalize()
@@ -1660,9 +1792,9 @@ class Item(Entity):
 
     def getAccuracyValue(self):
         try:
-            toHit = weapon.attack['ToHitBonus']
+            toHit = self.attack['ToHitBonus']
         except:
-            toHit = 0
+            toHit = raw.DummyAttack['ToHitBonus']
 
         toHit += self.enchantment
         return toHit
@@ -1700,18 +1832,18 @@ class Item(Entity):
 
 class BodyPart(Entity):
     def __init__(self, name, #These are base Entity arguments.
-                 mob, cover, place, eyes, attack, addFlags, material = None):
+                 mob, cover, place, size, eyes, attack, addFlags, material = None):
         x = mob.x
         y = mob.y
         char = '~'
         color = libtcod.red
 
-        if material = None:
+        if material == None:
             material = mob.material
 
-        # TODO: Different body parts are differently smaller then mob, plus cannot
-        #       equip items smaller than the body part.
-        size = min(2, max(-2, mob.size))
+        # Different body parts are differently smaller then mob, plus cannot
+        # equip items smaller than the body part.
+        size = min(2, max(-2, mob.size + size))
 
         super(BodyPart, self).__init__(x, y, char, color, name, material, size)
 
@@ -1730,12 +1862,15 @@ class BodyPart(Entity):
     def getName(self, capitalize = False, full = True):
         name = self.name
 
+        # Size:
+        #size = raw.Sizes[self.size]
+        #name = size + ' ' + name
+
+        # Right/left:
         if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('RIGHT'):
             name = 'right ' + name
-
         if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('LEFT'):
             name = 'left ' + name
-
         if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('OTHER'):
             name = 'other ' + name
 
@@ -1771,6 +1906,9 @@ class BodyPart(Entity):
             if not (slot in item.flags or slot == 'GRASP'):
                 return False
         else:
+            return False
+
+        if not slot == 'GRASP' and item.size < self.size:
             return False
 
         self.inventory.append(item)

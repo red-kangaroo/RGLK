@@ -3,6 +3,9 @@ List of things to do and include:
 Fixes
 =====
 * fix A* !!!!!!!!
+* body part Sizes
+* Scaling
+* pain
 
 
 BSPDungeon:

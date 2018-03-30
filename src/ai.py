@@ -98,6 +98,8 @@ def getAICommand(Mob):
         if Mob.goal != None:
             if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]) == True:
                 return
+            elif var.rand_chance(2):
+                aiWander(Mob)
             else:
                 Mob.actionWait()
                 return
@@ -157,6 +159,11 @@ def handleKeys(Player):
 
 
     # WIZARD MODE:
+    if Key.vk == libtcod.KEY_CHAR and Key.c == ord('~'):
+        # TODO
+        var.WizModeActivated = True
+        return
+
     # Walk through walls
     if Key.vk == libtcod.KEY_F1:
         var.WizModeNoClip = not var.WizModeNoClip
@@ -563,7 +570,9 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
             # Wizard mode:
             if var.WizModeActivated:
                 dist = str(Player.distance(x, y))
-                describeWizard = "Distance: %s" % dist
+                blocked = Player.isBlocked(x, y, var.DungeonLevel)
+
+                describeWizard = "Distance: %s. Blocked: %s." % (dist, blocked)
             else:
                 describeWizard = ""
 
@@ -678,7 +687,7 @@ def aiFindTarget(Mob):
                     break
         elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
             if Mob.hasFlag('AI_SCAVENGER') and not (len(Mob.inventory) >= Mob.carry):
-                if not i.BlockMove: # We cannot pick up boulders...
+                if not Mob.isBlocked(i.x, i.y, var.DungeonLevel): # We cannot pick up boulders...
                     Target = i
                     Mob.goal = [i.x, i.y]
                     Mob.target = Target
@@ -696,7 +705,8 @@ def aiKite(Me, Target):
     for y in range(Me.y - 1, Me.y + 2):
         for x in range(Me.x - 1, Me.x + 2):
             if x in range(0, var.MapWidth - 1) and y in range(0, var.MapHeight - 1):
-                if var.Maps[var.DungeonLevel][x][y].BlockMove == False:
+                if (not Me.isBlocked(x, y, var.DungeonLevel) or
+                    var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')):
                     if Target.distance(x, y) > distance:
                         distance = Target.distance(x, y)
                         goal = [x, y]
@@ -722,11 +732,11 @@ def aiMoveAStar(Me, Target):
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             libtcod.map_set_properties(MoveMap, x, y, not var.Maps[var.DungeonLevel][x][y].BlockSight,
-                                       (not Me.isBlocked(x, y, var.DungeonLevel) or
+                                       (not var.Maps[var.DungeonLevel][x][y].BlockMove or
                                        var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
-    #for i in var.Entities[var.DungeonLevel]:
-    #    if i.BlockMove == True and i != Me and i != Target:
-    #        libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
+    for i in var.Entities[var.DungeonLevel]:
+        if i.BlockMove == True and i != Me and i != Target:
+            libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
 
     path = libtcod.path_new_using_map(MoveMap, 1.41)
     libtcod.path_compute(path, Me.x, Me.y, Target.x, Target.y)
@@ -793,7 +803,7 @@ def aiMoveDijkstra(Me, Target):
                                        (not var.Maps[var.DungeonLevel][x][y].BlockMove or
                                        var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
     for i in var.Entities[var.DungeonLevel]:
-        if i.BlockMove and i != Me and i != Target:
+        if i.BlockMove == True and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
 
     path = libtcod.dijkstra_new(MoveMap, 1.41)
@@ -818,6 +828,14 @@ def aiMoveDijkstra(Me, Target):
 
     libtcod.dijkstra_delete(path)
     return moved
+
+def aiCheckInventory(Me):
+    pass
+    # Pick best items from inventory to use.
+
+def aiPickEquipment(Me):
+    pass
+    # Do we want to pick up this item to equip?
 
 def aiSidestep(Me, Target):
     # We want to sometimes sidestep player to allow others to join us.
