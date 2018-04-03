@@ -12,6 +12,9 @@ BLUNT
 SLASH
 PIERCE
 
+RESIST_PHYSICAL
+RESIST_METAL
+
 General:
 NATURAL
 UNARMED            No limit for Str bonus to damage.

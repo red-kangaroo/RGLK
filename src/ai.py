@@ -188,7 +188,7 @@ def handleKeys(Player):
     if Key.vk == libtcod.KEY_F3:
         for i in var.Entities[var.DungeonLevel]:
             if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
-                i.receiveDamage(i.maxHP)
+                i.receiveDamage(i.maxHP, i.getLimbToHit(), 'DEATH')
         return
 
     # Create items

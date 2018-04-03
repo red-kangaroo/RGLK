@@ -121,15 +121,15 @@ def render_UI(Player):
     # Attributes:
     libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
     libtcod.console_print_ex(var.UIPanel, 1, 7, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Str: ' + str(Player.Str))
+                             'Str: ' + str(Player.getStr()))
     libtcod.console_print_ex(var.UIPanel, 1, 8, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Dex: ' + str(Player.Dex))
+                             'Dex: ' + str(Player.getDex()))
     libtcod.console_print_ex(var.UIPanel, 1, 9, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'End: ' + str(Player.End))
+                             'End: ' + str(Player.getEnd()))
     libtcod.console_print_ex(var.UIPanel, 10, 7, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Wit: ' + str(Player.Wit))
+                             'Wit: ' + str(Player.getWit()))
     libtcod.console_print_ex(var.UIPanel, 10, 8, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Ego: ' + str(Player.Ego))
+                             'Ego: ' + str(Player.getEgo()))
     #libtcod.console_print_ex(var.UIPanel, 10, 9, libtcod.BKGND_NONE, libtcod.LEFT,
     #                         'Spd: ' + str(int(Player.speed * 100)))
 
@@ -144,9 +144,10 @@ def render_UI(Player):
                              'XP: ' + str(Player.XL) + '/' + str(Player.XP))
     libtcod.console_print_ex(var.UIPanel, 10, 12, libtcod.BKGND_NONE, libtcod.LEFT,
                              'DV: ' + str(Player.getDodgeBonus(base = True)))
-    # PV
+    libtcod.console_print_ex(var.UIPanel, 10, 13, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'PV: ' + str(Player.getTotalProtection()))
 
-    y = 14
+    y = 15
     # Effects:
     if Player.hasFlag('DEAD'):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_red)
@@ -431,6 +432,16 @@ def message(text, color = var.TextColor, actor = None):
         except:
             pass # No need for special message here.
 
+    text = grammar(text, actor)
+
+    textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
+    turn = var.TurnCount
+
+    # Save message as a tuple:
+    for i in textWrapped:
+        var.MessageHistory.append((i, color, turn))
+
+def grammar(text, actor = None):
     # Some grammar:
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&S', '')
@@ -495,9 +506,4 @@ def message(text, color = var.TextColor, actor = None):
         else:
             text = text.replace('&SELF', 'itself')
 
-    textWrapped = textwrap.wrap(text, var.ScreenWidth - var.PanelWidth - 2)
-    turn = var.TurnCount
-
-    # Save message as a tuple:
-    for i in textWrapped:
-        var.MessageHistory.append((i, color, turn))
+    return text

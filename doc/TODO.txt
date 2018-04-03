@@ -2,10 +2,13 @@ List of things to do and include:
 
 Fixes
 =====
-* fix A* !!!!!!!!
-* body part Sizes
-* Scaling
 * pain
+* damage resistance (PV etc.)
+* intrinsics
+* climbing trees
+* multiple FOVMaps (forestry, clairvoyance)
+* AI for picking up and equipping
+* item accuracyBonus, chargesinan
 
 
 BSPDungeon:

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import libtcodpy as libtcod
+import math
+import random
 
 import dungeon
 
@@ -56,6 +58,18 @@ def rand_gaussian_d20(rerolls = 0):
 
     return rollResult
 
+def rand_int_from_float(number):
+    # Returns integer from a float, with a chance of higher integer based on decimal
+    # part of the float. Ie. 5.5 will return as 6 50 % of time.
+    (decimal, base) = math.modf(number)
+
+    if random.random() < decimal:
+        if base >= 0:
+            base += 1
+        else:
+            base -= 1
+
+    return int(base)
 
 # FOV:
 # ----
@@ -76,6 +90,15 @@ def findNearestFreeSpot(x, y):
     pass
 
 def findNearestCreature(x, y, attitude = None):
+    pass
+
+# General:
+# --------
+
+def beRude():
+    pass
+
+def bePolite():
     pass
 
 ###############################################################################

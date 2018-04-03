@@ -214,8 +214,8 @@ DummyItem = {
 'size': -1,
 'attack': NonWeapon,
 'ranged': MisThrown,
-'StrScaling': 'D',
-'DexScaling': 'D',
+'StrScaling': 'F',
+'DexScaling': 'F',
 'DV': 0,
 'PV': 0,
 'intrinsics': [],
@@ -230,6 +230,8 @@ Cudgel = {
 'name': 'cudgel',
 'material': 'WOOD',
 'size': -1,
+'StrScaling': 'B',
+'DexScaling': 'C',
 'attack': Club,
 'ranged': ClubThrown,
 'flags': ['MELEE', 'WEAPON']
@@ -242,8 +244,47 @@ ShortSword = {
 'material': 'IRON',
 'size': -1,
 'DV': 1,
+'StrScaling': 'D',
+'DexScaling': 'A',
 'attack': SmallSword,
 'flags': ['MELEE', 'WEAPON']
+}
+
+LongSword = {
+'char': ')',
+'color': libtcod.silver,
+'name': 'long sword',
+'material': 'IRON',
+'size': 0,
+'StrScaling': 'C',
+'DexScaling': 'C',
+'attack': MediumSword,
+'flags': ['MELEE', 'WEAPON']
+}
+
+GreatSword = {
+'char': ')',
+'color': libtcod.silver,
+'name': 'great sword',
+'material': 'IRON',
+'size': 1,
+'StrScaling': 'A',
+'DexScaling': 'D',
+'attack': LargeSword,
+'flags': ['MELEE', 'WEAPON']
+}
+
+Scimitar = {
+'char': ')',
+'color': libtcod.silver,
+'name': 'two-handed scimitar',
+'material': 'IRON',
+'size': 1,
+'StrScaling': 'S',
+'DexScaling': 'E',
+'attack': HugeSword,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 30
 }
 
 # Shields:
@@ -254,8 +295,22 @@ Buckler = {
 'material': 'IRON',
 'size': -2,
 'attack': SmallShield,
-'DV': 1,
+'StrScaling': 'C',
+'DexScaling': 'A',
 'flags': ['SHIELD', '2H_OK'],
+'frequency': 30
+}
+
+TowerShield = {
+'char': '[',
+'color': libtcod.silver,
+'name': 'tower shield',
+'material': 'IRON',
+'size': 2,
+'attack': HugeShield,
+'StrScaling': 'S',
+'DexScaling': 'D',
+'flags': ['SHIELD'],
 'frequency': 30
 }
 
@@ -279,7 +334,7 @@ BlackRobe = {
 'material': 'CLOTH',
 'size': 0,
 'DV': 0,
-'PV': 1,
+'PV': 10,
 'flags': ['TORSO', 'ARMOR'],
 'frequency': 50
 }
@@ -527,6 +582,8 @@ DummyPart = {
 'eyes': 0,
 #'breasts': 0,
 #'testicles': 0,
+'StrScaling': 'B',
+'DexScaling': 'B',
 'attack': Slam,
 'material': 'FLESH',
 'flags': []
@@ -538,30 +595,32 @@ Head = {
 'place': 2,
 'size': -2,
 'eyes': 2,
+'StrScaling': 'C', # No, had is not really that good for attacking.
+'DexScaling': 'C',
 'attack': Bite,
 'flags': ['HEAD', 'VITAL']
 }
 
 Torso = {
 'name': 'torso',
-'flags': ['TORSO', 'VITAL']
+'flags': ['TORSO', 'VITAL', 'CANNOT_SEVER']
 }
 
 SlimeTorso = {
 'name': 'blob',
 'eyes': 1,
-'flags': ['TORSO', 'VITAL', 'GRASP']
+'flags': ['TORSO', 'VITAL', 'GRASP', 'CANNOT_SEVER']
 }
 
 AlienTorso = {
 'name': 'torso',
 'eyes': 3,
-'flags': ['TORSO', 'VITAL']
+'flags': ['TORSO', 'VITAL', 'CANNOT_SEVER']
 }
 
 AnimalTorso = {
 'name': 'upper body',
-'flags': ['TORSO', 'VITAL']
+'flags': ['TORSO', 'VITAL', 'CANNOT_SEVER']
 }
 
 Groin = {
@@ -569,14 +628,14 @@ Groin = {
 'cover': 50,
 'place': -1,
 'size': -1,
-'flags': ['GROIN', 'VITAL']
+'flags': ['GROIN', 'VITAL', 'CANNOT_SEVER']
 }
 
 AnimalGroin = {
 'name': 'lower body',
 'cover': 60,
 'size': -1,
-'flags': ['GROIN', 'VITAL']
+'flags': ['GROIN', 'VITAL', 'CANNOT_SEVER']
 }
 
 Tail = {
@@ -584,6 +643,8 @@ Tail = {
 'cover': 60,
 'place': -1,
 'size': -1,
+'StrScaling': 'A',
+'DexScaling': 'C',
 'attack': Club,
 'flags': ['TAIL']
 }
@@ -593,6 +654,8 @@ PrehensiveTail = {
 'cover': 60,
 'place': -1,
 'size': -1,
+'StrScaling': 'C',
+'DexScaling': 'A',
 'flags': ['TAIL', 'GRASP']
 }
 
@@ -618,6 +681,8 @@ Leg = {
 'cover': 90,
 'place': -2,
 'size': -1,
+'StrScaling': 'A',
+'DexScaling': 'C',
 'attack': Kick,
 'flags': ['LEG']
 }
@@ -627,6 +692,8 @@ PegLeg = {
 'cover': 90,
 'place': -2,
 'size': -1,
+'StrScaling': 'C',
+'DexScaling': 'C',
 'attack': Club,
 'material': 'WOOD',
 'flags': ['LEG']
@@ -1277,15 +1344,23 @@ Scaling = {
 }
 
 ItemList = [
+# Weapons:
 Cudgel,
 ShortSword,
+LongSword,
+GreatSword,
+Scimitar,
+# Shields:
 Buckler,
+TowerShield,
+# Armor:
 Bandana,
 BlackRobe,
 BrownRobe,
 WhiteRobe,
 BlueDress,
 Belt,
+# Other:
 GoldPiece,
 Berry,
 Boulder,

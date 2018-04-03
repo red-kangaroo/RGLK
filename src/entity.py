@@ -114,6 +114,14 @@ def spawn(x, y, BluePrint, type):
         except:
             PV = raw.DummyItem['PV']
         try:
+            StrScaling = BluePrint['StrScaling']
+        except:
+            StrScaling = raw.DummyItem['StrScaling']
+        try:
+            DexScaling = BluePrint['DexScaling']
+        except:
+            DexScaling = raw.DummyItem['DexScaling']
+        try:
             BlockMove = BluePrint['BlockMove']
         except:
             BlockMove = raw.DummyItem['BlockMove']
@@ -127,7 +135,7 @@ def spawn(x, y, BluePrint, type):
             addIntrinsics = []
 
         New = Item(x, y, char, color, name, material, size, BlockMove,
-                   attack, ranged, DV, PV, addFlags)
+                   attack, ranged, DV, PV, StrScaling, DexScaling, addFlags)
     else:
         print "Failed to spawn unknown entity type."
 
@@ -159,6 +167,9 @@ class Entity(object):
         self.ranged = raw.MisThrown
         self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
         self.enchantment = 0
+
+        self.prefix = ""
+        self.suffix = ""
 
         self.flags = []
         self.inventory = [] # For both mobs and containers.
@@ -235,6 +246,9 @@ class Entity(object):
 
     def getProtectionValue(self):
         return 0
+
+    def getSPCost(self):
+        return 2
 
     # Heartbeat of all entities.
     def Be(self):
@@ -349,6 +363,14 @@ class Mob(Entity):
             except:
                 attack = raw.DummyPart['attack']
             try:
+                StrScaling = BluePrint['StrScaling']
+            except:
+                StrScaling = raw.DummyPart['StrScaling']
+            try:
+                DexScaling = BluePrint['DexScaling']
+            except:
+                DexScaling = raw.DummyPart['DexScaling']
+            try:
                 addFlags = part['flags']
             except:
                 addFlags = raw.DummyPart['flags']
@@ -357,8 +379,8 @@ class Mob(Entity):
             except:
                 material = None
 
-            New = BodyPart(name, self, cover, place, size, eyes, attack, addFlags,
-                           material)
+            New = BodyPart(name, self, cover, place, size, eyes, attack,
+                           StrScaling, DexScaling, addFlags, material)
 
             self.bodyparts.append(New)
 
@@ -424,16 +446,16 @@ class Mob(Entity):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
 
     def recalculateCarryingCapacity(self):
-        return max(1, 10 + (2 * self.Str))
+        return max(1, 10 + (2 * self.getStr()))
 
     def recalculateHealth(self):
-        return max(1, ((20 * (1.2 ** self.End)) + self.bonusHP))
+        return max(1, ((20 * (1.2 ** self.getEnd())) + self.bonusHP))
 
     def recalculateMana(self):
-        return max(0, ((20 * (1.2 ** self.Ego)) + self.bonusMP))
+        return max(0, ((20 * (1.2 ** self.getEgo())) + self.bonusMP))
 
     def recalculateStamina(self):
-        return max(1, (20 * (1.2 ** self.Str)))
+        return max(1, (20 * (1.2 ** self.getStr())))
 
     def regainHealth(self):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
@@ -443,6 +465,13 @@ class Mob(Entity):
         #  Regeneration
         #  Full / Stuffed
         #  Unhealing
+
+        for part in self.bodyparts:
+            if part.wounded and var.rand_chance(max(1, self.getEnd())):
+                if self.hasFlag('AVATAR'):
+                    ui.message("Your %s heals." % part.getName())
+
+                part.wounded = False
 
         if self.HP > self.maxHP:
             self.HP = self.maxHP
@@ -479,11 +508,27 @@ class Mob(Entity):
         elif var.rand_chance(5):
             self.AP -= 0.1
 
-    def getAccuracyBonus(self, weapon = None, base = False):
-        toHit = self.Dex # TODO: Scaling
+    def getStr(self):
+        return self.Str
 
-        if self.tactics == False:
-            toHit += 1
+    def getDex(self):
+        return self.Dex
+
+    def getEnd(self):
+        return self.End
+
+    def getWit(self):
+        return self.Wit
+
+    def getEgo(self):
+        return self.Ego
+
+    def getAccuracyBonus(self, weapon = None, base = False):
+        toHit = 0.0
+
+        # Scaled Dex:
+        DexBonus = self.getDex() * raw.Scaling[weapon.DexScaling]
+        toHit += DexBonus
 
         if weapon != None:
             try:
@@ -491,15 +536,23 @@ class Mob(Entity):
             except:
                 pass # Body parts have no accuracy bonus.
 
-        mod = random.random() # Between 0.0 and 1.0, so can be used as a % modifier.
+        toHit = var.rand_int_from_float(toHit)
 
         if base == True:
             return toHit
+        # We return at least +1 if we get positive toHit, otherwise randomly between
+        # toHit and zero.
+        elif toHit > 0:
+            return libtcod.random_get_int(0, 1, toHit)
         else:
-            return (toHit * mod)
+            return libtcod.random_get_int(0, toHit, 0)
+
+    def getMagicBonus(self):
+        # Spell to hit.
+        pass
 
     def getDamageBonus(self, victim = None, weapon = None):
-        bonus = 0
+        bonus = 0.0
         # TODO: Intrinsics.
 
         # Size difference:
@@ -510,16 +563,22 @@ class Mob(Entity):
         if weapon != None:
             bonus += weapon.enchantment
 
-        mod = random.random() # Between 0.0 and 1.0, so can be used as a % modifier.
+        bonus = var.rand_int_from_float(bonus)
 
-        return (bonus * mod)
+        if bonus > 0:
+            return libtcod.random_get_int(0, 1, bonus)
+        else:
+            return libtcod.random_get_int(0, bonus, 0)
 
     def getDodgeBonus(self, attacker = None, weapon = None, base = False):
+        toDodge = 0
+
         # TODO:
         # Bonus after move.
         # Unarmored / Light Armor
+        # Conf, blind, cannot see attacker etc.
 
-        toDodge = self.Dex
+        toDodge += self.getDex()
 
         if self.tactics:
             toDodge += 1
@@ -563,17 +622,20 @@ class Mob(Entity):
             if attacker.size > self.size:
                 toDodge += abs(self.size - attacker.size)
 
-        mod = random.random() # Between 0.0 and 1.0, so can be used as a % modifier.
+        if toDodge > 0:
+            return libtcod.random_get_int(0, 1, toDodge)
+        else:
+            return libtcod.random_get_int(0, toDodge, 0)
 
-        return (toDodge * mod)
-
-    def getLimbToHit(self, attacker):
+    def getLimbToHit(self, attacker = None):
         # TODO: Maybe armor?
         choices = []
 
         for part in self.bodyparts:
-            chance = part.cover * (1.2 ** -abs(attacker.size - part.size))
-            print "part chance: %s" % chance
+            if attacker != None:
+                chance = part.cover * (1.2 ** -abs(attacker.size - part.size))
+            else:
+                chance = part.cover
 
             if var.rand_chance(chance):
                 choices.append(part)
@@ -584,6 +646,41 @@ class Mob(Entity):
                     choices.append(part)
 
         return random.choice(choices)
+
+    def getLimbProtection(self, limb):
+        PV = 0
+
+        # Find what we are wearing on that limb.
+        for item in limb.inventory:
+            PV += item.getProtectionValue()
+
+        # Body armor gives us half its PV for all other body parts.
+        if not limb.hasFlag('TORSO'):
+            for part in self.bodyparts:
+                if part.hasFlag('TORSO'):
+                    for item in part.inventory:
+                        PV += (item.getProtectionValue() / 2)
+
+        # TODO: Magic items.
+
+        if self.getEnd() > 10:
+            PV += (self.getEnd() - 10)
+
+        return PV
+
+    def getTotalProtection(self):
+        PV = 0
+
+        for part in self.bodyparts:
+            for item in part.inventory:
+                PV += item.getProtectionValue()
+
+        # TODO: Magic items.
+
+        if self.getEnd() > 10:
+            PV += (self.getEnd() - 10)
+
+        return PV
 
     def tryBlocking(self, attacker, weapon, toHit, damage, forcedHit):
         # Non-physical damage should not get into this method.
@@ -637,6 +734,11 @@ class Mob(Entity):
                 except:
                     DamageBonus = raw.DummyAttack['DamageBonus']
 
+                # Add strength, scaled:
+                StrBonus = self.getStr() * raw.Scaling[defender.StrScaling]
+                DiceValue += var.rand_int_from_float(StrBonus)
+
+                # Calculate how much damage we can block:
                 if defender.hasFlag('SHIELD'):
                     blocked = DiceNumber * DiceValue + DamageBonus
                 else:
@@ -678,6 +780,7 @@ class Mob(Entity):
 
                 self.SP -= max(1, (blocked * staminaMod))
                 # TODO: If this bring us below 0, be off-balanced.
+                # TODO: Critical blocks cause off-balanced in attacker.
 
                 # Debug:
                 print "blocked %s damage" % blocked
@@ -691,11 +794,63 @@ class Mob(Entity):
 
         return damage
 
-    def resistDamage(self, damage, DamageType):
-        pass
+    def resistDamage(self, damage, DamageType, PV = None):
+        # TODO: Check for resistances.
+        resistance = 100
 
-    def severLimb(self, limb):
-        pass
+        # Protection Value adds to basic resistances:
+        if DamageType in ['BLUNT', 'SLASH', 'PIERCE'] and PV != None:
+            resistance += PV * 10
+
+        # You take 100 % damage at 100 resistance, while resistance below 100 is
+        # a vulnerability.
+        resisted = 5 * damage / ((resistance / 25) + 1)
+
+        if DamageType in ['BLUNT', 'SLASH', 'PIERCE']:
+            # Physical damage gets a special treatment: We decrease it by dPV and
+            # take the better result as final damage taken.
+            armor = libtcod.random_get_int(0, 0, PV)
+            armored = damage - armor
+
+            if armored < resisted:
+                resisted = armored
+
+        print "received %s damage, resistance %s, after resistances %s" % (damage, resistance, resisted)
+
+        return max(0, resisted)
+
+    def severLimb(self, limb = None):
+        if limb == None:
+            limb = self.getLimbToHit()
+
+        if limb.hasFlag('CANNOT_SEVER'):
+            return False
+
+        # De-equip items from the limb to be severed:
+        item = limb.doDeEquip()
+        if item != None:
+            self.inventory.append(item)
+
+        # TODO:
+        #  Drop the limb.
+        #  Eyes on head etc.
+        #  Bleeding.
+
+        limb.flags.append('ITEM')
+
+        # Name the limb after our victim:
+        limb.prefix = self.getName(possessive = True)
+
+        self.inventory.append(limb)
+        self.bodyparts.remove(limb)
+
+        ui.message("%s %s is severed!" % (self.getName(True, possessive = True), limb.getName()),
+                   libtcod.red, self)
+
+        if limb.hasFlag('VITAL'):
+            self.checkDeath(True)
+
+        return True
 
     def getRelation(self, Other):
         # TODO: Add factions, pets etc.
@@ -724,13 +879,43 @@ class Mob(Entity):
         return equipment
 
     def getActionAPCost(self):
-        return 1
+        cost = 1
+
+        # You will do actions slower when you loose a limb. With more base limbs, you can
+        # become more slow then creature with less base limbs, because you are not
+        # accustomed to having such a small number of limbs. Imagine a spider - it is not
+        # faster because it only lost two legs, even if it still has six remaining.
+        if not self.hasArms():
+            if self.baseArms > 0:
+                cost *= 1.3 ** (self.baseArms - self.hasArms(False))
+            else:
+                cost *= 1.5
+
+        return cost
 
     def getAttackAPCost(self):
-        return 1
+        cost = 1
+
+        # Attack speed is not based on lost limbs, because you can attack with any limb,
+        # including only body-slamming.
+
+        return cost
 
     def getMoveAPCost(self):
-        return 1
+        cost = 1
+
+        # You will move slower when you loose a limb. With more base limbs, you can
+        # become more slow then creature with less base limbs, because you are not
+        # accustomed to having such a small number of limbs. Imagine a spider - it is not
+        # faster because it only lost two legs, even if it still has six remaining.
+        if not self.hasLegs():
+            if self.baseLegs > 0:
+                cost *= 1.3 ** (self.baseLegs - self.hasLegs(False))
+            else:
+                # With no legs at all (eg. slug), you move slowly.
+                cost *= 1.5
+
+        return cost
 
     def getName(self, capitalize = False, full = False, possessive = False):
         name = self.name
@@ -845,8 +1030,8 @@ class Mob(Entity):
         else:
             return wingNo
 
-    def isExtreFragile(self):
-        if self.End < 0:
+    def isExtraFragile(self):
+        if self.getEnd() < 0:
             return True
         else:
             return False
@@ -907,6 +1092,7 @@ class Mob(Entity):
 
         forcedHit = False
         forcedMiss = False
+        didHit = False
 
         # TODO: rerolls from skills
         toHit = var.rand_gaussian_d20()
@@ -952,12 +1138,13 @@ class Mob(Entity):
 
         if forcedMiss == False or forcedHit == True:
             if (forcedHit == True or toHit > toDodge):
+                didHit = True
+                color = var.TextColor
+
                 if forcedHit == True:
-                    ui.message("%s easily %s %s%s." % (attacker.getName(True), verb,
-                              whatLimb, withWhat), actor = attacker)
+                    howWell = "easily "
                 else:
-                    ui.message("%s %s %s%s." % (attacker.getName(True), verb,
-                               whatLimb, withWhat), actor = attacker)
+                    howWell = ""
 
                 try:
                     if weapon == None:
@@ -999,6 +1186,9 @@ class Mob(Entity):
                 # Try crits:
                 if weapon == None:
                     toCrit = 10
+                elif weapon.hasFlag('BODY_PART'):
+                    # TODO: Martial arts.
+                    toCrit = 10
                 elif weapon.size < 0:
                     toCrit = 4
                 elif weapon.size == 0:
@@ -1006,14 +1196,24 @@ class Mob(Entity):
                 elif weapon.size > 0:
                     toCrit = 12
 
-                CritNo = (toHit - toDodge) / toCrit
-                DiceNumber += int(math.floor(CritNo))
-                # TODO: Message.
+                # Attacker crits less often with defensive tactics:
+                if attacker.tactics:
+                    toCrit += 1
 
-                # Add strength:
+                CritNo = int(math.floor((toHit - toDodge) / toCrit))
+
+                if CritNo > 0:
+                    print "crit: +%s" % CritNo
+                    DiceNumber += CritNo
+                    howWell = "critically "
+                    color = libtcod.yellow
+
+                # Add strength, scaled:
                 try:
-                    DiceValue += attacker.Str # TODO: Scaling
+                    StrBonus = attacker.getStr() * raw.Scaling[weapon.StrScaling]
+                    DiceValue += var.rand_int_from_float(StrBonus)
                 except:
+                    print "Failed to add Str to damage."
                     pass # How do we have no attacker?
 
                 # Add damage bonuses:
@@ -1024,8 +1224,11 @@ class Mob(Entity):
                 damage *= multiplier
 
                 print "rolling " + str(DiceNumber) + "d" + str(DiceValue) + "+" + str(DamageBonus)
-                print "    + " + str(attacker.Str) + " ="
                 print "    " + str(damage) + " damage"
+
+                # Message:
+                ui.message("%s %s%s %s%s." % (attacker.getName(True), howWell, verb,
+                           whatLimb, withWhat), color, actor = attacker)
 
                 # Try blocking the attack:
                 if self.SP > 0:
@@ -1035,20 +1238,73 @@ class Mob(Entity):
                 if damage > 0:
                     self.receiveDamage(damage, limb, DamageType, AttackFlags)
             else:
-                ui.message("%s miss&ES %s." % (attacker.getName(True), self.getName()), actor = attacker)
+                ui.message("%s miss&ES %s." % (attacker.getName(True), self.getName()),
+                           libtcod.light_grey, actor = attacker)
         else:
-            ui.message("%s completely miss&ES %s." % (attacker.getName(True), self.getName()), actor = attacker)
+            ui.message("%s completely miss&ES %s." % (attacker.getName(True), self.getName()),
+                       libtcod.light_grey, actor = attacker)
             # TODO: if toHit + bonus < 0, fumble
 
-        # TODO: Different SP costs, but min 1 SP.
-        attacker.SP -= 2
+        # Different SP cost for different weapons, but min 1 SP. We also only take
+        # half SP cost for missed attacks.
+        try:
+            SPcost = weapon.getSPCost()
+        except:
+            SPcost = 2
 
-    def receiveDamage(self, damage, limb, type = None, flags = []):
-        # TODO: Resistances
+        if didHit:
+            attacker.SP -= SPcost
+            print "SP cost: %s" % SPcost
+        else:
+            attacker.SP -= (SPcost / 2)
+            print "SP cost: %s" % (SPcost / 2)
+
+        print "-" * 10
+
+    def receiveDamage(self, damage, limb, DamageType = None, flags = []):
+        # TODO:
+        #       Limb wounds, pain.
+        #       Armor-piercing crits.
+
+        if DamageType == None:
+            print "Unknown damage type: None"
+            return
+
+        if DamageType in ['BLUNT', 'SLASH', 'PIERCE']:
+            damage = self.resistDamage(damage, DamageType, self.getLimbProtection(limb))
+        else:
+            damage = self.resistDamage(damage, DamageType)
+
+        # TODO: Modifiers.
         #       Different materials.
-        #       Limb wounds, severing etc.
+
+        # Wound the limb:
+        if var.rand_chance(damage):
+            if limb.wounded or self.isExtraFragile():
+                if not self.severLimb(limb):
+                    # We cannot sever this limb, so we damage it further.
+                    # TODO: Do we?
+                    damage *= 1.5
+
+                limb = None
+            else:
+                limb.wounded = True
+                ui.message("%s %s is wounded." % (self.getName(True, possessive = True), limb.getName()),
+                           libtcod.yellow, self)
+
+        # We might have alredy died here.
+        if self.hasFlag('DEAD'):
+            return
 
         if damage > 0:
+            if self.HP < damage:
+                # We can loose a limb isntead of dying.
+                if self.severLimb(limb):
+                    return
+
+            # TODO: Second chance.
+            #       Life saving.
+
             self.HP -= damage
             self.checkDeath()
         else:
@@ -1350,7 +1606,7 @@ class Mob(Entity):
             if not self.hasFlag('AVATAR'):
                 toDrop = libtcod.random_get_int(0, 0, len(self.inventory) - 1)
             else:
-                toDrop = ui.option_menu("What do you want to drop?", self.inventory)
+                toDrop = ui.option_menu("Drop what?", self.inventory)
 
             if toDrop == None:
                 return False
@@ -1464,7 +1720,7 @@ class Mob(Entity):
                     ui.render_all(self)
                     return True
                 else:
-                    item = ui.option_menu("What do you want to equip:", options)
+                    item = ui.option_menu("Equip what?", options)
 
                     if item == None:
                         return True
@@ -1602,7 +1858,7 @@ class Mob(Entity):
             if not self.hasFlag('AVATAR'):
                 return False
 
-            toPick = ui.option_menu("What do you want to pick up?", options)
+            toPick = ui.option_menu("Pick up what?", options)
 
             if toPick == None:
                 return False
@@ -1693,17 +1949,22 @@ class Mob(Entity):
 
 class Item(Entity):
     def __init__(self, x, y, char, color, name, material, size, BlockMove, #These are base Entity arguments.
-                 attack, ranged, DV, PV, addFlags):
+                 attack, ranged, DV, PV, StrScaling, DexScaling, addFlags):
         super(Item, self).__init__(x, y, char, color, name, material, size, BlockMove)
 
         self.attack = attack
         self.ranged = ranged
         self.DefenseValue = DV
         self.ProtectionValue = PV
+        self.StrScaling = StrScaling
+        self.DexScaling = DexScaling
 
         self.flags.append('ITEM')
         for i in addFlags:
             self.flags.append(i)
+
+        self.acc = 0 # This is not same as ToHitBonus from self.attack, this is used
+                     # for general accuracy bonus for all attacks, eg. from armor.
 
     def getName(self, capitalize = False, full = False):
         name = self.name
@@ -1721,6 +1982,7 @@ class Item(Entity):
                 name = str(self.enchantment) + ' ' + name
             else:
                 name = '+' + str(self.enchantment) + ' ' + name
+
             # BUC:
             if self.beautitude > 1:
                 name = "holy " + name
@@ -1751,7 +2013,6 @@ class Item(Entity):
             except:
                 DamageBonus = raw.DummyAttack['DamageBonus']
 
-            # TODO:
             if ToHitBonus > 0:
                 acc = "+" + str(ToHitBonus) + ", "
             elif ToHitBonus < 0:
@@ -1783,7 +2044,12 @@ class Item(Entity):
             else:
                 defense = ""
 
-            name = name + attack + defense
+            if self.hasFlag('WEAPON') or self.hasFlag('SHIELD'):
+                scaling = " {%s, %s}" % (self.StrScaling, self.DexScaling)
+            else:
+                scaling = ""
+
+            name = name + attack + defense + scaling
 
         if capitalize == True:
             name = name.capitalize()
@@ -1813,6 +2079,23 @@ class Item(Entity):
             PV += self.enchantment
         return PV
 
+    def getSPCost(self):
+        base = 5
+
+        # Str Scaling:
+        Str = ((raw.Scaling[self.StrScaling] * 100) + 50) / 125
+        base *= Str
+
+        # Dex Scaling:
+        Dex = 125 / ((raw.Scaling[self.DexScaling] * 100) + 50)
+        base *= Dex
+
+        return max(1, int(math.floor(base)))
+
+    def getMPCost(self):
+        # TODO: For magical weapons and shields blocking magic.
+        pass
+
     def beEaten(self, Eater):
         # return if too full
         if self.hasFlag('POTION'):
@@ -1832,7 +2115,8 @@ class Item(Entity):
 
 class BodyPart(Entity):
     def __init__(self, name, #These are base Entity arguments.
-                 mob, cover, place, size, eyes, attack, addFlags, material = None):
+                 mob, cover, place, size, eyes, attack, StrScaling, DexScaling,
+                 addFlags, material = None):
         x = mob.x
         y = mob.y
         char = '~'
@@ -1847,19 +2131,21 @@ class BodyPart(Entity):
 
         super(BodyPart, self).__init__(x, y, char, color, name, material, size)
 
-        self.flags.append('ITEM')
+        #self.flags.append('ITEM')
         self.flags.append('BODY_PART')
         for i in addFlags:
             self.flags.append(i)
 
         self.attack = attack
+        self.StrScaling = StrScaling
+        self.DexScaling = DexScaling
         self.cover = cover
         self.placement = place
         self.eyes = eyes
 
         self.wounded = False
 
-    def getName(self, capitalize = False, full = True):
+    def getName(self, capitalize = False, full = False):
         name = self.name
 
         # Size:
@@ -1874,15 +2160,39 @@ class BodyPart(Entity):
         if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('OTHER'):
             name = 'other ' + name
 
-        #if self.hasFlag('ARM') and self.hasFlag('MAIN'):
-        #    name = name + '*'
+        if full == True:
+        #    if self.hasFlag('ARM') and self.hasFlag('MAIN'):
+        #        name = name + '*'
 
-        if self.wounded == True:
-            name = 'wounded ' + name
+            # Wounds:
+            if self.wounded:
+                name = 'wounded ' + name
 
-        #if full == True:
+            # While severed:
+            if self.hasFlag('ITEM'):
+                # Enchantment:
+                if self.enchantment < 0:
+                    name = str(self.enchantment) + ' ' + name
+                else:
+                    name = '+' + str(self.enchantment) + ' ' + name
+
+                # Beautitude:
+                if self.beautitude > 1:
+                    name = "holy " + name
+                elif self.beautitude == 1:
+                    name = "blessed " + name
+                elif self.beautitude == 0:
+                    name = "uncursed " + name
+                elif self.beautitude == -1:
+                    name = "cursed " + name
+                elif self.beautitude < -1:
+                    name = "doomed " + name
+
+                name = self.prefix + " " + name
+
         #    if len(self.inventory) > 0:
         #        name = name + self.inventory[0].getName()
+
 
         if capitalize == True:
             name = name.capitalize()
