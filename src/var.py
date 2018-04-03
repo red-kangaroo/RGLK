@@ -129,7 +129,7 @@ FloorMaxNumber = 25 # Depths of the dungeon.
 
 # TODO: Should depend on dungeon level.
 MonsterMaxNumber = 10
-ItemMaxNumber = 10
+ItemMaxNumber = 20
 
 TurnCount = 0
 DungeonLevel = 1 # Starting level of the player.

@@ -76,6 +76,9 @@ SHIELD
 ARMOR
 
 2H_OK              Can be equipped along with 2H weapon.
+ENCHANT_DODGE
+ENCHANT_PROTECTION Enchantment increases PV, even on non-armor.
+ENCHANT_DOUBLE
 
 Body
 ====
@@ -126,6 +129,7 @@ CAN_BE_OPENED      Can have actionOpen applied to self.
 CAN_BE_CLOSED      Can have actionClose applied to self.
 *CAN_BE_DUG
 *CAN_BE_BURNED      Fire damage may transform them into ash pile.
+CAN_BE_CLIMBED
 *CAN_BE_MELTED      Fire damage may transform them into water square.
 *CAN_BE_KICKED      Destroy with actionKick.
 *LOCKED

@@ -275,6 +275,12 @@ def equip_menu(bodyparts):
     y = 3
     for part in bodyparts:
         text = chr(index) + ') ' + part.getName() + ':'
+
+        if part.wounded:
+            libtcod.console_set_default_foreground(var.MenuPanel, libtcod.light_red)
+        else:
+            libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
         libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
                                  text)
         index += 1
@@ -285,7 +291,7 @@ def equip_menu(bodyparts):
         if len(part.inventory) == 0:
             text = ""
         else:
-            text = part.inventory[0].getName()
+            text = part.inventory[0].getName(full = True)
 
         libtcod.console_print_ex(var.MenuPanel, 20, y, libtcod.BKGND_SET, libtcod.LEFT,
                                  text)

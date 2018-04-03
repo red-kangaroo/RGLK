@@ -78,7 +78,7 @@ def getAICommand(Mob):
                     Mob.target = None
                     return
 
-            if Target.hasFlag('ITEM') and Mob.hasFlag('AI_SCAVENGER'):
+            if Target.hasFlag('ITEM') and aiPickEquipment(Mob, Target):
                 if Mob.x == Target.x and Mob.y == Target.y:
                     Mob.actionPickUp(Mob.x, Mob.y, True)
 
@@ -94,6 +94,12 @@ def getAICommand(Mob):
                     if aiMoveBase(Mob, Target.x, Target.y) == False:
                         Mob.actionWait()
                     return
+
+        if var.rand_chance(15):
+            if aiCheckInventory(Mob):
+                return
+
+        aiCheckSquare(Mob)
 
         if Mob.goal != None:
             if aiMoveBase(Mob, Mob.goal[0], Mob.goal[1]) == True:
@@ -112,6 +118,8 @@ def getAICommand(Mob):
 
                         if Mob.actionInteract(where) == True:
                             return
+            elif aiCheckInventory(Mob):
+                return
 
         # We can't seem to be able to do anything, so find other target.
         aiWander(Mob)
@@ -686,7 +694,7 @@ def aiFindTarget(Mob):
                     Mob.target = Target
                     break
         elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-            if Mob.hasFlag('AI_SCAVENGER') and not (len(Mob.inventory) >= Mob.carry):
+            if Mob.hasFlag('AI_SCAVENGER'):
                 if not Mob.isBlocked(i.x, i.y, var.DungeonLevel): # We cannot pick up boulders...
                     Target = i
                     Mob.goal = [i.x, i.y]
@@ -829,13 +837,59 @@ def aiMoveDijkstra(Me, Target):
     libtcod.dijkstra_delete(path)
     return moved
 
-def aiCheckInventory(Me):
-    pass
-    # Pick best items from inventory to use.
+def aiCheckSquare(Me):
+    for i in var.Entities[var.DungeonLevel]:
+        if i.hasFlag('ITEM') and i.x == Me.x and i.y == Me.y:
+            if aiPickEquipment(Me, i):
+                Me.target = i
+                Me.goal = [i.x, i.y]
+                return
 
-def aiPickEquipment(Me):
-    pass
-    # Do we want to pick up this item to equip?
+def aiCheckInventory(Me):
+    # Pick best items from inventory to use.
+    if len(Me.inventory) == 0:
+        return False
+
+    Me.actionAutoEquip()
+    return True
+
+def aiPickEquipment(Me, item):
+    # Do we want to pick up this item?
+    if not item.hasFlag('ITEM'):
+        return False
+    if len(Me.inventory) >= Me.carry:
+        return False
+
+    if Me.hasFlag('AI_SCAVENGER'):
+        return True
+
+    slot = item.getSlot()
+    mySlots = 0
+    myItems = []
+
+    for part in Me.bodyparts:
+        if part.getSlot() == slot:
+            mySlots += 1
+
+            if len(part.inventory) == 0:
+                if part.hasFlag('GRASP'):
+                    myItems.append(part)
+            else:
+                for equip in part.inventory:
+                    myItems.append(equip)
+
+    if mySlots > 0:
+        if len(myItems) == 0:
+            return True
+
+        while mySlots > 0:
+            for equip in myItems:
+                if item.getCoolness() > equip.getCoolness():
+                    return True
+
+            mySlots -= 1
+    else:
+        return False
 
 def aiSidestep(Me, Target):
     # We want to sometimes sidestep player to allow others to join us.

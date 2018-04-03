@@ -5,10 +5,11 @@ Fixes
 * pain
 * damage resistance (PV etc.)
 * intrinsics
-* climbing trees
 * multiple FOVMaps (forestry, clairvoyance)
 * AI for picking up and equipping
-* item accuracyBonus, chargesinan
+* item chargesinan
+* Skills:
+   Large Weapons decreases SP cost!
 
 
 BSPDungeon:

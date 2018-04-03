@@ -214,12 +214,14 @@ DummyItem = {
 'size': -1,
 'attack': NonWeapon,
 'ranged': MisThrown,
+'accuracy': 0,             # This is not normal to hit, but a general bonus.
 'StrScaling': 'F',
 'DexScaling': 'F',
 'DV': 0,
 'PV': 0,
 'intrinsics': [],
 'flags': [],
+'coolness': 0,
 'frequency': 100
 }
 
@@ -234,6 +236,30 @@ Cudgel = {
 'DexScaling': 'C',
 'attack': Club,
 'ranged': ClubThrown,
+'flags': ['MELEE', 'WEAPON']
+}
+
+Mace = {
+'char': ')',
+'color': libtcod.darker_grey,
+'name': 'mace',
+'material': 'IRON',
+'size': 0,
+'StrScaling': 'B',
+'DexScaling': 'D',
+'attack': MaceAttack,
+'flags': ['MELEE', 'WEAPON']
+}
+
+WarHammer = {
+'char': ')',
+'color': libtcod.darker_grey,
+'name': 'war hammer',
+'material': 'IRON',
+'size': 1,
+'StrScaling': 'A',
+'DexScaling': 'D',
+'attack': Hammer,
 'flags': ['MELEE', 'WEAPON']
 }
 
@@ -279,7 +305,7 @@ Scimitar = {
 'color': libtcod.silver,
 'name': 'two-handed scimitar',
 'material': 'IRON',
-'size': 1,
+'size': 2,
 'StrScaling': 'S',
 'DexScaling': 'E',
 'attack': HugeSword,
@@ -301,17 +327,41 @@ Buckler = {
 'frequency': 30
 }
 
-TowerShield = {
+RoundShield = {
+'char': '[',
+'color': libtcod.darker_orange,
+'name': 'round shield',
+'material': 'WOOD',
+'size': -1,
+'attack': MediumShield,
+'StrScaling': 'B',
+'DexScaling': 'B',
+'flags': ['SHIELD']
+}
+
+KiteShield = {
 'char': '[',
 'color': libtcod.silver,
-'name': 'tower shield',
+'name': 'kite shield',
 'material': 'IRON',
+'size': 0,
+'attack': LargeShield,
+'StrScaling': 'A',
+'DexScaling': 'C',
+'flags': ['SHIELD']
+}
+
+TowerShield = {
+'char': '[',
+'color': libtcod.darker_orange,
+'name': 'tower shield',
+'material': 'WOOD',
 'size': 2,
 'attack': HugeShield,
 'StrScaling': 'S',
 'DexScaling': 'D',
 'flags': ['SHIELD'],
-'frequency': 30
+'frequency': 70
 }
 
 # Headgear:
@@ -323,10 +373,133 @@ Bandana = {
 'DV': 1,
 'size': -2,
 'flags': ['HEAD', 'ARMOR'],
-'frequency': 50
+'frequency': 90
+}
+
+Helm = {
+'char': '-',
+'color': libtcod.silver,
+'name': 'helmet',
+'material': 'IRON',
+'PV': 1,
+'size': -2,
+'flags': ['HEAD', 'ARMOR']
+}
+
+FullHelm = {
+'char': '-',
+'color': libtcod.silver,
+'name': 'full helmet',
+'material': 'IRON',
+'DV': -1,
+'PV': 3,
+'size': -2,
+'flags': ['HEAD', 'ARMOR']
 }
 
 # Armor:
+LeatherArmor = {
+'char': ']',
+'color': libtcod.darker_orange,
+'name': 'boiled leather cuirass',
+'material': 'LEATHER',
+'size': 0,
+'DV': -1,
+'PV': 2,
+'flags': ['TORSO', 'ARMOR']
+}
+
+StuddedArmor = {
+'char': ']',
+'color': libtcod.darker_orange,
+'name': 'studded leather cuirass',
+'material': 'IRON',
+'size': 0,
+'DV': -2,
+'PV': 3,
+'flags': ['TORSO', 'ARMOR']
+}
+
+ChainArmor = {
+'char': ']',
+'color': libtcod.silver,
+'name': 'chain mail',
+'material': 'IRON',
+'size': 0,
+'DV': -3,
+'PV': 5,
+'flags': ['TORSO', 'ARMOR']
+}
+
+ScaleArmor = {
+'char': ']',
+'color': libtcod.silver,
+'name': 'scale mail',
+'material': 'IRON',
+'size': 0,
+'DV': -4,
+'PV': 7,
+'flags': ['TORSO', 'ARMOR']
+}
+
+PlateArmor = {
+'char': ']',
+'color': libtcod.silver,
+'name': 'plate mail',
+'material': 'IRON',
+'size': 0,
+'DV': -5,
+'PV': 9,
+'flags': ['TORSO', 'ARMOR']
+}
+
+CrystalShard = {
+'char': ']',
+'color': libtcod.cyan,
+'name': 'crystal shard mail',
+'material': 'GLASS',
+'size': 0,
+'DV': -4,
+'PV': 8,
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 10
+}
+
+CrystalPlate = {
+'char': ']',
+'color': libtcod.cyan,
+'name': 'crystal plate mail',
+'material': 'GLASS',
+'size': 0,
+'DV': -5,
+'PV': 10,
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 10
+}
+
+GreenTunic = {
+'char': ']',
+'color': libtcod.dark_green,
+'name': 'green tunic',
+'material': 'CLOTH',
+'size': 0,
+'DV': 1,
+'PV': 0,
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 50
+}
+
+RedTunic = {
+'char': ']',
+'color': libtcod.dark_red,
+'name': 'red tunic',
+'material': 'CLOTH',
+'size': 0,
+'accuracy': 2,
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 50
+}
+
 BlackRobe = {
 'char': ']',
 'color': libtcod.darker_grey,
@@ -334,9 +507,9 @@ BlackRobe = {
 'material': 'CLOTH',
 'size': 0,
 'DV': 0,
-'PV': 10,
+'PV': 0,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 50
+'frequency': 30
 }
 
 BrownRobe = {
@@ -346,9 +519,9 @@ BrownRobe = {
 'material': 'CLOTH',
 'size': 0,
 'DV': 0,
-'PV': 1,
+'PV': 0,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 50
+'frequency': 30
 }
 
 WhiteRobe = {
@@ -357,10 +530,10 @@ WhiteRobe = {
 'name': 'white robe',
 'material': 'CLOTH',
 'size': 0,
-'DV': 1,
+'DV': 0,
 'PV': 0,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 50
+'frequency': 30
 }
 
 BlueDress = {
@@ -384,8 +557,18 @@ Belt = {
 'size': -1,
 'DV': 0,
 'PV': 1,
-'flags': ['GROIN', 'ARMOR'],
-'frequency': 50
+'flags': ['GROIN', 'ARMOR']
+}
+
+Girdle = {
+'char': '-',
+'color': libtcod.silver,
+'name': 'iron girdle',
+'material': 'IRON',
+'size': -1,
+'DV': -1,
+'PV': 3,
+'flags': ['GROIN', 'ARMOR']
 }
 
 # General:
@@ -395,7 +578,7 @@ GoldPiece = {
 'name': 'gold nugget',
 'material': 'GOLD',
 'size': -2,
-'frequency': 30
+'frequency': 5
 }
 
 Berry = {
@@ -486,6 +669,7 @@ DummyMonster = {
 'size': 0,
 'diet': ['FLESH', 'WATER'],
 'intrinsics': [],
+'inventory': [],
 'flags': ['HUMANOID'],
 'frequency': 100
 }
@@ -503,6 +687,7 @@ Player = {
 'sight': 6,
 'sex': 'MOF',
 'intrinsics': [],
+'inventory': [Bandana, ShortSword, RoundShield, GreenTunic, Belt],
 'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
 }
@@ -551,6 +736,7 @@ Orc = {
 'Wit': 0,
 'Ego': 0,
 'sex': 'MOF',
+'inventory': [ShortSword, RoundShield, LeatherArmor],
 'flags': ['HUMANOID']
 }
 
@@ -971,18 +1157,18 @@ LeafyTree = {
 'char': chr(5), # Ie. ♣
 'color': libtcod.dark_green,
 'name': 'tree',
-'BlockMove': True, # TODO: Or maybe False?
+'BlockMove': True,
 'BlockSight': True,
-'flags': ['CAN_BE_BURNED', 'PLANT']
+'flags': ['CAN_BE_BURNED', 'CAN_BE_CLIMBED', 'PLANT']
 }
 
 ConifTree = {   # Coniferous tree
 'char': chr(6), # Ie. ♠
 'color': libtcod.darker_green,
 'name': 'tree',
-'BlockMove': True, # TODO: Or maybe False?
+'BlockMove': True,
 'BlockSight': True,
-'flags': ['CAN_BE_BURNED', 'PLANT']
+'flags': ['CAN_BE_BURNED', 'CAN_BE_CLIMBED', 'PLANT']
 }
 
 Vines = {
@@ -1346,20 +1532,38 @@ Scaling = {
 ItemList = [
 # Weapons:
 Cudgel,
+Mace,
+WarHammer,
 ShortSword,
 LongSword,
 GreatSword,
 Scimitar,
 # Shields:
 Buckler,
+RoundShield,
+KiteShield,
 TowerShield,
-# Armor:
+# Headgear:
 Bandana,
+Helm,
+FullHelm,
+# Body armor:
+LeatherArmor,
+StuddedArmor,
+ChainArmor,
+ScaleArmor,
+PlateArmor,
+CrystalShard,
+CrystalPlate,
+GreenTunic,
+RedTunic,
 BlackRobe,
 BrownRobe,
 WhiteRobe,
 BlueDress,
+# Belts:
 Belt,
+Girdle,
 # Other:
 GoldPiece,
 Berry,
