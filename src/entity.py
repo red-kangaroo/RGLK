@@ -154,6 +154,9 @@ def spawn(x, y, BluePrint, type):
         except:
             addIntrinsics = []
 
+        if not material in raw.MaterialsList:
+            print "Warning: %s is unhandled material." % material
+
         New = Item(x, y, char, color, name, material, size, BlockMove,
                    attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags)
 
@@ -427,6 +430,7 @@ class Mob(Entity):
 
             self.bodyparts.append(New)
 
+        handNo = 0
         armNo = 0
         legNo = 0
         wingNo = 0
@@ -435,10 +439,20 @@ class Mob(Entity):
         for part in self.bodyparts:
             eyeNo += part.eyes
 
-            if part.hasFlag('ARM'):
-                if armNo == 0:
+            if part.hasFlag('HAND'):
+                if handNo == 0:
                     part.flags.append('RIGHT')
                     part.flags.append('MAIN') # TODO: Left-handedness.
+                    handNo += 1
+                elif handNo == 1:
+                    part.flags.append('LEFT')
+                    handNo += 1
+                else:
+                    part.flags.append('OTHER')
+                    handNo += 1
+            elif part.hasFlag('ARM'):
+                if armNo == 0:
+                    part.flags.append('RIGHT')
                     armNo += 1
                 elif armNo == 1:
                     part.flags.append('LEFT')
@@ -473,17 +487,24 @@ class Mob(Entity):
         self.baseEyes = eyeNo
 
     def gainMutation(self):
-        # TODO
+        # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         for i in self.flags:
             if i in raw.MutationTypes:
                 if i == 'MUTATION_CLAWS':
                     for part in self.bodyparts:
-                        if part.hasFlag('ARM'):
+                        if part.hasFlag('HAND'):
                             part.attack = raw.Claw
                 elif i == 'MUTATION_LARGE_CLAWS':
                     for part in self.bodyparts:
-                        if part.hasFlag('ARM'):
+                        if part.hasFlag('HAND'):
                             part.attack = raw.LargeClaw
+
+    def recalculateAll(self):
+        self.recalculateFOV()
+        self.recalculateHealth()
+        self.recalculateMana()
+        self.recalculateStamina()
+        self.recalculateCarryingCapacity()
 
     def recalculateFOV(self):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
@@ -704,12 +725,23 @@ class Mob(Entity):
         for item in limb.inventory:
             PV += item.getProtectionValue()
 
-        # Body armor gives us half its PV for all other body parts.
+        # Some ther limbs may help with our PV.
         if not limb.hasFlag('TORSO'):
-            for part in self.bodyparts:
-                if part.hasFlag('TORSO'):
-                    for item in part.inventory:
-                        PV += (item.getProtectionValue() / 2)
+            if limb.hasFlag('HAND'):
+                # Hands get full PV of worn gloves.
+                flag = limb.getPlacement()
+
+                for part in self.bodyparts:
+                    if part.hasFlag('ARM') and part.hasFlag(flag):
+                        for item in part.inventory:
+                            PV += item.getProtectionValue()
+                        break
+            else:
+                # Body armor gives us half its PV to all other body parts.
+                for part in self.bodyparts:
+                    if part.hasFlag('TORSO'):
+                        for item in part.inventory:
+                            PV += (item.getProtectionValue() / 2)
 
         # TODO: Magic items.
 
@@ -857,11 +889,12 @@ class Mob(Entity):
 
         return resisted
 
-    def severLimb(self, limb = None):
+    def severLimb(self, limb = None, silent = False):
         if limb == None:
             limb = self.getLimbToHit()
 
         if not self.hasFlag('AVATAR') and not self.hasFlag('AI_FLEE'):
+            # TODO: Panic?
             self.flags.append('AI_FLEE')
 
         if limb.hasFlag('CANNOT_SEVER'):
@@ -875,8 +908,18 @@ class Mob(Entity):
             item.y = self.y
             var.Entities[var.DungeonLevel].append(item)
 
+        # We need to sever the hand as well when we are severing the arm.
+        # TODO: Make this work better with mutliple arms.
+        if limb.hasFlag('ARM'):
+            flag = limb.getPlacement()
+
+            for part in self.bodyparts:
+                if part.hasFlag('HAND') and part.hasFlag(flag):
+                    self.severLimb(part, True)
+                    break
+
         # TODO:
-        # Some item types destroy limbs.
+        #  Some damage types destroy limbs.
         #  Eyes on head etc.
         #  Bleeding.
 
@@ -892,8 +935,9 @@ class Mob(Entity):
         limb.y = self.y
         var.Entities[var.DungeonLevel].append(limb)
 
-        ui.message("%s %s is severed!" % (self.getName(True, possessive = True), limb.getName()),
-                   libtcod.red, self)
+        if not silent:
+            ui.message("%s %s is severed!" % (self.getName(True, possessive = True), limb.getName()),
+                       libtcod.red, self)
 
         if limb.hasFlag('VITAL'):
             self.checkDeath(True)
@@ -1084,6 +1128,9 @@ class Mob(Entity):
         else:
             return False
 
+    def canSense(self, Target):
+        pass
+
     def handleIntrinsics(self):
         pass
 
@@ -1233,17 +1280,14 @@ class Mob(Entity):
                     AttackFlags = raw.DummyAttack['flags']
 
                 # Try crits:
+                # TODO: Not sure where magical attacks will fall with this?
                 if weapon == None:
-                    toCrit = 10
+                    toCrit = 15
                 elif weapon.hasFlag('BODY_PART'):
-                    # TODO: Martial arts.
+                    # TODO: Martial arts should decrease this.
                     toCrit = 10
-                elif weapon.size < 0:
-                    toCrit = 4
-                elif weapon.size == 0:
-                    toCrit = 8
-                elif weapon.size > 0:
-                    toCrit = 12
+                else:
+                    toCrit = 8 + (2 * weapon.size)
 
                 # Attacker crits less often with defensive tactics:
                 if attacker.tactics:
@@ -1252,7 +1296,7 @@ class Mob(Entity):
                 CritNo = int(math.floor((toHit - toDodge) / toCrit))
 
                 if CritNo > 0:
-                    print "crit: +%s" % CritNo
+                    print "to crit: %s, crits: +%s" % (toCrit, CritNo)
                     DiceNumber += CritNo
                     howWell = "critically "
                     color = libtcod.yellow
@@ -1319,8 +1363,8 @@ class Mob(Entity):
         #       Limb wounds, pain.
         #       Armor-piercing crits.
 
-        if DamageType == None:
-            print "Unknown damage type: None"
+        if not DamageType in raw.DamageTypeList:
+            print "Unknown damage type: %s" % DamageType
             return
 
         if DamageType in ['BLUNT', 'SLASH', 'PIERCE']:
@@ -1330,6 +1374,7 @@ class Mob(Entity):
 
         # TODO: Modifiers.
         #       Different materials.
+        #       Damage type effects.
 
         # Wound the limb:
         if var.rand_chance(damage):
@@ -1429,52 +1474,81 @@ class Mob(Entity):
             return False
 
         # Get all useable body parts:
-        armNo = 0
+        handNo = 0
         legNo = 0
         for i in self.bodyparts:
-            if i.hasFlag('ARM'):
-                armNo += 1
+            if i.hasFlag('HAND'):
+                handNo += 1
             elif i.hasFlag('LEG'):
                 legNo += 1
 
         # TODO: This does not work well!
-        attacks = []
+        primaryAttacks = []
+        secondaryAttacks = []
+        tertiaryAttacks = []
+
         weapons = False
+
         for i in self.bodyparts:
             if i.hasFlag('GRASP'):
                 if len(i.inventory) > 0:
                     for n in i.inventory: # If this produces more than one weapon, we have a bug in equipping.
                         if not n.hasFlag('SHIELD'):
-                            attacks.append(n)
+                            primaryAttacks.append(n)
                         weapons = True
-            if i.hasFlag('ARM') and weapons == False:
-                # You attack unarmed only if you are wielding no weapons.
-                attacks.append(i)
-            elif (i.hasFlag('LEG') and (self.hasFlag('USE_LEGS') or armNo == 0)):
-                attacks.append(i)
-            elif (i.hasFlag('HEAD') and (self.hasFlag('USE_HEAD') or
-                  (armNo == 0 and legNo == 0))):
-                attacks.append(i)
-            elif ((i.hasFlag('TAIL') or i.hasFlag('WING')) and self.hasFlag('USE_NATURAL')):
-                attacks.append(i)
 
-        # If we found no attacks, we will use the first available.
-        if len(attacks) == 0:
-            for i in reversed(self.bodyparts):
-                attacks.append(i)
-                break
+            if i.hasFlag('HAND'):
+                if weapons == False:
+                    # You attack unarmed only if you are wielding no weapons.
+                    primaryAttacks.append(i)
+                else:
+                    secondaryAttacks.append(i)
+
+            elif i.hasFlag('LEG'):
+                if self.hasFlag('USE_LEGS') or handNo == 0:
+                    primaryAttacks.append(i)
+                else:
+                    secondaryAttacks.append(i)
+
+                # TODO: Kicking with boots.
+
+            elif i.hasFlag('HEAD'):
+                if self.hasFlag('USE_HEAD') or (handNo == 0 and legNo == 0):
+                    primaryAttacks.append(i)
+                else:
+                    tertiaryAttacks.append(i)
+
+            elif i.hasFlag('TAIL') or i.hasFlag('WING'):
+                if self.hasFlag('USE_NATURAL'):
+                    primaryAttacks.append(i)
+                else:
+                    tertiaryAttacks.append(i)
+
+            else:
+                tertiaryAttacks.append(i)
+
+        # We will use the first available attack category.
+        attacks = None
+
+        if not len(primaryAttacks) == 0:
+            attacks = primaryAttacks
+        elif not len(secondaryAttacks) == 0:
+            attacks = secondaryAttacks
+        elif not len(tertiaryAttacks) == 0:
+            attacks = tertiaryAttacks
+        else:
+            ui.message("%s flail&S ineffectually at %s." % (self.getName(True), victim.getName()), actor = self)
+            self.AP -= self.getAttackAPCost()
+            return True
 
         # Get multiplier:
         multiplier = 1.0
 
-        if len(attacks) == 0:
-            victim.receiveAttack(self, None, multiplier)
-        else:
-            for i in attacks:
-                if victim.hasFlag('DEAD'):
-                    break
+        for i in attacks:
+            if victim.hasFlag('DEAD'):
+                break
 
-                victim.receiveAttack(self, i, multiplier)
+            victim.receiveAttack(self, i, multiplier)
 
         self.AP -= self.getAttackAPCost()
         # self.NP -= 5
@@ -2254,6 +2328,8 @@ class Item(Entity):
         Dex = 125 / ((raw.Scaling[self.DexScaling] * 100) + 50)
         base *= Dex
 
+        # TODO: Two-handers and TWO_AND_HALF.
+
         return max(1, int(math.floor(base)))
 
     def getMPCost(self):
@@ -2374,11 +2450,14 @@ class BodyPart(Entity):
         #name = size + ' ' + name
 
         # Right/left:
-        if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('RIGHT'):
+        if ((self.hasFlag('ARM') or self.hasFlag('HAND') or self.hasFlag('LEG'))
+            and self.hasFlag('RIGHT')):
             name = 'right ' + name
-        if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('LEFT'):
+        if ((self.hasFlag('ARM') or self.hasFlag('HAND') or self.hasFlag('LEG'))
+            and self.hasFlag('LEFT')):
             name = 'left ' + name
-        if (self.hasFlag('ARM') or self.hasFlag('LEG')) and self.hasFlag('OTHER'):
+        if ((self.hasFlag('ARM') or self.hasFlag('HAND') or self.hasFlag('LEG'))
+            and self.hasFlag('OTHER')):
             name = 'other ' + name
 
         if full == True:
@@ -2453,11 +2532,22 @@ class BodyPart(Entity):
     def getSlot(self):
         slot = None
         for i in self.flags:
-            if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG', 'WING', 'TAIL', 'GRASP']:
+            if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'HAND', 'LEG', 'WING', 'TAIL', 'GRASP']:
                 slot = i # Grasp must be last!
         return slot
 
+    def getPlacement(self):
+        slot = None
+        for i in self.flags:
+            if i in ['RIGHT', 'LEFT', 'OTHER']:
+                slot = i
+                break
+
+        return slot
+
     def doEquip(self, item):
+        # TODO: Two-handers.
+
         if len(self.inventory) > 0:
             return False
 
@@ -2476,6 +2566,8 @@ class BodyPart(Entity):
         return True
 
     def doDeEquip(self):
+        # TODO: Cursed stuff.
+
         if len(self.inventory) == 0:
             return None
         else:

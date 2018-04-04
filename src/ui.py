@@ -465,6 +465,11 @@ def grammar(text, actor = None):
         text = text.replace('&ISARE', 'is')
 
     if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&IY', 'y')
+    else:
+        text = text.replace('&IY', 'i')
+
+    if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&SUBJ', 'you')
     else:
         if actor.sex == 'MALE':

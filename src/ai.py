@@ -172,46 +172,82 @@ def handleKeys(Player):
         var.WizModeActivated = True
         return
 
-    # Walk through walls
-    if Key.vk == libtcod.KEY_F1:
-        var.WizModeNoClip = not var.WizModeNoClip
+    if var.WizModeActivated:
+        # Walk through walls
+        if Key.vk == libtcod.KEY_F1:
+            var.WizModeNoClip = not var.WizModeNoClip
 
-        if var.WizModeNoClip == True:
-            ui.message("Walking through walls activated.")
-        else:
-            ui.message("Walking through walls deactivated.")
-        return
+            if var.WizModeNoClip == True:
+                ui.message("Walking through walls activated.")
+            else:
+                ui.message("Walking through walls deactivated.")
+            return
 
-    # True sight
-    if Key.vk == libtcod.KEY_F2:
-        var.WizModeTrueSight = not var.WizModeTrueSight
+        # True sight
+        if Key.vk == libtcod.KEY_F2:
+            var.WizModeTrueSight = not var.WizModeTrueSight
 
-        if var.WizModeNoClip == True:
-            ui.message("True sight activated.")
-        else:
-            ui.message("True sight deactivated.")
-        return
+            if var.WizModeNoClip == True:
+                ui.message("True sight activated.")
+            else:
+                ui.message("True sight deactivated.")
+            return
 
-    # Instakill
-    if Key.vk == libtcod.KEY_F3:
-        for i in var.Entities[var.DungeonLevel]:
-            if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
-                i.receiveDamage(i.maxHP, i.getLimbToHit(), 'DEATH')
-        return
+        # Change character
+        if Key.vk == libtcod.KEY_F3:
+            options = [
+            "Raise stats",
+            "Lower stats",
+            "Detach limb",
+            "Create limb",
+            "Restore body",
+            "Gain all skills",
+            "Gain all intrinsics"
+            ]
 
-    # Create items
-    if Key.vk == libtcod.KEY_F4:
-        for i in raw.ItemList:
-            NewItem = entity.spawn(Player.x, Player.y, i, 'ITEM')
-            var.Entities[var.DungeonLevel].append(NewItem)
+            pass # TODO
+            return
 
-    # Regenerate map
-    if Key.vk == libtcod.KEY_F12:
-        # Heh heh, if I don't clear the console, it looks quite trippy after
-        # redrawing a new map over the old one.
-        libtcod.console_clear(var.MapConsole)
-        var.WizModeNewMap = True
-        return
+        # Create all items
+        if Key.vk == libtcod.KEY_F4:
+            for i in raw.ItemList:
+                NewItem = entity.spawn(Player.x, Player.y, i, 'ITEM')
+                var.Entities[var.DungeonLevel].append(NewItem)
+
+        # Summon creature
+        if Key.vk == libtcod.KEY_F5:
+            pass # TODO
+            return
+
+        # Possess
+        if Key.vk == libtcod.KEY_F6:
+            pass # TODO
+            return
+
+        # Polymorph self
+        if Key.vk == libtcod.KEY_F7:
+            pass # TODO
+            return
+
+        # Instakill all
+        if Key.vk == libtcod.KEY_F8:
+            for i in var.Entities[var.DungeonLevel]:
+                if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
+                    i.receiveDamage(i.maxHP, i.getLimbToHit(), 'NECROTIC')
+            return
+
+        # Level teleport
+        if Key.vk == libtcod.KEY_F11:
+            pass # TODO
+            return
+
+        # Regenerate map
+        if Key.vk == libtcod.KEY_F12:
+            # Heh heh, if I don't clear the console, it looks quite trippy after
+            # redrawing a new map over the old one.
+            libtcod.console_clear(var.MapConsole)
+            var.WizModeNewMap = True
+            return
 
 
     # You can do some stuff even when dead:
@@ -396,7 +432,7 @@ def handleKeys(Player):
             return
 
 def askForDirection(Player):
-    ui.message("Select a direction. [dir keys; Esc to exit]")
+    ui.message("Select a direction. [dir keys; Esc to exit]", color = libtcod.chartreuse)
     ui.render_all(Player)
     while True:
         Key = libtcod.console_wait_for_keypress(True)
@@ -453,7 +489,7 @@ def askForDirection(Player):
             return [dx, dy, dz]
 
 def askForConfirmation(Player, prompt = "Really?"):
-    ui.message(prompt + " [Y/n]")
+    ui.message(prompt + " [Y/n]", color = libtcod.chartreuse)
     ui.render_all(Player)
     while True:
         Key = libtcod.console_wait_for_keypress(True)
@@ -467,7 +503,7 @@ def askForConfirmation(Player, prompt = "Really?"):
             return True
 
 def askForTarget(Player, prompt = "Select a target.", Range = None):
-    ui.message(prompt + " [dir keys; Enter or . to confirm; Esc to exit]")
+    ui.message(prompt + " [dir keys; Enter or . to confirm; Esc to exit]", color = libtcod.chartreuse)
     ui.render_all(Player)
 
     x = Player.x
@@ -600,7 +636,7 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
             return [x, y]
 
 def waitForMore(Player):
-    ui.message("Press Enter, Space or Esc for more.", color = libtcod.yellow)
+    ui.message("Press Enter, Space or Esc for more.", color = libtcod.chartreuse)
     ui.render_all(Player)
 
     while True:

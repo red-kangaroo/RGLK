@@ -12,12 +12,12 @@ BLUNT
 SLASH
 PIERCE
 
-RESIST_PHYSICAL
-RESIST_METAL
+*RESIST_PHYSICAL
+*RESIST_METAL
 
 General:
-NATURAL
-UNARMED            No limit for Str bonus to damage.
+*NATURAL            Always used when multiweaponing.
+*UNARMED            No limit for Str bonus to damage.
 
 
 Entity
@@ -65,8 +65,8 @@ Items
 
 Generation:
   These flags are removed at item generation, setting object properties.
-*ALWAYS_BLESSED
-*ALWAYS_CURSED
+ALWAYS_BLESSED
+ALWAYS_CURSED
 
 MELEE
 RANGED
@@ -75,10 +75,12 @@ WEAPON
 SHIELD
 ARMOR
 
-2H_OK              Can be equipped along with 2H weapon.
+TWO_HAND_OK        Can be equipped along with 2H weapon.
 ENCHANT_DODGE
 ENCHANT_PROTECTION Enchantment increases PV, even on non-armor.
 ENCHANT_DOUBLE
+TWO_AND_HALF       Can be used two-handed even when not large, gaining less SP cost.
+PAIRED
 
 Body
 ====
@@ -94,6 +96,7 @@ HEAD
 TORSO
 GROIN
 ARM
+HAND
 LEG
 WING
 TAIL
@@ -101,6 +104,7 @@ TAIL
 Special:
 GRASP
 VITAL
+CANNOT_SEVER
 
 
 Dungeon

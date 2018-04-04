@@ -108,6 +108,12 @@ Hammer = {
 'DiceValue': 4
 }
 
+WoodStaff = {
+'verb': 'strike&S',
+'DiceNumber': 2,
+'DiceValue': 2
+}
+
 SmallSword = {
 'verb': 'slash&ES',
 'ToHitBonus': 1,
@@ -211,7 +217,7 @@ DummyItem = {
 'name': 'BUG: dummy item',
 'BlockMove': False,
 'material': 'STONE',
-'size': -1,
+'size': 0,
 'attack': NonWeapon,
 'ranged': MisThrown,
 'accuracy': 0,             # This is not normal to hit, but a general bonus.
@@ -227,7 +233,7 @@ DummyItem = {
 
 # Weapons:
 Cudgel = {
-'char': ')',
+'char': '\\',
 'color': libtcod.darkest_orange,
 'name': 'cudgel',
 'material': 'WOOD',
@@ -240,19 +246,19 @@ Cudgel = {
 }
 
 Mace = {
-'char': ')',
-'color': libtcod.darker_grey,
+'char': '\\',
+'color': libtcod.silver,
 'name': 'mace',
 'material': 'IRON',
 'size': 0,
 'StrScaling': 'B',
 'DexScaling': 'D',
 'attack': MaceAttack,
-'flags': ['MELEE', 'WEAPON']
+'flags': ['MELEE', 'WEAPON', 'TWO_AND_HALF']
 }
 
 WarHammer = {
-'char': ')',
+'char': '\\',
 'color': libtcod.darker_grey,
 'name': 'war hammer',
 'material': 'IRON',
@@ -261,6 +267,20 @@ WarHammer = {
 'DexScaling': 'D',
 'attack': Hammer,
 'flags': ['MELEE', 'WEAPON']
+}
+
+QuarterStaff = {
+'char': '|',
+'color': libtcod.darker_orange,
+'name': 'quarterstaff',
+'material': 'WOOD',
+'size': 1,
+'DV': 1,
+'StrScaling': 'B',
+'DexScaling': 'B',
+'attack': WoodStaff,
+'flags': ['MELEE', 'WEAPON', 'ENCHANT_DODGE'],
+'frequency': 20
 }
 
 ShortSword = {
@@ -285,7 +305,7 @@ LongSword = {
 'StrScaling': 'C',
 'DexScaling': 'C',
 'attack': MediumSword,
-'flags': ['MELEE', 'WEAPON']
+'flags': ['MELEE', 'WEAPON', 'TWO_AND_HALF']
 }
 
 GreatSword = {
@@ -319,11 +339,11 @@ Buckler = {
 'color': libtcod.silver,
 'name': 'buckler',
 'material': 'IRON',
-'size': -2,
+'size': -1,
 'attack': SmallShield,
 'StrScaling': 'C',
 'DexScaling': 'A',
-'flags': ['SHIELD', '2H_OK'],
+'flags': ['SHIELD', 'TWO_HAND_OK'],
 'frequency': 30
 }
 
@@ -372,8 +392,31 @@ Bandana = {
 'material': 'CLOTH',
 'DV': 1,
 'size': -2,
-'flags': ['HEAD', 'ARMOR'],
-'frequency': 90
+'flags': ['HEAD', 'ARMOR']
+}
+
+Crown = {
+'char': '-',
+'color': libtcod.yellow,
+'name': 'golden crown',
+'material': 'GOLD',
+'PV': 0,
+'DV': 0,
+'size': -2,
+'flags': ['HEAD', 'ARMOR', 'ENCHANT_DOUBLE'],
+'frequency': 20
+}
+
+Circlet = {
+'char': '-',
+'color': libtcod.white,
+'name': 'silver circlet',
+'material': 'SILVER',
+'PV': 0,
+'DV': 0,
+'size': -2,
+'flags': ['HEAD', 'ARMOR', 'ENCHANT_DODGE'],
+'frequency': 20
 }
 
 Helm = {
@@ -394,7 +437,79 @@ FullHelm = {
 'DV': -1,
 'PV': 3,
 'size': -2,
+'flags': ['HEAD', 'ARMOR'],
+'frequency': 80
+}
+
+Skullcap = {
+'char': '-',
+'color': libtcod.darker_orange,
+'name': 'skullcap',
+'material': 'LEATHER',
+'accuracy': 1,
+'size': -2,
 'flags': ['HEAD', 'ARMOR']
+}
+
+# Handwear:
+Glove = {
+'char': '(',
+'color': libtcod.darker_orange,
+'name': 'leather glove',
+'material': 'LEATHER',
+'size': -2,
+'DV': 0,
+'PV': 1,
+'flags': ['ARM', 'ARMOR', 'PAIRED'],
+'frequency': 80
+}
+
+Gauntlet = {
+'char': '(',
+'color': libtcod.silver,
+'name': 'iron gauntlet',
+'material': 'IRON',
+'size': -2,
+'DV': -1,
+'PV': 3,
+'flags': ['ARM', 'ARMOR', 'PAIRED'],
+'frequency': 70
+}
+
+Bracer = {
+'char': '(',
+'color': libtcod.silver,
+'name': 'iron bracer',
+'material': 'IRON',
+'size': -2,
+'DV': -2,
+'PV': 5,
+'flags': ['ARM', 'ARMOR', 'PAIRED'],
+'frequency': 50
+}
+
+Bracelet = {
+'char': '(',
+'color': libtcod.yellow,
+'name': 'golden bracelet',
+'material': 'GOLD',
+'size': -2,
+'DV': 0,
+'PV': 0,
+'flags': ['ARM', 'ARMOR', 'ENCHANT_DOUBLE'],
+'frequency': 20
+}
+
+ArmGuard = {
+'char': '(',
+'color': libtcod.darker_orange,
+'name': 'leather arm-guard',
+'material': 'LEATHER',
+'size': -2,
+'DV': 1,
+'PV': 0,
+'flags': ['ARM', 'ARMOR', 'PAIRED'],
+'frequency': 50
 }
 
 # Armor:
@@ -557,7 +672,8 @@ Belt = {
 'size': -1,
 'DV': 0,
 'PV': 1,
-'flags': ['GROIN', 'ARMOR']
+'flags': ['GROIN', 'ARMOR'],
+'frequency': 80
 }
 
 Girdle = {
@@ -568,7 +684,67 @@ Girdle = {
 'size': -1,
 'DV': -1,
 'PV': 3,
-'flags': ['GROIN', 'ARMOR']
+'flags': ['GROIN', 'ARMOR'],
+'frequency': 70
+}
+
+# Legwear:
+Sandal = {
+'char': '(',
+'color': libtcod.darker_orange,
+'name': 'sandal',
+'material': 'LEATHER',
+'size': -1,
+'DV': 1,
+'PV': 0,
+'flags': ['LEG', 'ARMOR', 'PAIRED']
+}
+
+LowBoot = {
+'char': '(',
+'color': libtcod.darker_orange,
+'name': 'low boot',
+'material': 'LEATHER',
+'size': -1,
+'DV': 0,
+'PV': 1,
+'flags': ['LEG', 'ARMOR', 'PAIRED']
+}
+
+HighBoot = {
+'char': '(',
+'color': libtcod.darker_orange,
+'name': 'high boot',
+'material': 'LEATHER',
+'size': -1,
+'DV': 0,
+'PV': 2,
+'flags': ['LEG', 'ARMOR', 'PAIRED'],
+'frequency': 70
+}
+
+Greave = {
+'char': '(',
+'color': libtcod.silver,
+'name': 'iron greave',
+'material': 'IRON',
+'size': -2,
+'DV': -1,
+'PV': 3,
+'flags': ['LEG', 'ARMOR', 'PAIRED'],
+'frequency': 90
+}
+
+Anklet = {
+'char': '(',
+'color': libtcod.white,
+'name': 'silver anklet',
+'material': 'SILVER',
+'size': -2,
+'DV': 0,
+'PV': 0,
+'flags': ['LEG', 'ARMOR', 'ENCHANT_DODGE'],
+'frequency': 20
 }
 
 # General:
@@ -679,7 +855,7 @@ Player = {
 'color': libtcod.white,
 'name': 'Player',
 'Str': 2,
-'Dex': 0,
+'Dex': 2,
 'End': 4,
 'Wit': 0,
 'Ego': 0,
@@ -687,7 +863,7 @@ Player = {
 'sight': 6,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [Bandana, ShortSword, RoundShield, GreenTunic, Belt],
+'inventory': [Bandana, ShortSword, RoundShield, GreenTunic, Belt, LowBoot, LowBoot],
 'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
 }
@@ -736,7 +912,7 @@ Orc = {
 'Wit': 0,
 'Ego': 0,
 'sex': 'MOF',
-'inventory': [ShortSword, RoundShield, LeatherArmor],
+'inventory': [ShortSword, RoundShield, LeatherArmor, LowBoot, LowBoot],
 'flags': ['HUMANOID']
 }
 
@@ -777,7 +953,7 @@ DummyPart = {
 
 Head = {
 'name': 'head',
-'cover': 50,
+'cover': 40,
 'place': 2,
 'size': -2,
 'eyes': 2,
@@ -795,7 +971,7 @@ Torso = {
 SlimeTorso = {
 'name': 'blob',
 'eyes': 1,
-'flags': ['TORSO', 'VITAL', 'GRASP', 'CANNOT_SEVER']
+'flags': ['TORSO', 'VITAL', 'CANNOT_SEVER', 'GRASP']
 }
 
 AlienTorso = {
@@ -811,7 +987,7 @@ AnimalTorso = {
 
 Groin = {
 'name': 'groin',
-'cover': 50,
+'cover': 40,
 'place': -1,
 'size': -1,
 'flags': ['GROIN', 'VITAL', 'CANNOT_SEVER']
@@ -819,14 +995,14 @@ Groin = {
 
 AnimalGroin = {
 'name': 'lower body',
-'cover': 60,
+'cover': 50,
 'size': -1,
 'flags': ['GROIN', 'VITAL', 'CANNOT_SEVER']
 }
 
 Tail = {
 'name': 'tail',
-'cover': 60,
+'cover': 50,
 'place': -1,
 'size': -1,
 'StrScaling': 'A',
@@ -837,7 +1013,7 @@ Tail = {
 
 PrehensiveTail = {
 'name': 'tail',
-'cover': 60,
+'cover': 40,
 'place': -1,
 'size': -1,
 'StrScaling': 'C',
@@ -846,25 +1022,48 @@ PrehensiveTail = {
 }
 
 Arm = {
-'name': 'hand',
-'cover': 80,
+'name': 'arm',
+'cover': 70,
 'place': 1,
 'size': -1,
-'attack': Punch,
-'flags': ['ARM', 'GRASP']
+'flags': ['ARM']
 }
 
 TentacleArm = {
 'name': 'tentacle',
-'cover': 90,
+'cover': 80,
 'place': 1,
 'attack': WhipAttack,
 'flags': ['ARM', 'GRASP']
 }
 
+Hand = {
+'name': 'hand',
+'cover': 40,
+'size': -2,
+'attack': Punch,
+'flags': ['HAND', 'GRASP']
+}
+
+SmallClaw = {
+'name': 'claw',
+'cover': 40,
+'size': -2,
+'attack': Claw,
+'flags': ['HAND', 'GRASP']
+}
+
+BigClaw = {
+'name': 'claw',
+'cover': 60,
+'size': -2,
+'attack': LargeClaw,
+'flags': ['HAND', 'GRASP']
+}
+
 Leg = {
 'name': 'leg',
-'cover': 90,
+'cover': 80,
 'place': -2,
 'size': -1,
 'StrScaling': 'A',
@@ -875,7 +1074,7 @@ Leg = {
 
 PegLeg = {
 'name': 'peg leg',
-'cover': 90,
+'cover': 80,
 'place': -2,
 'size': -1,
 'StrScaling': 'C',
@@ -887,6 +1086,7 @@ PegLeg = {
 
 TentacleLeg = {
 'name': 'tentacle',
+'cover': 90,
 'place': -2,
 'attack': Club,
 'flags': ['LEG']
@@ -894,7 +1094,7 @@ TentacleLeg = {
 
 Paw = {
 'name': 'paw',
-'cover': 90,
+'cover': 80,
 'place': -2,
 'size': -1,
 'attack': Claw,
@@ -1511,6 +1711,8 @@ Pillars3 = {
 
 # Lists must be last to have all stuff already defined.
 
+# General:
+# --------
 Sizes = {
 2: 'huge',
 1: 'large',
@@ -1529,10 +1731,39 @@ Scaling = {
 'F': 0.0
 }
 
+MaterialsList = [
+'BONE',
+'CLOTH',
+'FLESH',
+'GLASS',
+'GOLD',
+'IRON',
+'LEATHER',
+'PLANT',
+'SILVER',
+'STONE',
+'WOOD'
+]
+
+DamageTypeList = [
+'BLUNT',
+'SLASH',
+'PIERCE',
+'ACID',
+'FIRE',
+'COLD',
+'ELECTRIC',
+'NECROTIC',
+'POISON'
+]
+
+# Items:
+# ------
 ItemList = [
 # Weapons:
 Cudgel,
 Mace,
+QuarterStaff,
 WarHammer,
 ShortSword,
 LongSword,
@@ -1545,8 +1776,17 @@ KiteShield,
 TowerShield,
 # Headgear:
 Bandana,
+Crown,
+Circlet,
 Helm,
 FullHelm,
+Skullcap,
+# Handwear:
+Glove,
+Gauntlet,
+Bracer,
+Bracelet,
+ArmGuard,
 # Body armor:
 LeatherArmor,
 StuddedArmor,
@@ -1564,6 +1804,12 @@ BlueDress,
 # Belts:
 Belt,
 Girdle,
+# Legwear:
+Sandal,
+LowBoot,
+HighBoot,
+Greave,
+Anklet,
 # Other:
 GoldPiece,
 Berry,
@@ -1574,6 +1820,8 @@ Chest,
 #Bed
 ]
 
+# Monsters:
+# ---------
 MobList = [
 Kobold,
 KoboldWhelp,
@@ -1581,12 +1829,15 @@ Orc,
 Troll
 ]
 
-# Body type lists:
+# Body types:
+# -----------
 HumanoidList = [
 Head,
 Torso,
 Arm,
+Hand,
 Arm,
+Hand,
 Groin,
 Leg,
 Leg
@@ -1618,7 +1869,7 @@ AnimalTorso,
 Wing,
 Wing,
 AnimalGroin,
-Paw,
+Paw, # TODO: Talons?
 Paw
 ]
 
@@ -1639,6 +1890,8 @@ MutationTypes = [
 'MUTATION_LARGE_CLAWS'
 ]
 
+# Prefab rooms:
+# -------------
 RoomList = [
 Cages,
 Checkers,

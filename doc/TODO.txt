@@ -3,13 +3,15 @@ List of things to do and include:
 Fixes
 =====
 * pain
-* damage resistance (PV etc.)
 * intrinsics
 * multiple FOVMaps (forestry, clairvoyance)
-* AI for picking up and equipping
 * item chargesinan
 * Skills:
-   Large Weapons decreases SP cost!
+   Large Weapons decreases SP cost for missing,
+   Two-handers have less SP cost
+* better burden / carrying
+* checkDeath for WizMode
+* canSense()
 
 
 BSPDungeon:
