@@ -147,7 +147,7 @@ def handleKeys(Player):
             sys.exit("Game saved.")
             return
         elif what == 1: # Options
-            ui.message("This function is unfortunately not yet supported!", libtcod.yellow)
+            ui.message("This function is unfortunately not yet supported!", libtcod.chartreuse)
             return
         if what == 2: # Quit
             sys.exit("You cowardly quit the game.")
@@ -360,7 +360,7 @@ def handleKeys(Player):
 
         # Save game
         if (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('s'))):
-            ui.message("Saving...", libtcod.yellow)
+            ui.message("Saving...", libtcod.chartreuse)
             waitForMore(Player)
             game.save()
             sys.exit("Game saved.")

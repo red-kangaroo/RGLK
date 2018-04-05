@@ -96,11 +96,10 @@ def spawn(x, y, BluePrint, type):
 
             New.actionAutoEquip(False)
 
+        if New.hasFlag('AVATAR'):
+            New.givenName = 'Adventurer'
+
     elif type == 'ITEM':
-        #try:
-        #    attack = BluePrint['something']
-        #except:
-        #    attack = raw.DummyItem['something']
         try:
             material = BluePrint['material']
         except:
@@ -168,7 +167,7 @@ def spawn(x, y, BluePrint, type):
                 New.beautitude -= 1
 
         # And some items are enchanted:
-        mod = random.choice([-1, 1])
+        mod = random.choice([-1, 1, 1])
 
         while var.rand_chance(10):
             New.enchantment += mod
@@ -868,7 +867,7 @@ class Mob(Entity):
 
                 return damage
             else:
-                self.SP -= 1 # Trying to block is tirying anyway.
+                self.SP -= 1 # Trying to block is exhausting anyway.
                 print "Failed to block."
 
         return damage
@@ -1030,9 +1029,9 @@ class Mob(Entity):
                 name = self.givenName + ' the ' + name
 
             # Corpses:
-            if self.hasFlag('ITEM'):
-                # Enchantment:
-                if self.enchantment < 0:
+            if self.hasFlag('ITEM') and not self.hasFlag('AVATAR'): # Check for AVATAR here,
+                # Enchantment:                                      # or death screen will be
+                if self.enchantment < 0:                            # screwed.
                     name = str(self.enchantment) + ' ' + name
                 else:
                     name = '+' + str(self.enchantment) + ' ' + name
@@ -1350,11 +1349,11 @@ class Mob(Entity):
             SPcost = 2
 
         if didHit:
-            attacker.SP -= SPcost
+            attacker.SP -= max(1, SPcost)
             print "SP cost: %s" % SPcost
         else:
-            attacker.SP -= (SPcost / 2)
-            print "SP cost: %s" % (SPcost / 2)
+            attacker.SP -= max(1, (SPcost / 2))
+            print "SP cost: %s" % max(1, (SPcost / 2))
 
         print "-" * 10
 
@@ -1386,20 +1385,28 @@ class Mob(Entity):
             else:
                 limb.wounded = True
                 ui.message("%s %s is wounded." % (self.getName(True, possessive = True), limb.getName()),
-                           libtcod.dark_red, self)
+                           libtcod.light_red, self)
 
         # We might have alredy died here.
         if self.hasFlag('DEAD'):
             return
 
         if damage > 0:
+            # We get instakilled by enough damage.
+            # TODO: Maybe the AVATAR is extempt?
+            if damage >= (self.maxHP * 2):
+                self.HP == 0
+                self.checkDeath(True)
+                return
+
             if self.HP < damage:
-                # We can loose a limb isntead of dying.
+                # We can loose a limb instead of dying.
                 if self.severLimb(limb):
+                    # TODO: Maybe non-AVATAR creatures take more damage if no limb
+                    #       is severed?
                     return
 
             # TODO: Second chance.
-            #       Life saving.
 
             self.HP -= damage
             self.checkDeath()
@@ -1407,6 +1414,8 @@ class Mob(Entity):
             ui.message("%s &ISARE not hurt." % self.getName(True), actor = self)
 
     def checkDeath(self, forceDie = False):
+        # TODO: Life saving.
+
         if self.hasFlag('DEAD'):
             return True
 
@@ -1423,6 +1432,7 @@ class Mob(Entity):
             forceDie = True
 
         if forceDie:
+            # TODO: Special messages for different creatures and limbs lost.
             ui.message("%s die&S." % self.getName(True), libtcod.red, self)
 
             # Drop all equipped and carried items.
@@ -1438,6 +1448,7 @@ class Mob(Entity):
             self.flags.append('DEAD')
 
             if self.hasFlag('AVATAR'):
+                # TODO: WizMode can prevent death.
                 game.save() # No savescumming for you! (Unless you prepare for this, of course.)
                 ai.waitForMore(self)
                 var.WizModeTrueSight = True

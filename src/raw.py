@@ -114,9 +114,24 @@ WoodStaff = {
 'DiceValue': 2
 }
 
+KnifeAttack = {
+'verb': 'jab&S',
+'DiceNumber': 1,
+'DiceValue': 3,
+'DamageBonus': 1,
+'DamageType': 'SLASH'
+}
+
+DaggerAttack = {
+'verb': 'stab&S',
+'ToHitBonus': 1,
+'DiceNumber': 1,
+'DiceValue': 4,
+'DamageType': 'PIERCE'
+}
+
 SmallSword = {
 'verb': 'slash&ES',
-'ToHitBonus': 1,
 'DiceNumber': 1,
 'DiceValue': 6,
 'DamageType': 'SLASH'
@@ -153,7 +168,7 @@ SmallShield = {
 
 MediumShield = {
 'verb': 'bash&ES',
-'ToHitBonus': 2,
+'ToHitBonus': 1,
 'DiceNumber': 2,
 'DiceValue': 3
 }
@@ -182,9 +197,8 @@ WhipAttack = {
 BoulderRoll = {
 'verb': 'crush&ES',
 'ToHitBonus': -4,
-'DiceNumber': 1,
-'DiceValue': 10,
-'DamageBonus': 2
+'DiceNumber': 2,
+'DiceValue': 10
 }
 
 # Ranged attacks:
@@ -198,10 +212,31 @@ MisThrown = {
 }
 
 ClubThrown = {
-'verb': 'hit&S',
+'verb': 'strike&S',
 'DiceNumber': 1,
 'DiceValue': 4,
 'range': 4,
+'flags': ['RANGED']
+}
+
+KnifeThrown = {
+'verb': 'stab&S',
+'ToHitBonus': 3,
+'DiceNumber': 1,
+'DiceValue': 3,
+'DamageBonus': 2
+'range': 6,
+'DamageType': 'PIERCE',
+'flags': ['RANGED']
+}
+
+DaggerThrown = {
+'verb': 'stab&S',
+'ToHitBonus': 1,
+'DiceNumber': 1,
+'DiceValue': 4,
+'range': 5,
+'DamageType': 'PIERCE',
 'flags': ['RANGED']
 }
 
@@ -259,7 +294,7 @@ Mace = {
 
 WarHammer = {
 'char': '\\',
-'color': libtcod.darker_grey,
+'color': libtcod.dark_grey,
 'name': 'war hammer',
 'material': 'IRON',
 'size': 1,
@@ -281,6 +316,32 @@ QuarterStaff = {
 'attack': WoodStaff,
 'flags': ['MELEE', 'WEAPON', 'ENCHANT_DODGE'],
 'frequency': 20
+}
+
+Knife = {
+'char': ')',
+'color': libtcod.dark_grey,
+'name': 'knife',
+'material': 'IRON',
+'size': -2,
+'StrScaling': 'C',
+'DexScaling': 'A',
+'attack': KnifeAttack,
+'ranged': KnifeThrown,
+'flags': ['MELEE', 'WEAPON']
+}
+
+Dagger = {
+'char': ')',
+'color': libtcod.dark_grey,
+'name': 'dagger',
+'material': 'IRON',
+'size': -2,
+'StrScaling': 'D',
+'DexScaling': 'S',
+'attack': DaggerAttack,
+'ranged': DaggerThrown,
+'flags': ['MELEE', 'WEAPON']
 }
 
 ShortSword = {
@@ -395,6 +456,16 @@ Bandana = {
 'flags': ['HEAD', 'ARMOR']
 }
 
+Headband = {
+'char': '-',
+'color': libtcod.red,
+'name': 'headband',
+'material': 'CLOTH',
+'accuracy': 1,
+'size': -2,
+'flags': ['HEAD', 'ARMOR']
+}
+
 Crown = {
 'char': '-',
 'color': libtcod.yellow,
@@ -419,12 +490,22 @@ Circlet = {
 'frequency': 20
 }
 
+Skullcap = {
+'char': '-',
+'color': libtcod.darker_orange,
+'name': 'skullcap',
+'material': 'LEATHER',
+'PV': 1,
+'size': -2,
+'flags': ['HEAD', 'ARMOR']
+}
+
 Helm = {
 'char': '-',
 'color': libtcod.silver,
 'name': 'helmet',
 'material': 'IRON',
-'PV': 1,
+'PV': 2,
 'size': -2,
 'flags': ['HEAD', 'ARMOR']
 }
@@ -441,18 +522,20 @@ FullHelm = {
 'frequency': 80
 }
 
-Skullcap = {
+GreatHelm = {
 'char': '-',
-'color': libtcod.darker_orange,
-'name': 'skullcap',
-'material': 'LEATHER',
-'accuracy': 1,
+'color': libtcod.silver,
+'name': 'great helmet',
+'material': 'IRON',
+'DV': -2,
+'PV': 5,
 'size': -2,
-'flags': ['HEAD', 'ARMOR']
+'flags': ['HEAD', 'ARMOR'],
+'frequency': 60
 }
 
 # Handwear:
-Glove = {
+LeatherGlove = {
 'char': '(',
 'color': libtcod.darker_orange,
 'name': 'leather glove',
@@ -462,6 +545,17 @@ Glove = {
 'PV': 1,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
 'frequency': 80
+}
+
+BlackGlove = {
+'char': '(',
+'color': libtcod.darker_grey,
+'name': 'black glove',
+'material': 'CLOTH',
+'size': -2,
+'accuracy': 1,
+'flags': ['ARM', 'ARMOR', 'PAIRED'],
+'frequency': 60
 }
 
 Gauntlet = {
@@ -615,6 +709,19 @@ RedTunic = {
 'frequency': 50
 }
 
+SnakeVest = {
+'char': ']',
+'color': libtcod.desaturated_green,
+'name': 'snakeskin vest',
+'material': 'LEATHER',
+'size': 0,
+'accuracy': 1,
+'DV': 1,
+'PV': 1,
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 30
+}
+
 BlackRobe = {
 'char': ']',
 'color': libtcod.darker_grey,
@@ -664,7 +771,7 @@ BlueDress = {
 }
 
 # Belts:
-Belt = {
+LeatherBelt = {
 'char': '-',
 'color': libtcod.darker_orange,
 'name': 'leather belt',
@@ -674,6 +781,17 @@ Belt = {
 'PV': 1,
 'flags': ['GROIN', 'ARMOR'],
 'frequency': 80
+}
+
+BlackBelt = {
+'char': '-',
+'color': libtcod.darker_grey,
+'name': 'black belt',
+'material': 'CLOTH',
+'size': -1,
+'accuracy': 2,
+'flags': ['GROIN', 'ARMOR'],
+'frequency': 60
 }
 
 Girdle = {
@@ -688,6 +806,30 @@ Girdle = {
 'frequency': 70
 }
 
+PlateSkirt = {
+'char': '-',
+'color': libtcod.silver,
+'name': 'plate skirt',
+'material': 'IRON',
+'size': -1,
+'DV': -2,
+'PV': 5,
+'flags': ['GROIN', 'ARMOR'],
+'frequency': 60
+}
+
+Baldric = {
+'char': '-',
+'color': libtcod.darker_orange,
+'name': 'baldric',
+'material': 'LEATHER',
+'size': -1,
+'DV': 1,
+'PV': 0,
+'flags': ['GROIN', 'ARMOR'],
+'frequency': 70
+}
+
 # Legwear:
 Sandal = {
 'char': '(',
@@ -698,6 +840,18 @@ Sandal = {
 'DV': 1,
 'PV': 0,
 'flags': ['LEG', 'ARMOR', 'PAIRED']
+}
+
+SnakeSandal = {
+'char': '(',
+'color': libtcod.desaturated_green,
+'name': 'snakeskin sandal',
+'material': 'LEATHER',
+'size': -1,
+'DV': 2,
+'PV': 0,
+'flags': ['LEG', 'ARMOR', 'PAIRED'],
+'frequency': 30
 }
 
 LowBoot = {
@@ -723,14 +877,25 @@ HighBoot = {
 'frequency': 70
 }
 
+Clog = {
+'char': '(',
+'color': libtcod.darker_orange,
+'name': 'clog',
+'material': 'WOOD',
+'size': -2,
+'DV': -1,
+'PV': 3,
+'flags': ['LEG', 'ARMOR', 'PAIRED']
+}
+
 Greave = {
 'char': '(',
 'color': libtcod.silver,
 'name': 'iron greave',
 'material': 'IRON',
 'size': -2,
-'DV': -1,
-'PV': 3,
+'DV': -2,
+'PV': 5,
 'flags': ['LEG', 'ARMOR', 'PAIRED'],
 'frequency': 90
 }
@@ -863,7 +1028,7 @@ Player = {
 'sight': 6,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [Bandana, ShortSword, RoundShield, GreenTunic, Belt, LowBoot, LowBoot],
+'inventory': [ShortSword, RoundShield, GreenTunic, LowBoot, LowBoot],
 'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
 }
@@ -1765,6 +1930,8 @@ Cudgel,
 Mace,
 QuarterStaff,
 WarHammer,
+Knife,
+Dagger,
 ShortSword,
 LongSword,
 GreatSword,
@@ -1776,13 +1943,16 @@ KiteShield,
 TowerShield,
 # Headgear:
 Bandana,
-Crown,
-Circlet,
+Headband,
+Skullcap,
 Helm,
 FullHelm,
-Skullcap,
+GreatHelm,
+Crown,
+Circlet,
 # Handwear:
-Glove,
+LeatherGlove,
+BlackGlove,
 Gauntlet,
 Bracer,
 Bracelet,
@@ -1797,17 +1967,23 @@ CrystalShard,
 CrystalPlate,
 GreenTunic,
 RedTunic,
+SnakeVest,
 BlackRobe,
 BrownRobe,
 WhiteRobe,
 BlueDress,
 # Belts:
-Belt,
+LeatherBelt,
+BlackBelt,
 Girdle,
+PlateSkirt,
+Baldric,
 # Legwear:
 Sandal,
+SnakeSandal,
 LowBoot,
 HighBoot,
+Clog,
 Greave,
 Anklet,
 # Other:

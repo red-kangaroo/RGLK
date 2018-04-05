@@ -7,8 +7,10 @@ Fixes
 * multiple FOVMaps (forestry, clairvoyance)
 * item chargesinan
 * Skills:
+   Two-handers vs Dual wielding
+
    Large Weapons decreases SP cost for missing,
-   Two-handers have less SP cost
+   Two-handers have less SP cost if two-handed
 * better burden / carrying
 * checkDeath for WizMode
 * canSense()
