@@ -27,7 +27,29 @@ def makeMap(Populate, DungeonLevel):
             map[x][y].change(raw.RockWall)
 
     # TODO: Dungeon levels.
-    which = libtcod.random_get_int(0, 1, 7)
+    #  0 the Surface
+    #  1 \
+    #  2 | traditional
+    #  3 |  dungeon
+    #  4 /
+    #  5 Minetown
+    #  6 sewers
+    #  7 sewers
+    #  8 cave
+    #  9 cave
+    # 10 Big room
+    # 11 BSP dungeon
+    # 12 BSP dungeon
+    # 13 maze
+    # 14 maze
+    # 15 city
+    # 16 deep cave
+    # 17 deep cave
+    # 18 deep cave
+    # 19 ???
+    # 20 the Goal?
+
+    which = libtcod.random_get_int(0, 1, 8)
     if which in range(1, 4):
         print "Building traditional dungeon."
         map = buildTraditionalDungeon(map, DungeonLevel)
@@ -40,9 +62,12 @@ def makeMap(Populate, DungeonLevel):
     elif which == 6:
         print "Building a maze."
         map = buildMaze(map, DungeonLevel)
-    else:
+    elif which == 7:
         print "Building a city."
         map = buildCity(map, DungeonLevel)
+    else:
+        print "Building BSP dungeon."
+        map = buildBSPDungeon(map, DungeonLevel)
 
     # Set map to the correct dungeon level.
     var.Maps[DungeonLevel] = map
@@ -237,6 +262,14 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
                     Rooms.remove(room)
                     break
 
+        # Replace damaged outer walls.
+        for y in range(var.MapHeight):
+            for x in range(var.MapWidth):
+                if (x == 0 or x == var.MapWidth - 1 or
+                    y == 0 or y == var.MapHeight - 1):
+                    if not map[x][y].hasFlag('WALL'):
+                        map[x][y].change(raw.RockWall)
+
         return Rooms, map
     elif Rooms == None:
         if Prefab == None:
@@ -266,6 +299,14 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
         if Fail == False:
             NewRoom = Room(x, y, width, height)
             map = create_prefab(Prefab, NewRoom, map, DungeonLevel)
+
+        # Replace damaged outer walls once again.
+        for y in range(var.MapHeight):
+            for x in range(var.MapWidth):
+                if (x == 0 or x == var.MapWidth - 1 or
+                    y == 0 or y == var.MapHeight - 1):
+                    if not map[x][y].hasFlag('WALL'):
+                        map[x][y].change(raw.RockWall)
 
         return map
     else:
@@ -297,10 +338,18 @@ def create_prefab(Prefab, room, map, DungeonLevel):
                         map[x][y].flags.append(p)
 
                 if item != None:
+                    if item == 'RANDOM_ANY':
+                        item = weighted_choice(raw.ItemList, 'ITEM')
+                    elif item == 'RANDOM_ARTIFACT':
+                        pass # TODO
+
                     NewItem = entity.spawn(x, y, item, 'ITEM')
                     var.Entities[DungeonLevel].append(NewItem)
 
                 if mob != None:
+                    if mob == 'RANDOM_ANY':
+                        mob = weighted_choice(raw.MobList, 'MOB')
+
                     NewMob = entity.spawn(x, y, mob, 'MOB')
                     var.Entities[DungeonLevel].append(NewMob)
 
@@ -510,6 +559,8 @@ def makeStairs(map, DungeonLevel, Rooms = None):
 
             map[x][y].change(raw.DownStairs)
 
+    # TODO: Check whether we can access both stairs using pathfinding.
+
     return map
 
 def buildTraditionalDungeon(map, DungeonLevel):
@@ -559,29 +610,7 @@ def buildTraditionalDungeon(map, DungeonLevel):
             Rooms.append(NewRoom)
             RoomNo += 1
 
-    # Clean door generation and add some decorations.
-    map = postProcess(map, type) # Must be before door handling, or lakes will break
-                                 # our door placement.
-
-    for y in range(var.MapHeight):
-        for x in range(var.MapWidth):
-
-            if map[x][y].hasFlag('DOOR'):
-                #AdjacentWalls = 0
-                Fail = True
-
-                if (x - 1 > 0 and x + 1 < var.MapWidth):
-                    if (map[x - 1][y].hasFlag('WALL') and
-                        map[x + 1][y].hasFlag('WALL')):
-                        Fail = False
-                if (y - 1 > 0 and y + 1 < var.MapHeight):
-                    if (map[x][y - 1].hasFlag('WALL') and
-                        map[x][y + 1].hasFlag('WALL')):
-                        Fail = False
-
-                if Fail == True:
-                    map[x][y].change(raw.RockFloor)
-
+    map = postProcess(map, type)
     Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
     map = makeBetterRoom(Rooms, map)
     map = makeStairs(map, DungeonLevel, Rooms)
@@ -589,30 +618,47 @@ def buildTraditionalDungeon(map, DungeonLevel):
     return map
 
 def buildBSPDungeon(map, DungeonLevel):
-    # TODO: Not working!!!
+    global BSPmap, BSPRooms
+
+    # Thank you, Aukustus and HexDecimal, for you help in figuring out a way
+    # how to do this without the need of global variables as in the tutorial,
+    # but I eventually gave up and done it with globals anyway. Maybe one day
+    # I'll return to this and change it. :D
+    # TODO: Use the standard library's functools.partial to manually add the map
+    # to the callback before passing it to bsp_traverse_inverted_level_order.
 
     # Create a root node, then split it.
-    bsp = libtcod.bsp_new_with_size(0, 0, var.MapWidth, var.MapHeight)
+    bsp = libtcod.bsp_new_with_size(0, 0, var.MapWidth - 1, var.MapHeight - 1)
     libtcod.bsp_split_recursive(bsp, 0, var.BSPMaxDepth, var.BSPMinSize + 1,
                                 var.BSPMinSize + 1, 1.5, 1.5)
 
-    Rooms = []
-    for node in bsp:
-        if libtcod.bsp_is_leaf(node):
-            NewRoom = Room(node.x, node.y, node.w, node.h)
-            Rooms.append(NewRoom)
+    BSPmap = map
+    BSPRooms = []
 
-    for room in Rooms:
+    libtcod.bsp_traverse_inverted_level_order(bsp, makeBSP)
+
+    BSPmap = postProcess(BSPmap, 'BSP')
+    BSPRooms, BSPmap = makePrefabRoom(BSPmap, DungeonLevel, BSPRooms)
+    BSPmap = makeBetterRoom(BSPRooms, BSPmap)
+    BSPmap = makeStairs(BSPmap, DungeonLevel, BSPRooms)
+
+    return BSPmap
+
+def makeBSP(node, data):
+    global BSPmap, BSPRooms
+
+    #Create rooms
+    if libtcod.bsp_is_leaf(node):
+        NewRoom = Room(node.x, node.y, node.w, node.h)
+
         if var.rand_chance(20):
-            map = room.create_circular_room(map)
+            BSPmap = NewRoom.create_circular_room(BSPmap)
+            BSPmap = NewRoom.create_entrance(BSPmap, True)
         else:
-            map = room.create_square_room(map)
+            BSPmap = NewRoom.create_square_room(BSPmap)
+            BSPmap = NewRoom.create_entrance(BSPmap)
 
-    Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
-    map = makeBetterRoom(Rooms, map)
-    map = makeStairs(map, DungeonLevel, Rooms)
-
-    return map
+        BSPRooms.append(NewRoom)
 
 def buildQIXDungeon(map, DungeonLevel):
     pass
@@ -699,29 +745,7 @@ def buildSewers(map, DungeonLevel):
             Rooms.append(NewRoom)
             RoomNo += 1
 
-    # Clean door generation and add some decorations.
-    map = postProcess(map, 'SEWERS') # Must be before door handling, or lakes will break
-                                     # our door placement.
-
-    for y in range(var.MapHeight):
-        for x in range(var.MapWidth):
-
-            if map[x][y].hasFlag('DOOR'):
-                #AdjacentWalls = 0
-                Fail = True
-
-                if (x - 1 > 0 and x + 1 < var.MapWidth):
-                    if (map[x - 1][y].hasFlag('WALL') and
-                        map[x + 1][y].hasFlag('WALL')):
-                        Fail = False
-                if (y - 1 > 0 and y + 1 < var.MapHeight):
-                    if (map[x][y - 1].hasFlag('WALL') and
-                        map[x][y + 1].hasFlag('WALL')):
-                        Fail = False
-
-                if Fail == True:
-                    map[x][y].change(raw.RockFloor)
-
+    map = postProcess(map, 'SEWERS')
     map = makeStairs(map, DungeonLevel, Rooms)
 
     return map
@@ -801,26 +825,6 @@ def buildMaze(map, DungeonLevel):
             RoomNo += 1
 
     map = postProcess(map, 'MAZE')
-
-    for y in range(var.MapHeight):
-        for x in range(var.MapWidth):
-
-            if map[x][y].hasFlag('DOOR'):
-                #AdjacentWalls = 0
-                Fail = True
-
-                if (x - 1 > 0 and x + 1 < var.MapWidth):
-                    if (map[x - 1][y].hasFlag('WALL') and
-                        map[x + 1][y].hasFlag('WALL')):
-                        Fail = False
-                if (y - 1 > 0 and y + 1 < var.MapHeight):
-                    if (map[x][y - 1].hasFlag('WALL') and
-                        map[x][y + 1].hasFlag('WALL')):
-                        Fail = False
-
-                if Fail == True:
-                    map[x][y].change(raw.RockFloor)
-
     Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
     map = makeBetterRoom(Rooms, map)
     map = makeStairs(map, DungeonLevel)
@@ -961,28 +965,7 @@ def buildCity(map, DungeonLevel):
 
             Rooms.append(NewRoom)
 
-    # Clean door generation and add some decorations.
     map = postProcess(map, 'CITY')
-
-    for y in range(var.MapHeight):
-        for x in range(var.MapWidth):
-
-            if map[x][y].hasFlag('DOOR'):
-                #AdjacentWalls = 0
-                Fail = True
-
-                if (x - 1 > 0 and x + 1 < var.MapWidth):
-                    if (map[x - 1][y].hasFlag('WALL') and
-                        map[x + 1][y].hasFlag('WALL')):
-                        Fail = False
-                if (y - 1 > 0 and y + 1 < var.MapHeight):
-                    if (map[x][y - 1].hasFlag('WALL') and
-                        map[x][y + 1].hasFlag('WALL')):
-                        Fail = False
-
-                if Fail == True:
-                    map[x][y].change(raw.RockFloor)
-
     Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
     map = makeBetterRoom(Rooms, map)
     map = makeStairs(map, DungeonLevel, Rooms)
@@ -1079,6 +1062,41 @@ def postProcess(map, type = None):
 
         print "Making a lake."
         map = makeLake(liquid, map)
+
+    # Clean door generation must be after lake handling, or lakes will break our
+    # door placement. This unfortunately means we cannot run through the tiles
+    # only once with the above code.
+    for y in range(var.MapHeight):
+        for x in range(var.MapWidth):
+            if map[x][y].hasFlag('DOOR'):
+                Path = False
+                DoorFrame = False
+
+                if (x - 1 > 0 and x + 1 < var.MapWidth):
+                    if (map[x - 1][y].hasFlag('WALL') and
+                        map[x + 1][y].hasFlag('WALL')):
+                        DoorFrame = True
+                    elif (map[x - 1][y].isWalkable() and
+                          map[x + 1][y].isWalkable()):
+                          Path = True
+                if (y - 1 > 0 and y + 1 < var.MapHeight):
+                    if (map[x][y - 1].hasFlag('WALL') and
+                        map[x][y + 1].hasFlag('WALL')):
+                        DoorFrame = True
+                    elif (map[x][y - 1].isWalkable() and
+                          map[x][y - 1].isWalkable()):
+                          Path = True
+                if (x - 1 > 0 and x + 1 < var.MapWidth and
+                    y - 1 > 0 and y + 1 < var.MapHeight):
+                    if (map[x - 1][y - 1].isWalkable() and
+                        map[x + 1][y + 1].isWalkable()):
+                        Path = True
+                    if (map[x + 1][y - 1].isWalkable() and
+                        map[x - 1][y + 1].isWalkable()):
+                        Path = True
+
+                if not DoorFrame or not Path:
+                    map[x][y].change(raw.RockFloor)
 
     return map
 
@@ -1461,20 +1479,28 @@ class Room(object):
 
         return map
 
-    def create_entrance(self, map):
-        # Not really recommanded for circle rooms.
+    def create_entrance(self, map, circular = False):
+        # Not really recommended for circular rooms. EDIT: Works for circular rooms now!
+
         # Find possible placement of doors:
         possible = []
         for x in [self.x1, self.x2]:
-            for y in range(self.y1 + 1, self.y2):
-                possible.append((x, y))
+            if circular:
+                possible.append((x, self.CenterY))
+            else:
+                for y in range(self.y1 + 1, self.y2):
+                    possible.append((x, y))
         for y in [self.y1, self.y2]:
-            for x in range(self.x1 + 1, self.x2):
-                possible.append((x, y))
+            if circular:
+                possible.append((self.CenterX, y))
+            else:
+                for x in range(self.x1 + 1, self.x2):
+                    possible.append((x, y))
 
+        # We can have between 1 and 5 doors for every room.
         doorMax = libtcod.random_get_int(0, 1, 5)
         doorNo = 0
-        # Let's have same door for one room:
+        # Let's have same door type for one room:
         which = random.choice([
         raw.RockFloor,
         raw.WoodDoor,

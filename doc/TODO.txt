@@ -1,24 +1,14 @@
 List of things to do and include:
-
-Fixes
-=====
 * pain
 * intrinsics
 * multiple FOVMaps (forestry, clairvoyance)
 * item chargesinan
 * Skills:
    Two-handers vs Dual wielding
-
-   Large Weapons decreases SP cost for missing,
-   Two-handers have less SP cost if two-handed
 * better burden / carrying
 * checkDeath for WizMode
 * canSense()
-
-
-BSPDungeon:
-http://www.roguebasin.com/index.php?title=Complete_Roguelike_Tutorial,_using_Python%2Blibtcod,_extras#BSP_Dungeon_Generator
-http://arcade.academy/examples/procedural_caves_bsp.html
+* builders for QIX and noise forest
 
 Rivers:
 http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
@@ -40,7 +30,6 @@ https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/cra
    "The foo is slain."
    "The foo dies screaming."
    "You kill the foo."
-* add getname() for entities for better messages
 
 MOB
 ===
@@ -56,11 +45,10 @@ allowed dungeon types = SEWER, DUNGEON, CATACOMB, MAZE
 
 ITEM
 ====
-CANNOT_BE_WISHED, CANNOT_BE_CLONED, CANNOT_BE_BROKEN, UNIQUE, PAIRED, KAMIKAZE, SADIST
+CANNOT_BE_WISHED, CANNOT_BE_CLONED, CANNOT_BE_BROKEN, UNIQUE, KAMIKAZE, SADIST
 prefix, postfix
 price
 charges
-enchantment
 
 Terrain
 =======

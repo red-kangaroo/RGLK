@@ -123,7 +123,7 @@ RoomMinSize = 5
 RoomMaxSize = 10
 RoomMaxNumber = 99
 BSPMaxDepth = 10
-BSPMinSize = 4
+BSPMinSize = 5
 DrunkenSteps = 5000
 FloorMaxNumber = 25 # Depths of the dungeon.
 

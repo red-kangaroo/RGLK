@@ -224,7 +224,7 @@ KnifeThrown = {
 'ToHitBonus': 3,
 'DiceNumber': 1,
 'DiceValue': 3,
-'DamageBonus': 2
+'DamageBonus': 2,
 'range': 6,
 'DamageType': 'PIERCE',
 'flags': ['RANGED']
@@ -540,7 +540,7 @@ LeatherGlove = {
 'color': libtcod.darker_orange,
 'name': 'leather glove',
 'material': 'LEATHER',
-'size': -2,
+'size': -1,
 'DV': 0,
 'PV': 1,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
@@ -552,7 +552,7 @@ BlackGlove = {
 'color': libtcod.darker_grey,
 'name': 'black glove',
 'material': 'CLOTH',
-'size': -2,
+'size': -1,
 'accuracy': 1,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
 'frequency': 60
@@ -563,7 +563,7 @@ Gauntlet = {
 'color': libtcod.silver,
 'name': 'iron gauntlet',
 'material': 'IRON',
-'size': -2,
+'size': -1,
 'DV': -1,
 'PV': 3,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
@@ -575,7 +575,7 @@ Bracer = {
 'color': libtcod.silver,
 'name': 'iron bracer',
 'material': 'IRON',
-'size': -2,
+'size': -1,
 'DV': -2,
 'PV': 5,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
@@ -587,7 +587,7 @@ Bracelet = {
 'color': libtcod.yellow,
 'name': 'golden bracelet',
 'material': 'GOLD',
-'size': -2,
+'size': -1,
 'DV': 0,
 'PV': 0,
 'flags': ['ARM', 'ARMOR', 'ENCHANT_DOUBLE'],
@@ -599,7 +599,7 @@ ArmGuard = {
 'color': libtcod.darker_orange,
 'name': 'leather arm-guard',
 'material': 'LEATHER',
-'size': -2,
+'size': -1,
 'DV': 1,
 'PV': 0,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
@@ -1684,10 +1684,19 @@ DummyRoom = {
 }
 
 # Several small cages.
-Cages = {
-'file': 'rooms/cages',
+Cage1 = {
+'file': 'rooms/cage1',
 'width': 9,
 'height': 7
+}
+
+Cage2 = {
+'file': 'rooms/cage2',
+'width': 7,
+'height': 7,
+'1': (RockFloor, None, 'RANDOM_ANY', 'RANDOM_ANY'),
+'x': (ClosedPort, ['LOCKED', 'BLOCKED'], None, None),
+'X': (IronBars, None, None, None)
 }
 
 # Prison cells.
@@ -2069,7 +2078,8 @@ MutationTypes = [
 # Prefab rooms:
 # -------------
 RoomList = [
-Cages,
+Cage1,
+Cage2,
 Checkers,
 Curved,
 Foursome1,

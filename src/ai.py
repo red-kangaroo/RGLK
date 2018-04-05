@@ -80,16 +80,16 @@ def getAICommand(Mob):
 
             if Target.hasFlag('ITEM') and aiPickEquipment(Mob, Target):
                 if Mob.x == Target.x and Mob.y == Target.y:
-                    Mob.actionPickUp(Mob.x, Mob.y, True)
-
-                    for i in var.Entities[var.DungeonLevel]:
-                        if i.target == Target:
-                            i.target = None
+                    if Mob.actionPickUp(Mob.x, Mob.y, True) == False:
+                        aiWander(Mob)
+                    else:
+                        for i in var.Entities[var.DungeonLevel]:
+                            if i.target == Target:
+                                i.target = None
 
                     return
                 elif Target.BlockMove:
-                    Mob.target = None
-                    Target = None
+                    aiWander(Mob)
                 else:
                     if aiMoveBase(Mob, Target.x, Target.y) == False:
                         Mob.actionWait()
@@ -221,7 +221,15 @@ def handleKeys(Player):
 
         # Possess
         if Key.vk == libtcod.KEY_F6:
-            pass # TODO
+            where = askForDirection(Player)
+
+            x = Player.x + where[0]
+            y = Player.y + where[1]
+
+            for i in var.Entities[var.DungeonLevel]:
+                if i.x == x and i.y == y and i.hasFlag('MOB'):
+                    Player.flags.remove('AVATAR')
+                    i.flags.append('AVATAR')
             return
 
         # Polymorph self
@@ -696,8 +704,13 @@ def aiDoFlee(Me, Target):
             if aiMove(Me, Me.target) == True:
                 return True
 
-        ui.message("%s scream&S like a girl." % Me.getName(True), actor = Me)
-        Me.actionWait()
+        # We can do nothing. :) But randomly stop fleeing, because sometimes when
+        # cornered, you will find the strength to fight some more.
+        if Me.hasFlag('HUMANOID'):
+            ui.message("%s scream&S like a girl." % Me.getName(True), actor = Me)
+        else:
+            ui.message("%s shriek&S in terror." % Me.getName(True), actor = Me)
+
         return False
 
 def aiFindTarget(Mob):
@@ -730,11 +743,16 @@ def aiFindTarget(Mob):
                     Mob.target = Target
                     break
         elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-            if Mob.hasFlag('AI_SCAVENGER'):
+            if Mob.hasFlag('AI_SCAVENGER') and var.rand_chance(75):
                 if not Mob.isBlocked(i.x, i.y, var.DungeonLevel): # We cannot pick up boulders...
                     Target = i
                     Mob.goal = [i.x, i.y]
                     Mob.target = Target
+                    break
+            elif var.rand_chance(20):
+                if aiPickEquipment(Mob, i):
+                    Target = i
+                    Mob.goal = [i.x, i.y]
                     break
 
     return Target
@@ -920,7 +938,7 @@ def aiPickEquipment(Me, item):
 
         while mySlots > 0:
             for equip in myItems:
-                if item.getCoolness() > equip.getCoolness():
+                if item.getCoolness() >= equip.getCoolness():
                     return True
 
             mySlots -= 1

@@ -736,9 +736,14 @@ class Mob(Entity):
                             PV += item.getProtectionValue()
                         break
             else:
-                # Body armor gives us half its PV to all other body parts.
+                # Body armor gives half its PV to all other body parts,
+                # shields give thier full PV, if any.
                 for part in self.bodyparts:
-                    if part.hasFlag('TORSO'):
+                    if part.hasFlag('HAND'):
+                        for item in part.inventory:
+                            if item.hasFlag('SHIELD'):
+                                PV += item.getProtectionValue()
+                    elif part.hasFlag('TORSO'):
                         for item in part.inventory:
                             PV += (item.getProtectionValue() / 2)
 
@@ -1400,11 +1405,13 @@ class Mob(Entity):
                 return
 
             if self.HP < damage:
-                # We can loose a limb instead of dying.
+                # We can loose a limb instead of dying. We still take some damage
+                # if enough is dealt.
                 if self.severLimb(limb):
-                    # TODO: Maybe non-AVATAR creatures take more damage if no limb
-                    #       is severed?
-                    return
+                    if damage > self.maxHP:
+                        damage /= 2
+                    else:
+                        return # Take no damage here.
 
             # TODO: Second chance.
 
@@ -2079,6 +2086,7 @@ class Mob(Entity):
                 var.Entities[var.DungeonLevel].remove(i)
                 ui.message("%s pick&S up %s." % (self.getName(True), i.getName()), actor = self)
                 self.AP -= self.getActionAPCost()
+                return True
         else:
             if not self.hasFlag('AVATAR'):
                 return False
@@ -2330,18 +2338,27 @@ class Item(Entity):
 
     def getSPCost(self):
         base = 5
+        # Stamina cost of attacks is based on their scaling, as StrScaling attacks
+        # are supposed to use the weight of the weapon, requiring heavy blow and
+        # momentum, thus much more stamina for the swing, while DexScaling attacks
+        # are quick, light and supposed to come again and again until the target
+        # dies of a thousand needle wounds.
 
         # Str Scaling:
-        Str = ((raw.Scaling[self.StrScaling] * 100) + 50) / 125
+        Str = ((raw.Scaling[self.StrScaling] * 100) + 25) / 125
         base *= Str
 
         # Dex Scaling:
-        Dex = 125 / ((raw.Scaling[self.DexScaling] * 100) + 50)
+        Dex = 125 / ((raw.Scaling[self.DexScaling] * 100) + 75)
         base *= Dex
 
-        # TODO: Two-handers and TWO_AND_HALF.
-
-        return max(1, int(math.floor(base)))
+        # Two-handers and two-and-a-half-handers get small discout in stamina,
+        # as you are using them in both hands and thus each hand is less tired
+        # by the attacks.
+        if self.size > 0 or self.hasFlag('TWO_AND_HALF'):
+            return max(1, int(math.floor(base)))
+        else:
+            return max(1, int(math.ceil(base)))
 
     def getMPCost(self):
         # TODO: For magical weapons and shields blocking magic.
