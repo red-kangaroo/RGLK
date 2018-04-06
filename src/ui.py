@@ -214,6 +214,13 @@ def render_UI(Player):
                                  'Slow')
         y += 1
 
+    # Intrinsics:
+    for i in Player.getIntrinsicsToDisplay():
+        libtcod.console_set_default_foreground(var.UIPanel, i.getColor())
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 i.getName(True))
+        y += 1
+
     # Display target stats:
     if Player.target != None:
         libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)

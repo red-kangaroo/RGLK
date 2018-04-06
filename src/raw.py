@@ -241,6 +241,198 @@ DaggerThrown = {
 }
 
 ###############################################################################
+#  Intrinsics
+###############################################################################
+
+DummyIntrinsic = {
+'name': 'BUG: dummy intrinsic',
+'type': None,
+'secret': False,
+'color': libtcod.white
+}
+
+ResistBlunt = {
+'name': 'blunt attack resistance',
+'type': 'RESIST_BLUNT',
+'secret': True
+}
+
+ResistSlash = {
+'name': 'slashing attack resistance',
+'type': 'RESIST_SLASH',
+'secret': True
+}
+
+ResistPierce = {
+'name': 'piercing attack resistance',
+'type': 'RESIST_PIERCE',
+'secret': True
+}
+
+ResistAcid = {
+'name': 'acid resistance',
+'type': 'RESIST_ACID',
+'secret': True
+}
+
+ResistFire = {
+'name': 'fire resistance',
+'type': 'RESIST_FIRE',
+'secret': True
+}
+
+ResistCold = {
+'name': 'cold resistance',
+'type': 'RESIST_COLD',
+'secret': True
+}
+
+ResistElectricity = {
+'name': 'shock resistance',
+'type': 'RESIST_SHOCK',
+'secret': True
+}
+
+ResistNecrotic = {
+'name': 'necrotic resistance',
+'type': 'RESIST_NECRO',
+'secret': True
+}
+
+ResistPoison = {
+'name': 'poison resistance',
+'type': 'RESIST_POISON',
+'secret': True
+}
+
+VulnBlunt = {
+'name': 'blunt attack vulnerability',
+'type': 'VULN_BLUNT',
+'secret': True
+}
+
+VulnSlash = {
+'name': 'slashing attack vulnerability',
+'type': 'VULN_SLASH',
+'secret': True
+}
+
+VulnPierce = {
+'name': 'piercing attack vulnerability',
+'type': 'VULN_PIERCE',
+'secret': True
+}
+
+VulnAcid = {
+'name': 'acid vulnerability',
+'type': 'VULN_ACID',
+'secret': True
+}
+
+VulnFire = {
+'name': 'fire vulnerability',
+'type': 'VULN_FIRE',
+'secret': True
+}
+
+VulnCold = {
+'name': 'cold vulnerability',
+'type': 'VULN_COLD',
+'secret': True
+}
+
+VulnElectricity = {
+'name': 'shock vulnerability',
+'type': 'VULN_SHOCK',
+'secret': True
+}
+
+VulnNecrotic = {
+'name': 'necrotic vulnerability',
+'type': 'VULN_NECRO',
+'secret': True
+}
+
+VulnPoison = {
+'name': 'poison vulnerability',
+'type': 'VULN_POISON',
+'secret': True
+}
+
+ImmunePhysical = {
+'name': 'physical immunity',
+'type': 'IMMUNE_PHYSICAL',
+'secret': True
+}
+
+ImmuneAcid = {
+'name': 'acid immunity',
+'type': 'IMMUNE_ACID',
+'secret': True
+}
+
+ImmuneFire = {
+'name': 'fire immunity',
+'type': 'IMMUNE_FIRE',
+'secret': True
+}
+
+ImmuneCold = {
+'name': 'cold immunity',
+'type': 'IMMUNE_COLD',
+'secret': True
+}
+
+ImmuneElectricity = {
+'name': 'shock immunity',
+'type': 'IMMUNE_SHOCK',
+'secret': True
+}
+
+ImmuneNecrotic = {
+'name': 'necrotic immunity',
+'type': 'IMMUNE_NECRO',
+'secret': True
+}
+
+ImmunePoison = {
+'name': 'poison immunity',
+'type': 'IMMUNE_POISON',
+'secret': True
+}
+
+Bleed = {
+'name': 'bleeding',
+'type': 'BLEED',
+'secret': False,
+'color': libtcod.red
+}
+
+Haste = {
+'name': 'hasted',
+'type': 'HASTE',
+'secret': False
+}
+
+Slow = {
+'name': 'slowed',
+'type': 'SLOW',
+'secret': False
+}
+
+LeftHanded = {
+'name': 'left-handed',
+'type': 'LEFT_HANDED',
+'secret': True
+}
+
+NoneIntrinsic = {
+'name': 'none intrinsic',
+'type': None,
+'secret': False
+}
+
+###############################################################################
 #  Items
 ###############################################################################
 
@@ -767,6 +959,7 @@ BlueDress = {
 'DV': 0,
 'PV': 0,
 'flags': ['TORSO', 'ARMOR'],
+'intrinsics': [('HASTE', 1)],
 'frequency': 10
 }
 
@@ -1920,6 +2113,7 @@ MaterialsList = [
 ]
 
 DamageTypeList = [
+'BLEED',
 'BLUNT',
 'SLASH',
 'PIERCE',
@@ -1930,6 +2124,45 @@ DamageTypeList = [
 'NECROTIC',
 'POISON'
 ]
+
+ResistanceTypeList = {
+'BLEED': None,
+'BLUNT': 'RESIST_BLUNT',
+'SLASH': 'RESIST_SLASH',
+'PIERCE': 'RESIST_PIERCE',
+'ACID': 'RESIST_ACID',
+'FIRE': 'RESIST_FIRE',
+'COLD': 'RESIST_COLD',
+'ELECTRIC': 'RESIST_SHOCK',
+'NECROTIC': 'RESIST_NECRO',
+'POISON': 'RESIST_POISON'
+}
+
+VulnerabilityTypeList = {
+'BLEED': None,
+'BLUNT': 'VULN_BLUNT',
+'SLASH': 'VULN_SLASH',
+'PIERCE': 'VULN_PIERCE',
+'ACID': 'VULN_ACID',
+'FIRE': 'VULN_FIRE',
+'COLD': 'VULN_COLD',
+'ELECTRIC': 'VULN_SHOCK',
+'NECROTIC': 'VULN_NECRO',
+'POISON': 'VULN_POISON'
+}
+
+ImmunityTypeList = {
+'BLEED': 'BLOODLESS',
+'BLUNT': 'IMMUNE_PHYSICAL',
+'SLASH': 'IMMUNE_PHYSICAL',
+'PIERCE': 'IMMUNE_PHYSICAL',
+'ACID': 'IMMUNE_ACID',
+'FIRE': 'IMMUNE_FIRE',
+'COLD': 'IMMUNE_COLD',
+'ELECTRIC': 'IMMUNE_SHOCK',
+'NECROTIC': 'IMMUNE_NECRO',
+'POISON': 'IMMUNE_POISON'
+}
 
 # Items:
 # ------
@@ -2003,6 +2236,44 @@ Chest,
 #Chair,
 #Table,
 #Bed
+]
+
+# Intrinsics:
+# -----------
+IntrinsicList = [
+# Resistances, vulnerabilities and immunities:
+ResistCold,
+ResistFire,
+ResistAcid,
+ResistSlash,
+ResistBlunt,
+ResistPierce,
+ResistPoison,
+ResistNecrotic,
+ResistElectricity,
+VulnCold,
+VulnFire,
+VulnAcid,
+VulnSlash,
+VulnBlunt,
+VulnPierce,
+VulnPoison,
+VulnNecrotic,
+VulnElectricity,
+ImmunePhysical,
+ImmuneCold,
+ImmuneFire,
+ImmuneAcid,
+ImmunePoison,
+ImmuneNecrotic,
+ImmuneElectricity,
+# DoT:
+Bleed,
+# Other:
+Haste,
+Slow,
+LeftHanded,
+NoneIntrinsic
 ]
 
 # Monsters:

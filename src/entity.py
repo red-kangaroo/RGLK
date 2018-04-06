@@ -8,6 +8,7 @@ import random
 import ai
 import dungeon
 import game
+import intrinsic
 import raw
 import ui
 import var
@@ -84,8 +85,12 @@ def spawn(x, y, BluePrint, type):
         except:
             inventory = []
 
+        if 'HUMANOID' in addFlags:
+            if var.rand_chance(25):
+                addIntrinsics.append(('LEFT_HANDED', 0))
+
         New = Mob(x, y, char, color, name, material, size,
-                     Str, Dex, End, Wit, Ego, sex, speed, sight, addFlags)
+                     Str, Dex, End, Wit, Ego, sex, speed, sight, addFlags, addIntrinsics)
 
         New.diet = diet
 
@@ -157,7 +162,7 @@ def spawn(x, y, BluePrint, type):
             print "Warning: %s is unhandled material." % material
 
         New = Item(x, y, char, color, name, material, size, BlockMove,
-                   attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags)
+                   attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags, addIntrinsics)
 
         # Generate some blessed and cursed items:
         if New.beautitude == 0:
@@ -177,11 +182,6 @@ def spawn(x, y, BluePrint, type):
 
     else:
         print "Failed to spawn unknown entity type."
-
-    try:
-        New.intrinsics.append(addIntrinsics)
-    except:
-        print "Failed to spawn with intrinsics."
 
     return New
 
@@ -267,7 +267,55 @@ class Entity(object):
             return False
 
     def hasIntrinsic(self, intrinsic):
-        pass
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                return True
+
+        return False
+
+    def getIntrinsic(self, intrinsic):
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                return i
+
+        return None
+
+    def getIntrinsicPower(self, intrinsic):
+        power = 0
+
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                power += i.power
+
+        if power > 0:
+            power += self.enchantment
+
+        return None
+
+    def addIntrinsic(self, type, duration, power = 0):
+        if self.hasIntrinsic(type):
+            i = self.getIntrinsic(type)
+            i.duration += duration / 2
+
+            if i.power < power:
+                i.power = power
+            elif i.power == power:
+                i.power += 1
+        else:
+            NewInt = intrinsic.Intrinsic(type, duration, power)
+            self.intrinsics.append(NewInt)
+
+    def removeIntrinsic(self, intrinsic):
+        if not self.hasIntrinsic(intrinsic):
+            return False
+        else:
+            self.intrinsics.remove(self.getIntrinsic(intrinsic))
+            return True
+
+    def handleIntrinsics(self):
+        for i in self.intrinsics:
+            if i.getHandled(self) == None:
+                self.intrinsics.remove(i)
 
     def getName(self, capitalize = False, full = False):
         name = self.name
@@ -309,14 +357,18 @@ class Entity(object):
                 self.regainStamina()
         else:
             self.AP += 1
+
         # TODO: Check terrain for special effects.
-        # TODO: Intrinsics and status effects.
+
+        # Intrinsics and status effects.
+        self.handleIntrinsics()
+
         # TODO: Call Be() for inventory items from here, because they will not go
         #       through the main loop of var.Entities
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, material, size, #These are base Entity arguments.
-                 Str, Dex, End, Wit, Ego, sex, speed = 1.0, FOVRadius = 6, addFlags = []):
+                 Str, Dex, End, Wit, Ego, sex, speed = 1.0, FOVRadius = 6, addFlags = [], addIntrinsics = []):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
         super(Mob, self).__init__(x, y, char, color, name, material, size, BlockMove)
@@ -363,6 +415,10 @@ class Mob(Entity):
         self.flags.append('MOB')
         for i in addFlags:
             self.flags.append(i)
+
+        for (type, power) in addIntrinsics:
+            NewInt = intrinsic.Intrinsic(type, 30000, power)
+            self.intrinsics.append(NewInt)
 
         self.baseArms = 0
         self.baseLegs = 0
@@ -443,21 +499,37 @@ class Mob(Entity):
 
             if part.hasFlag('HAND'):
                 if handNo == 0:
-                    part.flags.append('RIGHT')
+                    if self.hasIntrinsic('LEFT_HANDED'):
+                        part.flags.append('LEFT')
+                    else:
+                        part.flags.append('RIGHT')
+
                     part.flags.append('MAIN') # TODO: Left-handedness.
                     handNo += 1
                 elif handNo == 1:
-                    part.flags.append('LEFT')
+                    if self.hasIntrinsic('LEFT_HANDED'):
+                        part.flags.append('RIGHT')
+                    else:
+                        part.flags.append('LEFT')
+
                     handNo += 1
                 else:
                     part.flags.append('OTHER')
                     handNo += 1
             elif part.hasFlag('ARM'):
                 if armNo == 0:
-                    part.flags.append('RIGHT')
+                    if self.hasIntrinsic('LEFT_HANDED'):
+                        part.flags.append('LEFT')
+                    else:
+                        part.flags.append('RIGHT')
+
                     armNo += 1
                 elif armNo == 1:
-                    part.flags.append('LEFT')
+                    if self.hasIntrinsic('LEFT_HANDED'):
+                        part.flags.append('RIGHT')
+                    else:
+                        part.flags.append('LEFT')
+
                     armNo += 1
                 else:
                     part.flags.append('OTHER')
@@ -566,7 +638,16 @@ class Mob(Entity):
 
     def regainActions(self):
         # This works even when dead, because items can have actions, too.
-        self.AP += self.speed
+        speed = self.speed
+
+        if self.hasIntrinsic('HASTE'):
+            speed += self.getIntrinsicPower('HASTE') / 10
+        if self.hasIntrinsic('SLOW'):
+            speed += self.getIntrinsicPower('SLOW') / 10
+
+        speed = max(0.1, speed)
+
+        self.AP += speed
 
         # Energy randomization:
         if var.rand_chance(5):
@@ -913,8 +994,13 @@ class Mob(Entity):
         return damage
 
     def resistDamage(self, damage, DamageType, PV = None):
-        # TODO: Check for resistances.
         resistance = 0
+
+        # Check resistances and vulnerabilities:
+        if self.hasIntrinsic(raw.ResistanceTypeList[DamageType]):
+                resistance += self.getIntrinsicPower(raw.ResistanceTypeList[DamageType])
+        if self.hasIntrinsic(raw.VulnerabilityTypeList[DamageType]):
+                resistance -= self.getIntrinsicPower(raw.VulnerabilityTypeList[DamageType])
 
         # Protection Value adds to basic resistances against physical:
         if DamageType in ['BLUNT', 'SLASH', 'PIERCE'] and PV != None:
@@ -922,9 +1008,14 @@ class Mob(Entity):
 
         # You take 100 % damage at 0 resistance, -20 % per point of resistance.
         resisted = damage * (0.8 ** resistance)
+
+        # Check for immunity.
+        if self.hasIntrinsic(raw.ImmunityTypeList[DamageType]):
+                resisted = 0
+
         resisted = var.rand_int_from_float(max(0, resisted))
 
-        print "received %s damage, after resistances %s" % (damage, resisted)
+        print "a %s damage, after resistances %s" % (damage, resisted)
 
         return resisted
 
@@ -937,7 +1028,6 @@ class Mob(Entity):
             self.flags.append('AI_FLEE')
 
         if limb.hasFlag('CANNOT_SEVER'):
-            # TODO: Bleed.
             return False
 
         # De-equip items from the limb to be severed, then drop it on ground.
@@ -960,7 +1050,6 @@ class Mob(Entity):
         # TODO:
         #  Some damage types destroy limbs.
         #  Eyes on head etc.
-        #  Bleeding.
 
         limb.flags.append('ITEM')
 
@@ -980,6 +1069,9 @@ class Mob(Entity):
 
         if limb.hasFlag('VITAL'):
             self.checkDeath(True)
+
+        # And we are bleeding...
+        self.addIntrinsic('BLEED', libtcod.random_get_int(0, 3, 8), 1)
 
         return True
 
@@ -1177,6 +1269,111 @@ class Mob(Entity):
         else:
             return wingNo
 
+    def hasIntrinsic(self, intrinsic):
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                return True
+
+        for item in self.getEquipment():
+            for i in item.intrinsics:
+                if i.type == intrinsic:
+                    return True
+
+        return False
+
+    def getIntrinsic(self, intrinsic):
+        toUse = None
+
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                toUse = i
+
+        for item in self.getEquipment():
+            for i in item.intrinsics:
+                if i.type == intrinsic:
+                    if toUse != None:
+                        if i.power > toUse.power:
+                            toUse = i
+                    else:
+                        toUse = i
+
+        return toUse
+
+    def getIntrinsicPower(self, intrinsic):
+        power = 0
+
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                power += i.power
+
+        if power > 0:
+            power += self.enchantment
+
+        for item in self.getEquipment():
+            if item.hasIntrinsic(intrinsic):
+                power += item.getIntrinsicPower(intrinsic)
+
+        return power
+
+    def getIntrinsicsToDisplay(self, all = False):
+        intrinsics = []
+
+        for i in self.intrinsics:
+            already = False
+            for n in intrinsics:
+                if n.type == i.type:
+                    already = True
+
+            if already:
+                continue
+
+            if not i.secret or all == True:
+                intrinsics.append(i)
+
+        for item in self.getEquipment():
+            for i in item.intrinsics:
+                already = False
+                for n in intrinsics:
+                    if n.type == i.type:
+                        already = True
+
+                if already:
+                    continue
+
+                if not i.secret or all == True:
+                    intrinsics.append(i)
+
+        return intrinsics
+
+    def addIntrinsic(self, type, duration, power = 0):
+        # Must be special-cased because of equipment - we don't want to add intrinsics
+        # from eaten corpses to our equipment, do we?
+        toUse = None
+
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                toUse = i
+
+        if toUse != None:
+            toUse.duration += duration / 2
+
+            if toUse.power < power:
+                toUse.power = power
+            elif toUse.power == power:
+                toUse.power += 1
+        else:
+            NewInt = intrinsic.Intrinsic(type, duration, power)
+            self.intrinsics.append(NewInt)
+
+    def handleIntrinsics(self):
+        for i in self.intrinsics:
+            if i.getHandled(self) == None:
+                self.intrinsics.remove(i)
+
+        for item in self.getEquipment():
+            for i in item.intrinsics:
+                i.getHandled(self)
+
     def isExtraFragile(self):
         if self.getEnd() < 0:
             return True
@@ -1192,9 +1389,6 @@ class Mob(Entity):
             return False
 
     def canSense(self, Target):
-        pass
-
-    def handleIntrinsics(self):
         pass
 
     def receiveHeal(self, amount):
@@ -1395,7 +1589,10 @@ class Mob(Entity):
 
         print "-" * 10
 
-    def receiveDamage(self, damage, limb, DamageType = None, flags = []):
+    def receiveDamage(self, damage, limb = None, DamageType = None, flags = []):
+        if limb == None:
+            limb = self.getLimbToHit()
+
         # TODO:
         #       Limb wounds, pain.
         #       Armor-piercing crits.
@@ -1413,13 +1610,19 @@ class Mob(Entity):
         #       Different materials.
         #       Damage type effects.
 
+        # Special messages:
+        if 'BLEED' in flags:
+            ui.message("%s bleed&S." % self.getName(True), libtcod.light_red, self)
+
         # Wound the limb:
         if var.rand_chance(damage):
             if limb.wounded or self.isExtraFragile():
                 # We sever the limb, but this also means we can no longer use it
                 # for further methods, as it's not attached.
-                self.severLimb(limb)
-                limb = None
+                if not self.severLimb(limb):
+                    self.addIntrinsic('BLEED', max(5, damage), 1)
+                else:
+                    limb = None
             else:
                 limb.wounded = True
                 ui.message("%s %s is wounded." % (self.getName(True, possessive = True), limb.getName()),
@@ -1430,28 +1633,30 @@ class Mob(Entity):
             return
 
         if damage > 0:
-            # We get instakilled by enough damage.
-            # TODO: Maybe the AVATAR is extempt?
-            if damage >= (self.maxHP * 2):
-                self.HP == 0
-                self.checkDeath(True)
-                return
+            if not 'BLEED' in flags:
+                # We get instakilled by enough damage.
+                # TODO: Maybe the AVATAR is extempt?
+                if damage >= (self.maxHP * 2):
+                    self.HP == 0
+                    self.checkDeath(True)
+                    return
 
-            if self.HP < damage:
-                # We can loose a limb instead of dying. We still take some damage
-                # if enough is dealt.
-                if self.severLimb(limb):
-                    if damage > self.maxHP:
-                        damage /= 2
-                    else:
-                        return # Take no damage here.
+                if self.HP < damage:
+                    # We can loose a limb instead of dying. We still take some damage
+                    # if enough is dealt.
+                    if self.severLimb(limb):
+                        if damage > self.maxHP:
+                            damage /= 2
+                        else:
+                            return # Take no damage here.
 
             # TODO: Second chance.
 
             self.HP -= damage
             self.checkDeath()
         else:
-            ui.message("%s &ISARE not hurt." % self.getName(True), actor = self)
+            if not 'BLEED' in flags:
+                ui.message("%s &ISARE not hurt." % self.getName(True), actor = self)
 
     def checkDeath(self, forceDie = False):
         # TODO: Life saving.
@@ -2260,7 +2465,7 @@ class Mob(Entity):
 
 class Item(Entity):
     def __init__(self, x, y, char, color, name, material, size, BlockMove, #These are base Entity arguments.
-                 attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags):
+                 attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags = [], addIntrinsics = []):
         super(Item, self).__init__(x, y, char, color, name, material, size, BlockMove)
 
         self.attack = attack
@@ -2273,6 +2478,10 @@ class Item(Entity):
         self.flags.append('ITEM')
         for i in addFlags:
             self.flags.append(i)
+
+        for (type, power) in addIntrinsics:
+            NewInt = intrinsic.Intrinsic(type, 30000, power)
+            self.intrinsics.append(NewInt)
 
         if self.hasFlag('ALWAYS_BLESSED'):
             self.beautitude += 1
@@ -2522,9 +2731,6 @@ class Item(Entity):
     def beZapped(self, Zapper):
         pass
 
-    def handleIntrinsics(self):
-        pass
-
 class BodyPart(Entity):
     def __init__(self, name, #These are base Entity arguments.
                  mob, cover, place, size, eyes, attack, StrScaling, DexScaling,
@@ -2565,14 +2771,11 @@ class BodyPart(Entity):
         #name = size + ' ' + name
 
         # Right/left:
-        if ((self.hasFlag('ARM') or self.hasFlag('HAND') or self.hasFlag('LEG'))
-            and self.hasFlag('RIGHT')):
+        if self.hasFlag('RIGHT'):
             name = 'right ' + name
-        if ((self.hasFlag('ARM') or self.hasFlag('HAND') or self.hasFlag('LEG'))
-            and self.hasFlag('LEFT')):
+        if self.hasFlag('LEFT'):
             name = 'left ' + name
-        if ((self.hasFlag('ARM') or self.hasFlag('HAND') or self.hasFlag('LEG'))
-            and self.hasFlag('OTHER')):
+        if self.hasFlag('OTHER'):
             name = 'other ' + name
 
         if full == True:

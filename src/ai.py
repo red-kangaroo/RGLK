@@ -241,7 +241,7 @@ def handleKeys(Player):
         if Key.vk == libtcod.KEY_F8:
             for i in var.Entities[var.DungeonLevel]:
                 if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
-                    i.receiveDamage(i.maxHP, i.getLimbToHit(), 'NECROTIC')
+                    i.receiveDamage(i.maxHP, 'NECROTIC')
             return
 
         # Level teleport
