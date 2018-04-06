@@ -109,39 +109,39 @@ def render_UI(Player):
     libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
 
     # Health bar:
-    render_bar(1, 3, 18, 'Health ', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
+    render_bar(1, 3, 18, 'HP ', int(math.floor(Player.HP)), int(math.floor(Player.maxHP)),
                libtcod.dark_red, libtcod.darker_red)
     # Mana bar:
-    render_bar(1, 4, 18, 'Aether ', int(math.floor(Player.MP)), int(math.floor(Player.maxMP)),
-               libtcod.blue, libtcod.darker_blue)
+    render_bar(1, 4, 18, 'MP ', int(math.floor(Player.MP)), int(math.floor(Player.maxMP)),
+               libtcod.blue, libtcod.darker_blue) # TODO: Aether?
     # Stamina bar:
-    render_bar(1, 5, 18, 'Stamina', int(math.floor(Player.SP)), int(math.floor(Player.maxSP)),
+    render_bar(1, 5, 18, 'SP ', int(math.floor(Player.SP)), int(math.floor(Player.maxSP)),
                libtcod.dark_green, libtcod.darker_green)
+    # Experience bar:
+    render_bar(1, 6, 18, 'XP ', int(math.floor(Player.XP)), 1000, libtcod.gold, libtcod.amber)
 
     # Attributes:
     libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
-    libtcod.console_print_ex(var.UIPanel, 1, 7, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Str: ' + str(Player.getStr()))
     libtcod.console_print_ex(var.UIPanel, 1, 8, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Dex: ' + str(Player.getDex()))
+                             'Str: ' + str(Player.getStr()))
     libtcod.console_print_ex(var.UIPanel, 1, 9, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'Dex: ' + str(Player.getDex()))
+    libtcod.console_print_ex(var.UIPanel, 1, 10, libtcod.BKGND_NONE, libtcod.LEFT,
                              'End: ' + str(Player.getEnd()))
-    libtcod.console_print_ex(var.UIPanel, 10, 7, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'Wit: ' + str(Player.getWit()))
     libtcod.console_print_ex(var.UIPanel, 10, 8, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'Wit: ' + str(Player.getWit()))
+    libtcod.console_print_ex(var.UIPanel, 10, 9, libtcod.BKGND_NONE, libtcod.LEFT,
                              'Ego: ' + str(Player.getEgo()))
     #libtcod.console_print_ex(var.UIPanel, 10, 9, libtcod.BKGND_NONE, libtcod.LEFT,
     #                         'Spd: ' + str(int(Player.speed * 100)))
 
     # Other stats:
-    libtcod.console_print_ex(var.UIPanel, 1, 11, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'T: ' + str(var.TurnCount))
     libtcod.console_print_ex(var.UIPanel, 1, 12, libtcod.BKGND_NONE, libtcod.LEFT,
+                             'T: ' + str(var.TurnCount))
+    libtcod.console_print_ex(var.UIPanel, 1, 13, libtcod.BKGND_NONE, libtcod.LEFT,
                              'D: ' + str(var.DungeonLevel))
-    #libtcod.console_print_ex(var.UIPanel, 1, 13, libtcod.BKGND_NONE, libtcod.LEFT,
+    #libtcod.console_print_ex(var.UIPanel, 1, 14, libtcod.BKGND_NONE, libtcod.LEFT,
     #                         '$: ' + Player.getGold())
-    libtcod.console_print_ex(var.UIPanel, 10, 11, libtcod.BKGND_NONE, libtcod.LEFT,
-                             'XP: ' + str(Player.XL) + '/' + str(Player.XP))
     libtcod.console_print_ex(var.UIPanel, 10, 12, libtcod.BKGND_NONE, libtcod.LEFT,
                              'DV: ' + str(Player.getDodgeBonus(base = True)))
     libtcod.console_print_ex(var.UIPanel, 10, 13, libtcod.BKGND_NONE, libtcod.LEFT,

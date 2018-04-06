@@ -353,7 +353,7 @@ class Mob(Entity):
         self.SP = self.maxSP
         # TODO: NP, pain, heat
         self.XL = 1
-        self.XP = 0
+        self.XP = 900 # TODO
 
         # General:
         self.carry = self.recalculateCarryingCapacity()
