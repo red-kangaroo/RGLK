@@ -149,6 +149,9 @@ def render_UI(Player):
 
     y = 15
     # Effects:
+    # --------
+
+    # Health:
     if Player.hasFlag('DEAD'):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_red)
         libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
@@ -160,6 +163,7 @@ def render_UI(Player):
                                  'Dying')
         y += 1
 
+    # Tactics:
     if Player.tactics == True:
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.light_blue)
         libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
@@ -171,6 +175,24 @@ def render_UI(Player):
                                  'Aggresive')
         y += 1
 
+    # Burden states:
+    if Player.getBurdenState() == 1:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.yellow)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Burdened')
+        y += 1
+    elif Player.getBurdenState() == 2:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.red)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Strained')
+        y += 1
+    elif Player.getBurdenState() == 3:
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.red)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Overweight!')
+        y += 1
+
+    # Speed:
     if Player.speed > 1.5:
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.azure)
         libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,

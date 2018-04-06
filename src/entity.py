@@ -295,6 +295,9 @@ class Entity(object):
     def getSlot(self):
         return None
 
+    def getAttack(self):
+        return None
+
     # Heartbeat of all entities.
     def Be(self):
         # How else to check if entity has a speed variable?
@@ -353,7 +356,7 @@ class Mob(Entity):
         self.XP = 0
 
         # General:
-        self.carry = self.recalculateCarryingCapacity() # Burdened if len(inventory) == self.carry.
+        self.carry = self.recalculateCarryingCapacity()
         self.givenName = None
         self.tactics = True # True is defensive, False aggresive.
 
@@ -552,7 +555,7 @@ class Mob(Entity):
 
     def regainStamina(self):
         if not self.hasFlag('DEAD') and self.SP < self.maxSP:
-            self.SP += 0.5
+            self.SP += 1 #0.5
 
         # TODO:
         #  Vigor
@@ -759,14 +762,61 @@ class Mob(Entity):
 
         for part in self.bodyparts:
             for item in part.inventory:
-                PV += item.getProtectionValue()
+                PV += (item.getProtectionValue() * part.cover) / 100
 
         # TODO: Magic items.
 
         if self.getEnd() > 10:
             PV += (self.getEnd() - 10)
 
+        PV = int(math.ceil(PV))
+
         return max(0, PV)
+
+    def getTwoWeaponChance(self, weapon, prievous):
+        try:
+            AttackFlags = weapon.attack['flags']
+        except:
+            AttackFlags = raw.DummyAttack['flags']
+
+        # You know what? Beer is not a good drink for coding. Really, really not.
+
+        if 'NATURAL' in AttackFlags:
+            return True
+
+        if weapon.size > prievous.size:
+            return False
+
+        # TODO: Skills affect this.
+        if var.rand_chance(30):
+            print "Two-weapon chance OK:"
+            return True
+        else:
+            return False
+
+    def checkTwoHander(self, weapon):
+        handNo = 0
+
+        for part in self.bodyparts:
+            if part.hasFlag('GRASP'):
+                if len(part.inventory) == 0:
+                    handNo += 1
+                else:
+                    # Bucklers still count as free hand, while one-handed weapons
+                    # do not count towards free hands and two-handers decrease the
+                    # number of our free hands.
+                    for item in part.inventory:
+                        if item.hasFlag('TWO_HAND_OK'):
+                            handNo += 1
+                        elif item.size > self.size:
+                            handNo -= 1
+
+        if weapon.size <= self.size and handNo >= 1:
+            return True
+        elif weapon.size > self.size and handNo >= 2:
+            return True
+        else:
+            return False
 
     def tryBlocking(self, attacker, weapon, toHit, damage, forcedHit):
         # Non-physical damage should not get into this method.
@@ -787,7 +837,7 @@ class Mob(Entity):
             forcedBlock = False
 
             rerolls = 0
-            if self.HP < self.maxHP / 10:
+            if self.HP < (self.maxHP / 10):
                 rerolls += 1
             # TODO: rerolls from skills
 
@@ -807,25 +857,18 @@ class Mob(Entity):
                 print "successful block"
 
                 # Find how much we blocked:
-                try:
-                    DiceNumber = defender.attack['DiceNumber']
-                except:
-                    DiceNumber = raw.DummyAttack['DiceNumber']
-                try:
-                    DiceValue = defender.attack['DiceValue']
-                except:
-                    DiceValue = raw.DummyAttack['DiceValue']
-                try:
-                    DamageBonus = defender.attack['DamageBonus']
-                except:
-                    DamageBonus = raw.DummyAttack['DamageBonus']
+                (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+                 AttackRange, AttackFlags) = defender.getAttack()
 
                 # Add strength, scaled:
                 StrBonus = self.getStr() * raw.Scaling[defender.StrScaling]
                 DiceValue += var.rand_int_from_float(StrBonus)
 
                 # Calculate how much damage we can block:
-                blocked = var.rand_dice(DiceNumber, DiceValue, DamageBonus)
+                if defender.hasFlag('SHIELD'):
+                    blocked = DiceNumber * DiceValue + DamageBonus
+                else:
+                    blocked = var.rand_dice(DiceNumber, DiceValue, DamageBonus)
 
                 blocked += self.getDamageBonus(attacker, defender)
                 withWhat = "&POSS " + defender.getName()
@@ -849,26 +892,18 @@ class Mob(Entity):
                                how, partially, withWhat)
                 ui.message(message, actor = self)
 
-                # Find size difference:
-                staminaMod = 1.0
+                # Calculate stamina cost:
+                staminaCost = blocked * (1.3 ** (weapon.size - defender.size))
 
-                if weapon != None:
-                    # Mod is 100% for bigger weapon of attacker.
-                    if weapon.size == defender.size:
-                        staminaMod = 0.75
-                    elif weapon.size < defender.size:
-                        staminaMod = 0.5
                 if defender.hasFlag('SHIELD'):
-                    staminaMod /= 2
+                    staminaCost /= 2
 
-                self.SP -= max(1, (blocked * staminaMod))
+                self.SP -= max(1, staminaCost)
                 # TODO: If this bring us below 0, be off-balanced.
                 # TODO: Critical blocks cause off-balanced in attacker.
 
                 # Debug:
-                print "blocked %s damage" % blocked
-                cost = blocked * staminaMod
-                print "lost %s stamina" % cost
+                print "blocked %s damage, lost %s stamina" % (blocked, staminaCost)
 
                 return damage
             else:
@@ -987,6 +1022,8 @@ class Mob(Entity):
             else:
                 cost *= 1.5
 
+        cost *= 1.3 ** (self.getBurdenState())
+
         return cost
 
     def getAttackAPCost(self):
@@ -994,6 +1031,8 @@ class Mob(Entity):
 
         # Attack speed is not based on lost limbs, because you can attack with any limb,
         # including only body-slamming.
+
+        cost *= 1.3 ** (self.getBurdenState())
 
         return cost
 
@@ -1010,6 +1049,8 @@ class Mob(Entity):
             else:
                 # With no legs at all (eg. slug), you move slowly.
                 cost *= 1.5
+
+        cost *= 1.3 ** (self.getBurdenState())
 
         return cost
 
@@ -1056,6 +1097,16 @@ class Mob(Entity):
             name = name.capitalize()
 
         return name
+
+    def getBurdenState(self):
+        if len(self.inventory) <= self.carry:
+            return 0 # Unencumbered
+        elif len(self.inventory) <= (self.carry * 1.5):
+            return 1 # Burdened
+        elif len(self.inventory) <= (self.carry * 2):
+            return 2 # Strained
+        else:
+            return 3 # Overweight
 
     def hasHead(self):
         for part in self.bodyparts:
@@ -1129,6 +1180,14 @@ class Mob(Entity):
     def isExtraFragile(self):
         if self.getEnd() < 0:
             return True
+        else:
+            return False
+
+    def canBreakCurse(self, power = 0):
+        # Through undeath of some skills, you may automatically break curses binding you.
+        if self.hasFlag('UNDEAD'):
+            return True
+        # TODO: Barbarians can tear cursed items off, taking damage based on power.
         else:
             return False
 
@@ -1246,42 +1305,16 @@ class Mob(Entity):
                 else:
                     howWell = ""
 
-                try:
-                    if weapon == None:
-                        DiceNumber = raw.Slam['DiceNumber']
-                    else:
-                        DiceNumber = weapon.attack['DiceNumber']
-                except:
-                    print "BUG: dummy attack"
-                    DiceNumber = raw.DummyAttack['DiceNumber']
-                try:
-                    if weapon == None:
-                        DiceValue = raw.Slam['DiceValue']
-                    else:
-                        DiceValue = weapon.attack['DiceValue']
-                except:
-                    DiceValue = raw.DummyAttack['DiceValue']
-                try:
-                    if weapon == None:
-                        DamageBonus = raw.Slam['DamageBonus']
-                    else:
-                        DamageBonus = weapon.attack['DamageBonus']
-                except:
-                    DamageBonus = raw.DummyAttack['DamageBonus']
-                try:
-                    if weapon == None:
-                        DamageType = raw.Slam['DamageType']
-                    else:
-                        DamageType = weapon.attack['DamageType']
-                except:
-                    DamageType = raw.DummyAttack['DamageType']
-                try:
-                    if weapon == None:
-                        AttackFlags = raw.Slam['AttackFlags']
-                    else:
-                        AttackFlags = weapon.attack['flags']
-                except:
-                    AttackFlags = raw.DummyAttack['flags']
+                if weapon != None:
+                    (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+                     AttackRange, AttackFlags) = weapon.getAttack()
+                else:
+                    DiceNumber = raw.Slam['DiceNumber']
+                    DiceValue = raw.Slam['DiceValue']
+                    DamageBonus = raw.Slam['DamageBonus']
+                    DamageType = raw.Slam['DamageType']
+                    AttackRange = raw.Slam['range']
+                    AttackFlags = raw.Slam['AttackFlags']
 
                 # Try crits:
                 # TODO: Not sure where magical attacks will fall with this?
@@ -1484,7 +1517,11 @@ class Mob(Entity):
             return False
         if self.SP <= 0:
             if self.hasFlag('AVATAR'):
-                ui.message("You are too exhausted to fight.")
+                ui.message("You are too exhausted to fight.", color = libtcod.light_red)
+            return False
+        if self.getBurdenState() == 3:
+            if self.hasFlag('AVATAR'):
+                ui.message("You carry too much to fight.", color = libtcod.light_red)
             return False
         if not victim.hasFlag('MOB'):
             if self.hasFlag('AVATAR'):
@@ -1561,12 +1598,20 @@ class Mob(Entity):
 
         # Get multiplier:
         multiplier = 1.0
+        # TODO: charging etc.
+
+        attackNo = 0
 
         for i in attacks:
             if victim.hasFlag('DEAD'):
                 break
 
+            prievous = attacks[attackNo - 1]
+            if attackNo > 0 and not self.getTwoWeaponChance(i, prievous):
+                continue
+
             victim.receiveAttack(self, i, multiplier)
+            attackNo += 1
 
         self.AP -= self.getAttackAPCost()
         # self.NP -= 5
@@ -1652,11 +1697,15 @@ class Mob(Entity):
     def actionClimb(self, dz):
         if self.AP < 1:
             return False
+        if self.getBurdenState() == 3:
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot climb with so much load.", color = libtcod.light_red)
+            return False
         if self.hasArms() == False and self.hasLegs() == False and dz > 0:
             # This prevents us from climbing upwards with no limbds left. We can still
             # "fall" down, though.
             if self.hasFlag('AVATAR'):
-                ui.message("You cannot climb with no limbs.")
+                ui.message("You cannot climb with no limbs.", color = libtcod.light_red)
             return False
         if self.SP < 5:
             ui.message("%s &ISARE too tired to climb the stairs." % self.getName(True), actor = self)
@@ -1886,14 +1935,18 @@ class Mob(Entity):
                     elif part.hasFlag('GRASP'):
                         cool = part.getCoolness()
                     else:
-                        cool = 0
+                        cool = -1
 
                     itemCool = item.getCoolness()
                     if item.size < part.size:
-                        itemCool = 0
+                        itemCool = -2
 
                     if itemCool > cool:
-                        equip = part.doDeEquip()
+                        if slot == 'GRASP':
+                            if not self.checkTwoHander(item):
+                                continue
+
+                        equip = part.doDeEquip(self)
                         if equip != None:
                             self.inventory.append(equip)
 
@@ -1925,9 +1978,14 @@ class Mob(Entity):
                 return False
 
             if len(self.bodyparts[part].inventory) != 0:
-                item = self.bodyparts[part].doDeEquip()
-                self.inventory.append(item)
-                self.AP -= self.getActionAPCost()
+                item = self.bodyparts[part].doDeEquip(self)
+
+                if item != None:
+                    self.inventory.append(item)
+                    self.AP -= self.getActionAPCost()
+                else:
+                    ui.render_all(self)
+
                 return True
             else:
                 slot = self.bodyparts[part].getSlot()
@@ -1944,9 +2002,6 @@ class Mob(Entity):
                         if i.hasFlag(slot):
                             options.append(i)
 
-                # TODO:
-                # Items of size larger than self are two-handed.
-
                 if len(options) == 0:
                     ui.message("You carry nothing to equip on that body part.", actor = self)
                     ui.render_all(self)
@@ -1957,7 +2012,15 @@ class Mob(Entity):
                     if item == None:
                         return True
 
-                    if self.bodyparts[part].doEquip(options[item]) == True:
+                    # Items of size larger than self are two-handed and can block
+                    # other items from being wielded.
+                    if slot == 'GRASP':
+                        if not self.checkTwoHander(options[item]):
+                            ui.message("Your hands are already full.")
+                            ui.render_all(self)
+                            return True
+
+                    if self.bodyparts[part].doEquip(options[item], self) == True:
                         self.inventory.remove(options[item])
                         self.AP -= self.getActionAPCost()
                         return True
@@ -1968,6 +2031,10 @@ class Mob(Entity):
 
     def actionJump(self, where):
         if self.AP < 1:
+            return False
+        if self.getBurdenState() >= 2:
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot jump with so much load.", color = libtcod.light_red)
             return False
 
         dx = where[0]
@@ -2051,7 +2118,7 @@ class Mob(Entity):
         #if self.AP < 1:
         #    return False
 
-        if len(self.inventory) >= self.carry:
+        if self.getBurdenState() == 3:
             if self.hasFlag('AVATAR'):
                 ui.message("Your inventory is already full.")
             return False
@@ -2077,9 +2144,11 @@ class Mob(Entity):
             return False
         elif pickAll == True:
             # TODO: Not if monsters in sight?
+            carry = self.getBurdenState()
+
             for i in options:
-                if len(self.inventory) >= self.carry:
-                    ui.message("%s cannot pick up any more items." % self.getName(True), actor = self)
+                if self.getBurdenState() != carry:
+                    #ui.message("%s cannot pick up any more items." % self.getName(True), actor = self)
                     break
 
                 self.inventory.append(i)
@@ -2113,6 +2182,10 @@ class Mob(Entity):
     def actionSwap(self, Other):
         if self.AP < 1:
             return False
+        if self.getBurdenState() == 3:
+            if self.hasFlag('AVATAR'):
+                ui.message("You can barely move with so much load.", color = libtcod.light_red)
+            return False
         if self == Other:
             ui.message("%s attempt&S to swap with &SELF and fail&S." % self.getName(True), actor = self)
             return False
@@ -2143,6 +2216,10 @@ class Mob(Entity):
     def actionWalk(self, dx, dy):
         if self.AP < 1:
             return False
+        if self.getBurdenState() == 3:
+            if self.hasFlag('AVATAR'):
+                ui.message("You can barely move with so much load.", color = libtcod.light_red)
+            return False
 
         # TODO: If running, takes half a turn. With Unarmored and not running,
         #       you recover 1 SP per move.
@@ -2155,6 +2232,7 @@ class Mob(Entity):
             moved = True
         else:
             if self.hasFlag('AVATAR'):
+                var.Maps[var.DungeonLevel][self.x + dx][self.y + dy].explored = True
                 ui.message("You cannot go there.")
 
         if moved and self.hasFlag('AVATAR'):
@@ -2235,22 +2313,8 @@ class Item(Entity):
                 name = "doomed " + name
 
             # Stats:
-            try:
-                ToHitBonus = self.attack['ToHitBonus']
-            except:
-                ToHitBonus = raw.DummyAttack['ToHitBonus']
-            try:
-                DiceNumber = self.attack['DiceNumber']
-            except:
-                DiceNumber = raw.DummyAttack['DiceNumber']
-            try:
-                DiceValue = self.attack['DiceValue']
-            except:
-                DiceValue = raw.DummyAttack['DiceValue']
-            try:
-                DamageBonus = self.attack['DamageBonus']
-            except:
-                DamageBonus = raw.DummyAttack['DamageBonus']
+            (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+             AttackRange, AttackFlags) = self.getAttack()
 
             ToHitBonus += self.acc
             ToHitBonus += self.enchantment
@@ -2364,6 +2428,43 @@ class Item(Entity):
         # TODO: For magical weapons and shields blocking magic.
         pass
 
+    def getAttack(self):
+        try:
+            verb = self.attack['verb']
+        except:
+            verb = raw.DummyAttack['verb']
+        try:
+            ToHitBonus = self.attack['ToHitBonus']
+        except:
+            ToHitBonus = raw.DummyAttack['ToHitBonus']
+        try:
+            DiceNumber = self.attack['DiceNumber']
+        except:
+            DiceNumber = raw.DummyAttack['DiceNumber']
+        try:
+            DiceValue = self.attack['DiceValue']
+        except:
+            DiceValue = raw.DummyAttack['DiceValue']
+        try:
+            DamageBonus = self.attack['DamageBonus']
+        except:
+            DamageBonus = raw.DummyAttack['DamageBonus']
+        try:
+            DamageType = self.attack['DamageType']
+        except:
+            DamageType = raw.DummyAttack['DamageType']
+        try:
+            AttackRange = self.attack['range']
+        except:
+            AttackRange = raw.DummyAttack['range']
+        try:
+            AttackFlags = self.attack['flags']
+        except:
+            AttackFlags = raw.DummyAttack['flags']
+
+        return (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+                AttackRange, AttackFlags)
+
     def getCoolness(self):
         cool = self.coolness
 
@@ -2374,22 +2475,8 @@ class Item(Entity):
         if self.hasFlag('WEAPON') or self.hasFlag('SHIELD'):
             weaponBonus = 0
 
-            try:
-                ToHitBonus = self.attack['ToHitBonus']
-            except:
-                ToHitBonus = raw.DummyAttack['ToHitBonus']
-            try:
-                DiceNumber = self.attack['DiceNumber']
-            except:
-                DiceNumber = raw.DummyAttack['DiceNumber']
-            try:
-                DiceValue = self.attack['DiceValue']
-            except:
-                DiceValue = raw.DummyAttack['DiceValue']
-            try:
-                DamageBonus = self.attack['DamageBonus']
-            except:
-                DamageBonus = raw.DummyAttack['DamageBonus']
+            (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+             AttackRange, AttackFlags) = self.getAttack()
 
             weaponBonus += ToHitBonus
             weaponBonus += DiceNumber * DiceValue
@@ -2531,22 +2618,8 @@ class BodyPart(Entity):
         cool = 0
 
         if self.hasFlag('GRASP'):
-            try:
-                ToHitBonus = self.attack['ToHitBonus']
-            except:
-                ToHitBonus = raw.DummyAttack['ToHitBonus']
-            try:
-                DiceNumber = self.attack['DiceNumber']
-            except:
-                DiceNumber = raw.DummyAttack['DiceNumber']
-            try:
-                DiceValue = self.attack['DiceValue']
-            except:
-                DiceValue = raw.DummyAttack['DiceValue']
-            try:
-                DamageBonus = self.attack['DamageBonus']
-            except:
-                DamageBonus = raw.DummyAttack['DamageBonus']
+            (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+             AttackRange, AttackFlags) = self.getAttack()
 
             cool += ToHitBonus
             cool += DiceNumber * DiceValue
@@ -2573,7 +2646,44 @@ class BodyPart(Entity):
 
         return slot
 
-    def doEquip(self, item):
+    def getAttack(self):
+        try:
+            verb = self.attack['verb']
+        except:
+            verb = raw.DummyAttack['verb']
+        try:
+            ToHitBonus = self.attack['ToHitBonus']
+        except:
+            ToHitBonus = raw.DummyAttack['ToHitBonus']
+        try:
+            DiceNumber = self.attack['DiceNumber']
+        except:
+            DiceNumber = raw.DummyAttack['DiceNumber']
+        try:
+            DiceValue = self.attack['DiceValue']
+        except:
+            DiceValue = raw.DummyAttack['DiceValue']
+        try:
+            DamageBonus = self.attack['DamageBonus']
+        except:
+            DamageBonus = raw.DummyAttack['DamageBonus']
+        try:
+            DamageType = self.attack['DamageType']
+        except:
+            DamageType = raw.DummyAttack['DamageType']
+        try:
+            AttackRange = self.attack['range']
+        except:
+            AttackRange = raw.DummyAttack['range']
+        try:
+            AttackFlags = self.attack['flags']
+        except:
+            AttackFlags = raw.DummyAttack['flags']
+
+        return (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+                AttackRange, AttackFlags)
+
+    def doEquip(self, item, actor = None):
         # TODO: Two-handers.
 
         if len(self.inventory) > 0:
@@ -2588,18 +2698,28 @@ class BodyPart(Entity):
             return False
 
         if not slot == 'GRASP' and item.size < self.size:
+            if actor != None:
+                if actor.hasFlag('AVATAR'):
+                    ui.message("%s is too small to fit." % item.getName(True))
             return False
 
         self.inventory.append(item)
         return True
 
-    def doDeEquip(self):
-        # TODO: Cursed stuff.
+    def doDeEquip(self, actor = None):
+        # Remove equipment from a limb. Cursed stuff cannot be removed, of course,
+        # unless you are undead.
 
         if len(self.inventory) == 0:
             return None
         else:
             for item in self.inventory:
+                if actor != None:
+                    if item.beautitude < 0 and not actor.canBreakCurse(item.beautitude):
+                        if actor.hasFlag('AVATAR'):
+                            ui.message("%s is cursed and you cannot take it off." % item.getName(True))
+                        continue
+
                 self.inventory.remove(item)
                 return item
 

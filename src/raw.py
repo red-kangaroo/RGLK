@@ -297,7 +297,7 @@ WarHammer = {
 'color': libtcod.dark_grey,
 'name': 'war hammer',
 'material': 'IRON',
-'size': 1,
+'size': 2,
 'StrScaling': 'A',
 'DexScaling': 'D',
 'attack': Hammer,
@@ -306,7 +306,7 @@ WarHammer = {
 
 QuarterStaff = {
 'char': '|',
-'color': libtcod.darker_orange,
+'color': libtcod.darkest_orange,
 'name': 'quarterstaff',
 'material': 'WOOD',
 'size': 1,
@@ -410,7 +410,7 @@ Buckler = {
 
 RoundShield = {
 'char': '[',
-'color': libtcod.darker_orange,
+'color': libtcod.darkest_orange,
 'name': 'round shield',
 'material': 'WOOD',
 'size': -1,
@@ -434,7 +434,7 @@ KiteShield = {
 
 TowerShield = {
 'char': '[',
-'color': libtcod.darker_orange,
+'color': libtcod.darkest_orange,
 'name': 'tower shield',
 'material': 'WOOD',
 'size': 2,
@@ -719,7 +719,7 @@ SnakeVest = {
 'DV': 1,
 'PV': 1,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 30
+'frequency': 10
 }
 
 BlackRobe = {
@@ -851,7 +851,7 @@ SnakeSandal = {
 'DV': 2,
 'PV': 0,
 'flags': ['LEG', 'ARMOR', 'PAIRED'],
-'frequency': 30
+'frequency': 10
 }
 
 LowBoot = {
@@ -879,7 +879,7 @@ HighBoot = {
 
 Clog = {
 'char': '(',
-'color': libtcod.darker_orange,
+'color': libtcod.darkest_orange,
 'name': 'clog',
 'material': 'WOOD',
 'size': -2,
@@ -1021,15 +1021,15 @@ Player = {
 'name': 'Player',
 'Str': 2,
 'Dex': 2,
-'End': 4,
+'End': 2,
 'Wit': 0,
 'Ego': 0,
 'speed': 1.0,
 'sight': 6,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [ShortSword, RoundShield, GreenTunic, LowBoot, LowBoot],
-'flags': ['HUMANOID', 'AVATAR'],
+'inventory': [Headband, Scimitar, RoundShield, BlackGlove, BlackGlove, SnakeVest, Baldric, SnakeSandal, SnakeSandal],
+'flags': ['HUMANOID', 'AVATAR', 'UNDEAD'],
 'frequency': 0
 }
 

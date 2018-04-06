@@ -34,7 +34,7 @@ def getAICommand(Mob):
             aiDoNothing(Mob)
             return
 
-        if (len(Mob.inventory) > Mob.carry):
+        if Mob.getBurdenState() >= 2:
             Mob.actionDrop()
             return
 
@@ -273,6 +273,12 @@ def handleKeys(Player):
             pass
         return
 
+    # Take a screenshot
+    if Key.vk == libtcod.KEY_CHAR and Key.c == ord(';'):
+        libtcod.sys_save_screenshot('screenshots/screenshot.png')
+        ui.message("Screenshot saved.", color = libtcod.chartreuse)
+        return
+
     # Following actions can only be performed by living player:
     if not Player.hasFlag('DEAD'):
         # GENERAL ACTIONS:
@@ -316,7 +322,7 @@ def handleKeys(Player):
         # Equipment
         if (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
             while Player.actionEquipment() == True:
-                pass # Return to menu if something remains to pick up.
+                pass # Return to menu.
             ui.message("You change equipment.")
             return
 
@@ -718,6 +724,11 @@ def aiFindTarget(Mob):
 
     # Check monster's remembered target:
     if Mob.target != None:
+        # Monsters may forget about targets they don't see.
+        if (not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y) and
+            var.rand_chance(5)):
+            Mob.target = None
+
         # This prevents looking for target that was picked up or something:
         for i in var.Entities[var.DungeonLevel]:
             if i == Mob.target:
@@ -726,12 +737,6 @@ def aiFindTarget(Mob):
 
         if Target == None:
             Mob.target = None
-
-        # Monsters may forget about targets they don't see.
-        if (not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y) and
-            var.rand_chance(5)):
-            Mob.target = None
-            Target = None
 
     # Check for enemies:
     for i in var.Entities[var.DungeonLevel]:
@@ -911,7 +916,7 @@ def aiPickEquipment(Me, item):
     # Do we want to pick up this item?
     if not item.hasFlag('ITEM'):
         return False
-    if len(Me.inventory) >= Me.carry:
+    if Me.getBurdenState() >= 2:
         return False
 
     if Me.hasFlag('AI_SCAVENGER'):
