@@ -44,6 +44,19 @@ class Intrinsic(object):
     def getName(self, capitalize = False):
         name = self.name
 
+        if self.type == 'BLEED' and self.power >= 5:
+            name = 'hemorrhage'
+        if self.type == 'POISON':
+            if self.power <= 1:
+                name = 'mildly ' + name
+            # Normal == 2
+            elif self.power == 3:
+                name = 'strongly ' + name
+            elif self.power == 4:
+                name = 'harshly ' + name
+            elif self.power >= 5:
+                name = 'deadly ' + name + '!'
+
         if capitalize == True:
             name = name.capitalize()
 
@@ -69,12 +82,26 @@ class Intrinsic(object):
             if self.duration <= 0:
                 return None
 
+        # TODO: The effects.
+
+        # Bleeding:
         if self.type == 'BLEED':
             if owner.hasFlag('MOB'):
-                try:
-                    owner.receiveDamage(libtcod.random_get_int(0, 0, self.power), DamageType = 'BLEED', flags = ['BLEED'])
-                except:
-                    pass
+                # Large bleeding results in permanent hemorrhage.
+                if not self.isPermanent():
+                    if self.power >= 5:
+                        self.duration == 30000
 
-        # TODO: The effects.
+                power = max(0, var.rand_int_from_float(self.power))
+                damage = libtcod.random_get_int(0, 0, power)
+                owner.receiveDamage(damage, DamageType = 'BLEED')
+
+        # Poison:
+        if self.type == 'POISON':
+            if owner.hasFlag('MOB'):
+                # Let's make sure we're in poison power 1 - 5 range, for damage
+                # from 1d2 to 5d6.
+                power = max(1, min(5, self.power))
+                damage = var.rand_dice(power, power + 1, 0)
+
         return True

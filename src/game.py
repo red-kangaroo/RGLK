@@ -32,8 +32,6 @@ libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 ##############################################################################
 
 def initialize():
-    global Player
-
     # Create empty Maps and Entities lists.
     for i in range(0, var.FloorMaxNumber + 1):
         var.Maps.append(None)
@@ -60,10 +58,9 @@ def initialize():
     ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
 
 def main_loop():
-    global Player
-
     while not libtcod.console_is_window_closed():
         var.TurnCount += 1
+        playerTurn = False
 
         # Heartbeat of all entities.
         for i in var.Entities[var.DungeonLevel]:
@@ -71,6 +68,12 @@ def main_loop():
 
         # Mob turns, including the player.
         for i in var.Entities[var.DungeonLevel]:
+            # If player is still among entities, we can have a turn. If not and their
+            # body was somehow lost by the game, we must force a turn later to allow
+            # for example quitting.
+            if i.hasFlag('AVATAR'):
+                playerTurn = True
+
             while i.AP >= 1:
                 if i.hasFlag('MOB'):
                     # Calculate FOV for the current actor.
@@ -92,9 +95,9 @@ def main_loop():
                     ui.message("You call upon the great powers of wizard mode to create a whole new dungeon level!")
 
         # This is a stupid way of doing this, but eh...
-        if Player.hasFlag('DEAD'):
-            ui.render_all(Player)
-            ai.getAICommand(Player)
+        if not playerTurn:
+            ui.render_all(None)
+            ai.getAICommand(None)
 
 def play():
     what = ui.main_menu()
@@ -119,7 +122,6 @@ def play():
         sys.exit("Goodbye!")
 
 def save():
-    global Player
     file = shelve.open('savegame', 'n')
 
     file["map"] = var.Maps
@@ -128,12 +130,11 @@ def save():
     file["message"] = var.MessageHistory
     file["turn"] = var.TurnCount
     file["level"] = var.DungeonLevel
-    file["player"] = var.Entities[var.DungeonLevel].index(Player)
-        # Index of player in Entities list, to prevent doubling on load.
+    #file["player"] = var.Entities[var.DungeonLevel].index(Player)
+    #    # Index of player in Entities list, to prevent doubling on load.
     file.close()
 
 def load():
-    global Player
     file = shelve.open('savegame', 'r')
 
     var.Maps = file["map"]
@@ -142,7 +143,7 @@ def load():
     var.MessageHistory = file["message"]
     var.TurnCount = file["turn"]
     var.DungeonLevel = file["level"]
-    Player = var.Entities[var.DungeonLevel][file["player"]]
+    #Player = var.Entities[var.DungeonLevel][file["player"]]
     file.close()
 
     var.calculateFOVMap()

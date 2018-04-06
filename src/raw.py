@@ -408,6 +408,13 @@ Bleed = {
 'color': libtcod.red
 }
 
+Poison = {
+'name': 'poisoned',
+'type': 'POISON',
+'secret': False,
+'color': libtcod.green
+}
+
 Haste = {
 'name': 'hasted',
 'type': 'HASTE',
@@ -418,6 +425,13 @@ Slow = {
 'name': 'slowed',
 'type': 'SLOW',
 'secret': False
+}
+
+Blindness = {
+'name': 'blind',
+'type': 'BLIND',
+'secret': False,
+'color': libtcod.grey
 }
 
 LeftHanded = {
@@ -448,6 +462,7 @@ DummyItem = {
 'attack': NonWeapon,
 'ranged': MisThrown,
 'accuracy': 0,             # This is not normal to hit, but a general bonus.
+'light': 0,
 'StrScaling': 'F',
 'DexScaling': 'F',
 'DV': 0,
@@ -1115,6 +1130,16 @@ GoldPiece = {
 'frequency': 5
 }
 
+SunStone = {
+'char': '*',
+'color': libtcod.yellow,
+'name': 'sunstone',
+'material': 'STONE',
+'light': 3,
+'size': -2,
+'frequency': 5
+}
+
 Berry = {
 'char': chr(236),
 'color': libtcod.blue,
@@ -1218,10 +1243,10 @@ Player = {
 'Wit': 0,
 'Ego': 0,
 'speed': 1.0,
-'sight': 6,
+'sight': 0,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [Headband, Scimitar, RoundShield, BlackGlove, BlackGlove, SnakeVest, Baldric, SnakeSandal, SnakeSandal],
+'inventory': [Headband, ShortSword, RoundShield, SnakeVest, Baldric, SnakeSandal, SnakeSandal, SunStone],
 'flags': ['HUMANOID', 'AVATAR', 'UNDEAD'],
 'frequency': 0
 }
@@ -1279,8 +1304,8 @@ Troll = {
 'color': libtcod.dark_green,
 'name': 'troll',
 'Str': 2,
-'Dex': -1,
-'End': 3,
+'Dex': 0,
+'End': 4,
 'Wit': -1,
 'Ego': 0,
 'size': 1,
@@ -2230,6 +2255,7 @@ Greave,
 Anklet,
 # Other:
 GoldPiece,
+SunStone,
 Berry,
 Boulder,
 Chest,
@@ -2269,11 +2295,21 @@ ImmuneNecrotic,
 ImmuneElectricity,
 # DoT:
 Bleed,
+Poison,
 # Other:
 Haste,
 Slow,
+Blindness,
 LeftHanded,
 NoneIntrinsic
+]
+
+SkillList = [
+
+]
+
+SpellList = [
+
 ]
 
 # Monsters:

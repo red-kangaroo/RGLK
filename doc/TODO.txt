@@ -1,6 +1,66 @@
 List of things to do and include:
 * pain
-* intrinsics
+* intrinsics:
+   VULN_material
+   IMMUNE_GAS
+   IMMUNE_DISEASE
+   RESIST_METAL
+   RESIST_SLEEP insomnia
+   RESIST_CHOKE unbreathing
+   RESIST_POLY unchanging
+   RESIST_TELE
+   RESIST_MIND stun, daze and confusion
+   RESIST_FEAR
+   CONTROL_POLY
+   CONTROL_TELE
+   DRAIN_LIFE unhealing
+   DRAIN_MANA
+   REGEN_LIFE
+   REGEN_MANA
+   REFLECT
+   ESP
+   SEARCH
+   WARNING
+   FOREST_VISION forestry
+   CLAIR_VISION clairvoyance
+   INFRA_VISION infravision
+   CAN_JUMP
+   CAN_DIG
+   CHOKE
+   POISON
+   FREEDOM
+   INVISIBLE
+   DISPLACED
+   LIFE_SAVE
+   WATER_WALK
+   LEVITATION
+   PARALYSED
+   FRAGILE
+   BLIND
+   DEAF
+   STONING
+   TELEPORT
+   POLYMORPH
+   AFLAME
+   STUN
+   DAZE
+   CONF
+   PANIC
+   MARKED
+   AMNESIA
+   POSSESSED
+   FAMILIAR
+   ASLEEP
+   OFF_BALANCE
+   LICH_FORM
+   PHASING
+   FASTING
+   RAGE
+
+   noisy?
+   diseases
+   skills
+   spells
 * multiple FOVMaps (forestry, clairvoyance)
 * item charges
 * Skills:

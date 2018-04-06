@@ -126,6 +126,10 @@ def spawn(x, y, BluePrint, type):
         except:
             accuracy = raw.DummyItem['accuracy']
         try:
+            light = BluePrint['light']
+        except:
+            light = raw.DummyItem['light']
+        try:
             DV = BluePrint['DV']
         except:
             DV = raw.DummyItem['DV']
@@ -179,6 +183,7 @@ def spawn(x, y, BluePrint, type):
 
         # Add special stats:
         New.acc = accuracy
+        New.light = light
 
     else:
         print "Failed to spawn unknown entity type."
@@ -232,9 +237,11 @@ class Entity(object):
         if (libtcod.map_is_in_fov(var.FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.MapConsole, self.getColor())
             libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_SCREEN)
+            # Add a SEEN flag. This is necessary for messages, as FOV can be recalculated for other
+            # creatures, but player will still only see the monsters with SEEN flag.
             self.flags.append('SEEN')
 
-    def range(self, Other): # Range between to entities.
+    def range(self, Other): # Range between two entities.
         dx = Other.x - self.x
         dy = Other.y - self.y
 
@@ -368,7 +375,7 @@ class Entity(object):
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, material, size, #These are base Entity arguments.
-                 Str, Dex, End, Wit, Ego, sex, speed = 1.0, FOVRadius = 6, addFlags = [], addIntrinsics = []):
+                 Str, Dex, End, Wit, Ego, sex, speed, FOVBase, addFlags = [], addIntrinsics = []):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
         super(Mob, self).__init__(x, y, char, color, name, material, size, BlockMove)
@@ -391,8 +398,8 @@ class Mob(Entity):
             self.sex = sex
 
         # FOV:
-        self.FOVRadius = FOVRadius # TODO: This should depend on stats and equipment.
-        self.recalculateFOV()
+        self.FOVBase = FOVBase # TODO: This should depend on stats and equipment.
+        #self.recalculateFOV()
 
         # Calculate stats:
         self.bonusHP = 0
@@ -581,7 +588,7 @@ class Mob(Entity):
         self.recalculateCarryingCapacity()
 
     def recalculateFOV(self):
-        libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.FOVRadius, True, 0)
+        libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.getLightRadius(), True, 0)
 
     def recalculateCarryingCapacity(self):
         return max(1, 10 + (2 * self.getStr()))
@@ -876,6 +883,9 @@ class Mob(Entity):
             return False
 
     def checkTwoHander(self, weapon):
+        if weapon.hasFlag('TWO_HAND_OK'):
+            return True
+
         handNo = 0
 
         for part in self.bodyparts:
@@ -1019,7 +1029,7 @@ class Mob(Entity):
 
         return resisted
 
-    def severLimb(self, limb = None, silent = False):
+    def severLimb(self, limb = None, attacker = None, silent = False):
         if limb == None:
             limb = self.getLimbToHit()
 
@@ -1044,7 +1054,7 @@ class Mob(Entity):
 
             for part in self.bodyparts:
                 if part.hasFlag('HAND') and part.hasFlag(flag):
-                    self.severLimb(part, True)
+                    self.severLimb(part, attacker, True)
                     break
 
         # TODO:
@@ -1068,7 +1078,7 @@ class Mob(Entity):
                        libtcod.red, self)
 
         if limb.hasFlag('VITAL'):
-            self.checkDeath(True)
+            self.checkDeath(True, attacker)
 
         # And we are bleeding...
         self.addIntrinsic('BLEED', libtcod.random_get_int(0, 3, 8), 1)
@@ -1200,6 +1210,25 @@ class Mob(Entity):
         else:
             return 3 # Overweight
 
+    def getLightRadius(self):
+        light = self.FOVBase
+
+        # Get equipment bonuses:
+        for i in self.getEquipment():
+            try:
+                light += i.light
+            except:
+                print "Failed to add light radius!"
+
+        if light <= 0:
+            light = 1
+            if not self.hasFlag('CANNOT_SEE'):
+                self.flags.append('CANNOT_SEE')
+        elif light > 0 and self.hasFlag('CANNOT_SEE'):
+            self.flags.remove('CANNOT_SEE')
+
+        return light
+
     def hasHead(self):
         for part in self.bodyparts:
             if part.hasFlag('HEAD'):
@@ -1275,9 +1304,22 @@ class Mob(Entity):
                 return True
 
         for item in self.getEquipment():
-            for i in item.intrinsics:
-                if i.type == intrinsic:
-                    return True
+            if item.hasIntrinsic(intrinsic):
+                return True
+
+        return False
+
+    def hasSkill(self, skill):
+        if self.hasIntrinsic('AMNESIA'):
+            return False
+
+        for i in self.intrinsics:
+            if i.type == skill:
+                return True
+
+        for item in self.getEquipment():
+            if item.hasIntrinsic(skill):
+                return True
 
         return False
 
@@ -1309,6 +1351,7 @@ class Mob(Entity):
         if power > 0:
             power += self.enchantment
 
+        # TODO: Maybe limit this to equipment in right slot?
         for item in self.getEquipment():
             if item.hasIntrinsic(intrinsic):
                 power += item.getIntrinsicPower(intrinsic)
@@ -1389,7 +1432,18 @@ class Mob(Entity):
             return False
 
     def canSense(self, Target):
-        pass
+        # TODO: Blindness, invisibility, other senses, ...
+        can = False
+
+        if (libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y) and
+            not (self.hasFlag('CANNOT_SEE') or self.hasIntrinsic('BLIND'))):
+            can = True
+
+        # You can always just touch it.
+        if Target.x == self.x and Target.y == self.y:
+            can = True
+
+        return can
 
     def receiveHeal(self, amount):
         if self.hasFlag('DEAD'):
@@ -1438,7 +1492,7 @@ class Mob(Entity):
             self.XP -= 1000
         return True
 
-    def receiveAttack(self, attacker, weapon, multiplier):
+    def receiveAttack(self, attacker, weapon, launcher = None, multiplier = 1.0):
         # TODO: launcher
         self.target = attacker
 
@@ -1564,7 +1618,7 @@ class Mob(Entity):
                         damage = self.tryBlocking(attacker, weapon, toHit, damage, forcedHit)
 
                 if damage > 0:
-                    self.receiveDamage(damage, limb, DamageType, AttackFlags)
+                    self.receiveDamage(damage, limb, DamageType, attacker, weapon, AttackFlags)
             else:
                 ui.message("%s miss&ES %s." % (attacker.getName(True), self.getName()),
                            libtcod.light_grey, actor = attacker)
@@ -1589,7 +1643,8 @@ class Mob(Entity):
 
         print "-" * 10
 
-    def receiveDamage(self, damage, limb = None, DamageType = None, flags = []):
+    def receiveDamage(self, damage, limb = None, DamageType = None, attacker = None,
+                      weapon = None, flags = []):
         if limb == None:
             limb = self.getLimbToHit()
 
@@ -1610,55 +1665,56 @@ class Mob(Entity):
         #       Different materials.
         #       Damage type effects.
 
-        # Special messages:
-        if 'BLEED' in flags:
-            ui.message("%s bleed&S." % self.getName(True), libtcod.light_red, self)
-
         # Wound the limb:
-        if var.rand_chance(damage):
-            if limb.wounded or self.isExtraFragile():
-                # We sever the limb, but this also means we can no longer use it
-                # for further methods, as it's not attached.
-                if not self.severLimb(limb):
-                    self.addIntrinsic('BLEED', max(5, damage), 1)
+        if not DamageType in ['BLEED', 'POISON']:
+            if var.rand_chance(damage):
+                if limb.wounded or self.isExtraFragile():
+                    # We sever the limb, but this also means we can no longer use it
+                    # for further methods, as it's not attached.
+                    if not self.severLimb(limb, attacker):
+                        self.addIntrinsic('BLEED', max(5, damage), 1)
+                    else:
+                        limb = None
                 else:
-                    limb = None
-            else:
-                limb.wounded = True
-                ui.message("%s %s is wounded." % (self.getName(True, possessive = True), limb.getName()),
-                           libtcod.light_red, self)
+                    limb.wounded = True
+                    ui.message("%s %s is wounded." % (self.getName(True, possessive = True), limb.getName()),
+                               libtcod.light_red, self)
 
         # We might have alredy died here.
         if self.hasFlag('DEAD'):
             return
 
         if damage > 0:
-            if not 'BLEED' in flags:
-                # We get instakilled by enough damage.
-                # TODO: Maybe the AVATAR is extempt?
-                if damage >= (self.maxHP * 2):
-                    self.HP == 0
-                    self.checkDeath(True)
-                    return
+            # We get instakilled by enough damage.
+            # TODO: Maybe the AVATAR is extempt?
+            if damage >= (self.maxHP * 2):
+                self.HP == 0
+                self.checkDeath(True, attacker)
+                return
 
+            # Some damage types cannot sever limbs:
+            if not DamageType in ['BLEED', 'POISON']:
                 if self.HP < damage:
                     # We can loose a limb instead of dying. We still take some damage
                     # if enough is dealt.
-                    if self.severLimb(limb):
+                    if self.severLimb(limb, attacker):
                         if damage > self.maxHP:
                             damage /= 2
                         else:
                             return # Take no damage here.
 
+            # Special messages:
+            if DamageType == 'BLEED':
+                ui.message("%s bleed&S." % self.getName(True), libtcod.light_red, self)
+
             # TODO: Second chance.
 
             self.HP -= damage
-            self.checkDeath()
-        else:
-            if not 'BLEED' in flags:
-                ui.message("%s &ISARE not hurt." % self.getName(True), actor = self)
+            self.checkDeath(killer = attacker)
+        elif not DamageType in ['BLEED', 'POISON']:
+            ui.message("%s &ISARE not hurt." % self.getName(True), actor = self)
 
-    def checkDeath(self, forceDie = False):
+    def checkDeath(self, forceDie = False, killer = None):
         # TODO: Life saving.
 
         if self.hasFlag('DEAD'):
@@ -1708,6 +1764,7 @@ class Mob(Entity):
                 if i.target == self:
                     i.target = None
 
+            # TODO: Give XP.
             return True
         else:
             return False
@@ -1815,7 +1872,7 @@ class Mob(Entity):
             if attackNo > 0 and not self.getTwoWeaponChance(i, prievous):
                 continue
 
-            victim.receiveAttack(self, i, multiplier)
+            victim.receiveAttack(self, i, multiplier = multiplier)
             attackNo += 1
 
         self.AP -= self.getAttackAPCost()
@@ -2015,7 +2072,7 @@ class Mob(Entity):
             self.AP -= self.getMoveAPCost()
             return True
 
-    def actionDrop(self, dropAll = False):
+    def actionDrop(self, dropAll = False, what = None):
         #if self.AP < 1:
         #    return False
 
@@ -2035,7 +2092,9 @@ class Mob(Entity):
                 var.Entities[var.DungeonLevel].append(item)
                 # Used only on death, so no AP nor drop messages.
         else:
-            if not self.hasFlag('AVATAR'):
+            if what != None:
+                toDrop = self.inventory.index(what)
+            elif not self.hasFlag('AVATAR'):
                 toDrop = libtcod.random_get_int(0, 0, len(self.inventory) - 1)
             else:
                 toDrop = ui.option_menu("Drop what?", self.inventory)
@@ -2085,9 +2144,11 @@ class Mob(Entity):
             if i.x == x and i.y == y:
                 if i.hasFlag('ITEM'):
                     # TODO: actionLoot
-                    self.actionPickUp(x, y)
-                    return True
-                elif i.hasFlag('MOB'):
+                    if self.actionPickUp(x, y):
+                        return True
+                    else:
+                        return False
+                elif i.hasFlag('MOB') and i != self:
                     # TODO:
                     #if self.hasFlag('AVATAR'):
                     #    i.selectAction(self)
@@ -2098,11 +2159,13 @@ class Mob(Entity):
                     return True
 
         if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
-            self.actionOpen(x, y)
-            return True
+            if self.actionOpen(x, y):
+                return True
+            return False
         elif var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED'):
-            self.actionClose(x, y)
-            return True
+            if self.actionClose(x, y):
+                return True
+            return False
         elif var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLIMBED'):
             tree = var.Maps[var.DungeonLevel][x][y].name
 
@@ -2119,6 +2182,7 @@ class Mob(Entity):
 
         # TODO: More actions.
         #   actionOpen for containers, both ITEM and FEATURE
+        return False
 
     def actionInventory(self):
         if len(self.inventory) == 0:
@@ -2170,6 +2234,10 @@ class Mob(Entity):
 
                             if takeTime:
                                 self.AP -= self.getActionAPCost()
+                            if not self.hasFlag('AVATAR'):
+                                self.actionDrop(what = item)
+
+        return # Just for the good sleep of mine.
 
     def actionEquipment(self):
         if len(self.bodyparts) == 0:
@@ -2381,6 +2449,18 @@ class Mob(Entity):
         else:
             return False # Closes window after picking up the only item on ground.
 
+    def actionPossess(self, x, y):
+        if self.hasFlag('AVATAR'):
+            for i in var.Entities[var.DungeonLevel]:
+                if i.x == x and i.y == y and i.hasFlag('MOB'):
+                    self.flags.remove('AVATAR')
+                    i.flags.append('AVATAR')
+            return True
+        else:
+            # TODO
+            return False
+
+
     def actionPush(self, dx, dy):
         pass
 
@@ -2490,6 +2570,7 @@ class Item(Entity):
 
         self.acc = 0 # This is not same as ToHitBonus from self.attack, this is used
                      # for general accuracy bonus for all attacks, eg. from armor.
+        self.light = 0
         self.coolness = cool
 
     def getName(self, capitalize = False, full = False):

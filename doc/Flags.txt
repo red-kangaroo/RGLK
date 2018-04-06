@@ -12,12 +12,12 @@ BLUNT
 SLASH
 PIERCE
 
-*RESIST_PHYSICAL
+RESIST_PHYSICAL
 *RESIST_METAL
 
 General:
-*NATURAL            Always used when multiweaponing.
-*UNARMED            No limit for Str bonus to damage.
+NATURAL            Always used when multiweaponing.
+*UNARMED
 
 
 Entity
@@ -58,6 +58,10 @@ Special:
 AVATAR             Player-controlled entity.
 DEAD               A creature that died.
 SEEN               Whether player can currently see the entity.
+*ACIDIC             Causes acid damage when eaten and immune to stoning.
+*FLY
+*SWIM
+CANNOT_SEE         Light radius 0, ie. cannot see anything around.
 
 
 Items

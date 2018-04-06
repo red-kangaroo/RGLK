@@ -23,7 +23,7 @@ def render_all(Player):
 
     render_map(Player)
     render_UI(Player)
-    render_messages(Player)
+    render_messages()
 
     # And draw it all on the screen:
     libtcod.console_flush()
@@ -50,13 +50,25 @@ def render_map(Player):
         if i.hasFlag('MOB'):
             i.draw()
     # Draw player last, over everything else.
-    if not Player.hasFlag('DEAD'):
-        Player.draw()
+    if Player != None:
+        if not Player.hasFlag('DEAD'):
+            if ((Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')) and
+                not var.WizModeTrueSight):
+                for y in range(Player.y - 1, Player.y + 2):
+                    for x in range(Player.x - 1, Player.x + 2):
+                        libtcod.console_set_default_foreground(var.MapConsole, libtcod.grey)
+
+                        if x == Player.x and y == Player.y:
+                            libtcod.console_put_char(var.MapConsole, x, y, '?', libtcod.BKGND_SCREEN)
+                        else:
+                            libtcod.console_put_char(var.MapConsole, x, y, ' ', libtcod.BKGND_SCREEN)
+            else:
+                Player.draw()
 
     # Render map:
     libtcod.console_blit(var.MapConsole, 0, 0, var.MapWidth, var.MapHeight, 0, 0, 0)
 
-def render_messages(Player):
+def render_messages():
     libtcod.console_set_default_foreground(var.MessagePanel, var.TextColor)
     libtcod.console_set_default_background(var.MessagePanel, libtcod.black)
     libtcod.console_clear(var.MessagePanel)
@@ -89,6 +101,9 @@ def render_messages(Player):
                          0, var.ScreenHeight - var.PanelHeight)
 
 def render_UI(Player):
+    if Player == None:
+        return
+
     libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
     libtcod.console_set_default_background(var.UIPanel, libtcod.black)
     libtcod.console_clear(var.UIPanel)

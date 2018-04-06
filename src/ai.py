@@ -17,9 +17,13 @@ import var
 ###############################################################################
 
 def getAICommand(Mob):
-    if Mob.hasFlag('AVATAR'):
+    if Mob == None:
+        print "Handling keys for None mob, might be a bug!"
+        handleKeys(Mob)
+        return
+    elif Mob.hasFlag('AVATAR'):
         if Mob.target != None:
-            if not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y):
+            if not Mob.canSense(Mob.target):
                 Mob.target = None
 
         handleKeys(Mob)
@@ -142,18 +146,38 @@ def handleKeys(Player):
     if Key.vk == libtcod.KEY_ESCAPE:
         what = ui.main_menu(Player)
 
-        if what == 0: # Save
-            game.save()
-            sys.exit("Game saved.")
-            return
-        elif what == 1: # Options
-            ui.message("This function is unfortunately not yet supported!", libtcod.chartreuse)
-            return
-        if what == 2: # Quit
-            sys.exit("You cowardly quit the game.")
-            return
+        if Player == None:
+            if what == 0: # Quick Start
+                initialize()
+                main_loop()
+            elif what == 1: # Create Character
+                sys.exit("This function is unfortunately not yet supported!")
+            if what == 2: # Load
+                try:
+                    load()
+                except:
+                    sys.exit("No savefile detected!")
+
+                main_loop()
+            if what == 3: # Tutorial
+                sys.exit("This function is unfortunately not yet supported!")
+            if what == 4: # Options
+                sys.exit("This function is unfortunately not yet supported!")
+            else: # Quit
+                sys.exit("Goodbye!")
         else:
-            return
+            if what == 0: # Save
+                game.save()
+                sys.exit("Game saved.")
+                return
+            elif what == 1: # Options
+                ui.message("This function is unfortunately not yet supported!", libtcod.chartreuse)
+                return
+            if what == 2: # Quit
+                sys.exit("You cowardly quit the game.")
+                return
+            else:
+                return
 
     # Alt+Enter goes fullscreen
     if Key.vk == libtcod.KEY_ENTER and Key.lalt:
@@ -172,7 +196,7 @@ def handleKeys(Player):
         var.WizModeActivated = True
         return
 
-    if var.WizModeActivated:
+    if var.WizModeActivated and Player != None:
         # Walk through walls
         if Key.vk == libtcod.KEY_F1:
             var.WizModeNoClip = not var.WizModeNoClip
@@ -226,10 +250,7 @@ def handleKeys(Player):
             x = Player.x + where[0]
             y = Player.y + where[1]
 
-            for i in var.Entities[var.DungeonLevel]:
-                if i.x == x and i.y == y and i.hasFlag('MOB'):
-                    Player.flags.remove('AVATAR')
-                    i.flags.append('AVATAR')
+            Player.actionPossess(x, y)
             return
 
         # Polymorph self
@@ -262,7 +283,8 @@ def handleKeys(Player):
     # Wait
     if ((not Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
         libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
-        Player.actionWait()
+        if Player != None:
+            Player.actionWait()
         return
 
     # Look
@@ -280,6 +302,8 @@ def handleKeys(Player):
         return
 
     # Following actions can only be performed by living player:
+    if Player == None:
+        return
     if not Player.hasFlag('DEAD'):
         # GENERAL ACTIONS:
         # Interact
@@ -520,8 +544,14 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
     ui.message(prompt + " [dir keys; Enter or . to confirm; Esc to exit]", color = libtcod.chartreuse)
     ui.render_all(Player)
 
-    x = Player.x
-    y = Player.y
+    # This is because we may have None player, if their body got destroyed and they
+    # are looking around after death.
+    try:
+        x = Player.x
+        y = Player.y
+    except:
+        x = var.MapWidth / 2
+        y = var.MapHeight / 2
 
     origBack = libtcod.console_get_char_background(var.MapConsole, x, y)
 
@@ -593,10 +623,19 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
             stuff = []
 
             for i in var.Entities[var.DungeonLevel]:
-                if i.hasFlag('MOB') and i.hasFlag('SEEN') and i.x == x and i.y == y:
-                    mob = i.getName()
-                elif i.hasFlag('ITEM') and i.x == x and i.y == y:
-                    stuff.append(i.getName())
+                try:
+                    if Player.canSense(i):
+                        sensed = True
+                    else:
+                        sensed = False
+                except:
+                    sensed = True
+
+                if sensed:
+                    if i.hasFlag('MOB') and i.x == x and i.y == y:
+                        mob = i.getName()
+                    elif i.hasFlag('ITEM') and i.x == x and i.y == y:
+                        stuff.append(i.getName())
 
             if len(stuff) < 1:
                 names = None
@@ -611,22 +650,24 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
             describeMob = ""
             describeItems = ""
 
-            if libtcod.map_is_in_fov(var.FOVMap, x, y):
+            if (libtcod.map_is_in_fov(var.FOVMap, x, y) and not (Player == None or
+                (Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')))):
                 describeTile = "You see here %s. " % square
             elif square != None:
                 describeTile = "You remember here %s. " % square
 
             if mob != None:
-                describeMob = "There is a %s. " % mob
+                describeMob = "There is %s. " % mob
 
             if names != None:
-                if libtcod.map_is_in_fov(var.FOVMap, x, y):
+                if (libtcod.map_is_in_fov(var.FOVMap, x, y) and not (Player == None or
+                    (Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')))):
                     describeItems = "You see here %s. " % names
                 else:
                     describeItems = "You remember here %s. " % names
 
             # Wizard mode:
-            if var.WizModeActivated:
+            if var.WizModeActivated and Player != None:
                 dist = str(Player.distance(x, y))
                 blocked = Player.isBlocked(x, y, var.DungeonLevel)
 
@@ -687,7 +728,7 @@ def aiCheckFlee(Mob):
 def aiDoFlee(Me, Target):
     if not Me.hasFlag('AI_FLEE'):
         return False
-    elif Target == None or not libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y):
+    elif Target == None or not Me.canSense(Target):
         Me.actionWait()
         return True
     else:
@@ -725,8 +766,7 @@ def aiFindTarget(Mob):
     # Check monster's remembered target:
     if Mob.target != None:
         # Monsters may forget about targets they don't see.
-        if (not libtcod.map_is_in_fov(var.FOVMap, Mob.target.x, Mob.target.y) and
-            var.rand_chance(5)):
+        if (not Mob.canSense(Mob.target) and var.rand_chance(5)):
             Mob.target = None
 
         # This prevents looking for target that was picked up or something:
@@ -740,30 +780,31 @@ def aiFindTarget(Mob):
 
     # Check for enemies:
     for i in var.Entities[var.DungeonLevel]:
-        if i.hasFlag('MOB') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-            if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
-                if Target == None or Mob.range(i) < 4:
-                    Target = i
-                    Mob.goal = [i.x, i.y]
-                    Mob.target = Target
-                    break
-        elif i.hasFlag('ITEM') and libtcod.map_is_in_fov(var.FOVMap, i.x, i.y):
-            if Mob.hasFlag('AI_SCAVENGER') and var.rand_chance(75):
-                if not Mob.isBlocked(i.x, i.y, var.DungeonLevel): # We cannot pick up boulders...
-                    Target = i
-                    Mob.goal = [i.x, i.y]
-                    Mob.target = Target
-                    break
-            elif var.rand_chance(20):
-                if aiPickEquipment(Mob, i):
-                    Target = i
-                    Mob.goal = [i.x, i.y]
-                    break
+        if Mob.canSense(i):
+            if i.hasFlag('MOB'):
+                if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
+                    if Target == None or Mob.range(i) < 4:
+                        Target = i
+                        Mob.goal = [i.x, i.y]
+                        Mob.target = Target
+                        break
+            elif i.hasFlag('ITEM'):
+                if Mob.hasFlag('AI_SCAVENGER') and var.rand_chance(75):
+                    if not Mob.isBlocked(i.x, i.y, var.DungeonLevel): # We cannot pick up boulders...
+                        Target = i
+                        Mob.goal = [i.x, i.y]
+                        Mob.target = Target
+                        break
+                elif var.rand_chance(20):
+                    if aiPickEquipment(Mob, i):
+                        Target = i
+                        Mob.goal = [i.x, i.y]
+                        break
 
     return Target
 
 def aiKite(Me, Target):
-    if Me.range(Target) >= Me.FOVRadius:
+    if Me.range(Target) >= Me.getLightRadius():
         return False
 
     distance = Me.range(Target)
