@@ -696,7 +696,7 @@ DummyItem = {
 'intrinsics': [],
 'flags': [],
 'coolness': 0,
-'frequency': 100
+'frequency': 1000
 }
 
 # Weapons:
@@ -748,7 +748,7 @@ LanternHammer = { # In my language, 'lucerna' means lantern, so this is a play o
 'DexScaling': 'D',
 'attack': Hammer,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 10
+'frequency': 100
 }
 
 GiantSpikedClub = {
@@ -761,7 +761,7 @@ GiantSpikedClub = {
 'DexScaling': 'E',
 'attack': GiantClub,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 5
+'frequency': 50
 }
 
 BroadAxe = {
@@ -789,7 +789,7 @@ PickAxe = {
 'attack': SmallAxe,
 'intrinsics': [('CAN_DIG', 1)],
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 15
+'frequency': 150
 }
 
 BattleAxe = {
@@ -827,7 +827,7 @@ Scythe = {
 'DexScaling': 'C',
 'attack': ScytheAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 25
+'frequency': 250
 }
 
 QuarterStaff = {
@@ -841,7 +841,7 @@ QuarterStaff = {
 'DexScaling': 'B',
 'attack': WoodStaff,
 'flags': ['MELEE', 'WEAPON', 'ENCHANT_DODGE'],
-'frequency': 15
+'frequency': 150
 }
 
 IronShodStaff = {
@@ -854,7 +854,7 @@ IronShodStaff = {
 'DexScaling': 'C',
 'attack': IronStaff,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 15
+'frequency': 150
 }
 
 SilverTipStaff = {
@@ -867,7 +867,7 @@ SilverTipStaff = {
 'DexScaling': 'C',
 'attack': IronStaff,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 10
+'frequency': 100
 }
 
 LeadFillStaff = {
@@ -880,7 +880,7 @@ LeadFillStaff = {
 'DexScaling': 'C',
 'attack': LeadStaff,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 10
+'frequency': 100
 }
 
 Knife = {
@@ -920,7 +920,7 @@ VenomDagger = {
 'attack': VenomDaggerAttack,
 'ranged': DaggerThrown,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 10
+'frequency': 100
 }
 
 SilverSickle = {
@@ -933,7 +933,7 @@ SilverSickle = {
 'DexScaling': 'D',
 'attack': SickleAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 10
+'frequency': 100
 }
 
 GoldSickle = {
@@ -946,7 +946,7 @@ GoldSickle = {
 'DexScaling': 'D',
 'attack': SickleAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 10
+'frequency': 100
 }
 
 Rapier = {
@@ -959,7 +959,7 @@ Rapier = {
 'DexScaling': 'B',
 'attack': RapierAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 50
+'frequency': 500
 }
 
 GoldRapier = {
@@ -972,7 +972,7 @@ GoldRapier = {
 'DexScaling': 'B',
 'attack': RapierAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 25
+'frequency': 250
 }
 
 ShortSword = {
@@ -999,7 +999,7 @@ VorpalSword = {
 'DexScaling': 'A',
 'attack': VorpalSwordAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 15
+'frequency': 150
 }
 
 LongSword = {
@@ -1025,7 +1025,7 @@ FlamingSword = {
 'DexScaling': 'C',
 'attack': FlamingSwordAttack,
 'flags': ['MELEE', 'WEAPON', 'TWO_AND_HALF'],
-'frequency': 15
+'frequency': 150
 }
 
 GreatSword = {
@@ -1050,7 +1050,7 @@ Scimitar = {
 'DexScaling': 'E',
 'attack': HugeSword,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 30
+'frequency': 300
 }
 
 Chain = {
@@ -1063,7 +1063,7 @@ Chain = {
 'DexScaling': 'C',
 'attack': ChainAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 25
+'frequency': 250
 }
 
 Whip = {
@@ -1076,7 +1076,7 @@ Whip = {
 'DexScaling': 'S',
 'attack': WhipAttack,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 25
+'frequency': 250
 }
 
 # Shields:
@@ -1090,7 +1090,7 @@ Buckler = {
 'StrScaling': 'C',
 'DexScaling': 'A',
 'flags': ['SHIELD', 'TWO_HAND_OK'],
-'frequency': 40
+'frequency': 400
 }
 
 RoundShield = {
@@ -1116,7 +1116,7 @@ LanternShield = {
 'StrScaling': 'B',
 'DexScaling': 'B',
 'flags': ['SHIELD'],
-'frequency': 15
+'frequency': 150
 }
 
 KiteShield = {
@@ -1142,7 +1142,7 @@ IceShield = {
 'DexScaling': 'C',
 'intrinsics': [('RESIST_FIRE', 1)],
 'flags': ['SHIELD'],
-'frequency': 15
+'frequency': 150
 }
 
 TowerShield = {
@@ -1155,7 +1155,7 @@ TowerShield = {
 'StrScaling': 'S',
 'DexScaling': 'D',
 'flags': ['SHIELD'],
-'frequency': 70
+'frequency': 700
 }
 
 # Headgear:
@@ -1188,7 +1188,7 @@ Crown = {
 'DV': 0,
 'size': -2,
 'flags': ['HEAD', 'ARMOR', 'ENCHANT_DOUBLE'],
-'frequency': 10
+'frequency': 100
 }
 
 Circlet = {
@@ -1200,7 +1200,7 @@ Circlet = {
 'DV': 0,
 'size': -2,
 'flags': ['HEAD', 'ARMOR', 'ENCHANT_DODGE'],
-'frequency': 10
+'frequency': 100
 }
 
 Skullcap = {
@@ -1210,7 +1210,8 @@ Skullcap = {
 'material': 'LEATHER',
 'PV': 1,
 'size': -2,
-'flags': ['HEAD', 'ARMOR']
+'flags': ['HEAD', 'ARMOR'],
+'frequency': 750
 }
 
 Helm = {
@@ -1232,7 +1233,7 @@ FullHelm = {
 'PV': 3,
 'size': -2,
 'flags': ['HEAD', 'ARMOR'],
-'frequency': 80
+'frequency': 750
 }
 
 GreatHelm = {
@@ -1244,7 +1245,7 @@ GreatHelm = {
 'PV': 5,
 'size': -2,
 'flags': ['HEAD', 'ARMOR'],
-'frequency': 60
+'frequency': 500
 }
 
 # horned helmet
@@ -1261,7 +1262,7 @@ LeatherGlove = {
 'DV': 0,
 'PV': 1,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
-'frequency': 80
+'frequency': 800
 }
 
 BlackGlove = {
@@ -1272,7 +1273,7 @@ BlackGlove = {
 'size': -1,
 'accuracy': 1,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
-'frequency': 60
+'frequency': 600
 }
 
 Gauntlet = {
@@ -1284,7 +1285,7 @@ Gauntlet = {
 'DV': -1,
 'PV': 3,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
-'frequency': 70
+'frequency': 700
 }
 
 Bracer = {
@@ -1296,7 +1297,7 @@ Bracer = {
 'DV': -2,
 'PV': 5,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
-'frequency': 50
+'frequency': 500
 }
 
 Bracelet = {
@@ -1308,7 +1309,7 @@ Bracelet = {
 'DV': 0,
 'PV': 0,
 'flags': ['ARM', 'ARMOR', 'ENCHANT_DOUBLE'],
-'frequency': 20
+'frequency': 200
 }
 
 ArmGuard = {
@@ -1320,7 +1321,7 @@ ArmGuard = {
 'DV': 1,
 'PV': 0,
 'flags': ['ARM', 'ARMOR', 'PAIRED'],
-'frequency': 50
+'frequency': 500
 }
 
 # Armor:
@@ -1388,7 +1389,7 @@ CrystalShard = {
 'DV': -4,
 'PV': 8,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 10
+'frequency': 100
 }
 
 CrystalPlate = {
@@ -1400,7 +1401,7 @@ CrystalPlate = {
 'DV': -5,
 'PV': 10,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 10
+'frequency': 100
 }
 
 LeatherTunic = {
@@ -1433,7 +1434,7 @@ RedTunic = {
 'size': 0,
 'accuracy': 2,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 50
+'frequency': 500
 }
 
 PiedTunic = {
@@ -1446,7 +1447,7 @@ PiedTunic = {
 'PV': 0,
 'intrinsics': [('REGEN_STAM', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 20
+'frequency': 200
 }
 
 SnakeVest = {
@@ -1457,7 +1458,7 @@ SnakeVest = {
 'size': 0,
 'accuracy': 1,
 'flags': ['TORSO', 'ARMOR', 'ENCHANT_ACCURACY'],
-'frequency': 10
+'frequency': 250
 }
 
 BlackRobe = {
@@ -1469,7 +1470,7 @@ BlackRobe = {
 'DV': 0,
 'PV': 0,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 20
+'frequency': 200
 }
 
 BrownRobe = {
@@ -1482,7 +1483,7 @@ BrownRobe = {
 'PV': 0,
 'intrinsics': [('REGEN_LIFE', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 20
+'frequency': 200
 }
 
 WhiteRobe = {
@@ -1495,7 +1496,7 @@ WhiteRobe = {
 'PV': 0,
 'intrinsics': [('REGEN_MANA', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 20
+'frequency': 200
 }
 
 BlueDress = {
@@ -1508,7 +1509,7 @@ BlueDress = {
 'PV': 0,
 'intrinsics': [('HASTE', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 10
+'frequency': 100
 }
 
 # Belts:
@@ -1521,7 +1522,7 @@ LeatherBelt = {
 'DV': 0,
 'PV': 1,
 'flags': ['GROIN', 'ARMOR'],
-'frequency': 80
+'frequency': 800
 }
 
 BlackBelt = {
@@ -1532,7 +1533,7 @@ BlackBelt = {
 'size': -1,
 'accuracy': 1,
 'flags': ['GROIN', 'ARMOR', 'ENCHANT_ACCURACY'],
-'frequency': 60
+'frequency': 600
 }
 
 Girdle = {
@@ -1544,7 +1545,7 @@ Girdle = {
 'DV': -1,
 'PV': 3,
 'flags': ['GROIN', 'ARMOR'],
-'frequency': 70
+'frequency': 700
 }
 
 PlateSkirt = {
@@ -1556,7 +1557,7 @@ PlateSkirt = {
 'DV': -2,
 'PV': 5,
 'flags': ['GROIN', 'ARMOR'],
-'frequency': 60
+'frequency': 600
 }
 
 Baldric = {
@@ -1568,7 +1569,7 @@ Baldric = {
 'DV': 1,
 'PV': 0,
 'flags': ['GROIN', 'ARMOR'],
-'frequency': 70
+'frequency': 700
 }
 
 # Legwear:
@@ -1592,7 +1593,7 @@ SnakeSandal = {
 'DV': 2,
 'PV': 0,
 'flags': ['LEG', 'ARMOR', 'PAIRED'],
-'frequency': 10
+'frequency': 100
 }
 
 LowBoot = {
@@ -1615,7 +1616,7 @@ HighBoot = {
 'DV': 0,
 'PV': 2,
 'flags': ['LEG', 'ARMOR', 'PAIRED'],
-'frequency': 70
+'frequency': 700
 }
 
 Clog = {
@@ -1638,7 +1639,7 @@ Greave = {
 'DV': -2,
 'PV': 5,
 'flags': ['LEG', 'ARMOR', 'PAIRED'],
-'frequency': 90
+'frequency': 800
 }
 
 Anklet = {
@@ -1650,7 +1651,7 @@ Anklet = {
 'DV': 0,
 'PV': 0,
 'flags': ['LEG', 'ARMOR', 'ENCHANT_DODGE'],
-'frequency': 20
+'frequency': 200
 }
 
 # General:
@@ -1660,7 +1661,7 @@ GoldPiece = {
 'name': 'gold nugget',
 'material': 'GOLD',
 'size': -2,
-'frequency': 5
+'frequency': 50
 }
 
 SunStone = {
@@ -1671,7 +1672,7 @@ SunStone = {
 'light': 3,
 'size': -2,
 'flags': ['ENCHANT_LIGHT'],
-'frequency': 5
+'frequency': 50
 }
 
 Berry = {
@@ -1681,7 +1682,7 @@ Berry = {
 'material': 'PLANT',
 'size': -2,
 'flags': ['FOOD'],
-'frequency': 30
+'frequency': 300
 }
 
 # Furniture, containers and similar:
@@ -1694,7 +1695,7 @@ Boulder = {
 'DV': -10,
 'attack': BoulderRoll,
 'flags': ['FEATURE'], # TODO: Block sight.
-'frequency': 5
+'frequency': 50
 }
 
 Chest = {
@@ -1705,7 +1706,7 @@ Chest = {
 'size': 1,
 'DV': -10,
 'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED'],
-'frequency': 10
+'frequency': 100
 }
 
 Chair = {
@@ -1763,8 +1764,9 @@ DummyMonster = {
 'diet': ['FLESH', 'WATER'],
 'intrinsics': [],
 'inventory': [],
+'mutations': [],
 'flags': ['HUMANOID'],
-'frequency': 100
+'frequency': 1000
 }
 
 Player = {
@@ -1798,8 +1800,9 @@ Kobold = {
 'sight': 8,
 'size': -1,
 'sex': 'MOF',
-'flags': ['HUMANOID', 'AI_SCAVENGER', 'MUTATION_CLAWS'],
-'frequency': 70
+'flags': ['HUMANOID', 'AI_SCAVENGER'],
+'mutations': ['MUTATION_CLAWS'],
+'frequency': 750
 }
 
 KoboldWhelp = {
@@ -1816,7 +1819,7 @@ KoboldWhelp = {
 'size': -2,
 'sex': 'MOF',
 'flags': ['HUMANOID', 'AI_KITE'],
-'frequency': 50
+'frequency': 500
 }
 
 Orc = {
@@ -1845,8 +1848,9 @@ Troll = {
 'size': 1,
 'sex': 'MOF',
 'intrinsics': [('REGEN_LIFE', 3)], # TODO: Revival.
-'flags': ['HUMANOID', 'USE_HEAD', 'MUTATION_LARGE_CLAWS'],
-'frequency': 25
+'flags': ['HUMANOID', 'USE_HEAD'],
+'mutations': ['MUTATION_LARGE_CLAWS'],
+'frequency': 250
 }
 
 ###############################################################################
@@ -1962,22 +1966,6 @@ Hand = {
 'flags': ['HAND', 'GRASP']
 }
 
-SmallClaw = {
-'name': 'claw',
-'cover': 40,
-'size': -2,
-'attack': Claw,
-'flags': ['HAND', 'GRASP']
-}
-
-BigClaw = {
-'name': 'claw',
-'cover': 60,
-'size': -2,
-'attack': LargeClaw,
-'flags': ['HAND', 'GRASP']
-}
-
 Leg = {
 'name': 'leg',
 'cover': 80,
@@ -2016,6 +2004,17 @@ Paw = {
 'size': -1,
 'attack': Claw,
 'flags': ['LEG']
+}
+
+Talon = {
+'name': 'talon',
+'cover': 70,
+'place': -2,
+'size': -1,
+'StrScaling': 'A',
+'DexScaling': 'C',
+'attack': Claw,
+'flags': ['LEG', 'GRASP']
 }
 
 Wing = {
@@ -3022,8 +3021,8 @@ AnimalTorso,
 Wing,
 Wing,
 AnimalGroin,
-Paw, # TODO: Talons?
-Paw
+Talon,
+Talon
 ]
 
 SlimeList = [
@@ -3037,11 +3036,6 @@ BodyTypes = {
 'BIRD': BirdList,
 'SLIME': SlimeList
 }
-
-MutationTypes = [
-'MUTATION_CLAWS',
-'MUTATION_LARGE_CLAWS'
-]
 
 # Dungeon features:
 # -----------------

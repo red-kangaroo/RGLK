@@ -9,6 +9,7 @@ import ai
 import dungeon
 import game
 import intrinsic
+import mutation
 import raw
 import ui
 import var
@@ -84,6 +85,10 @@ def spawn(x, y, BluePrint, type):
             inventory = BluePrint['inventory']
         except:
             inventory = []
+        try:
+            mutations = BluePrint['mutations']
+        except:
+            mutations = []
 
         if 'HUMANOID' in addFlags:
             if var.rand_chance(25):
@@ -100,6 +105,10 @@ def spawn(x, y, BluePrint, type):
                 New.inventory.append(NewItem)
 
             New.actionAutoEquip(False)
+
+        if len(mutations) != 0:
+            for m in mutations:
+                mutation.gain(m, New)
 
         if New.hasFlag('AVATAR'):
             New.givenName = 'Adventurer'
@@ -426,7 +435,6 @@ class Mob(Entity):
         self.diet = [] # Filled in spawn() function.
         self.bodyparts = []
         self.gainBody()
-        self.gainMutation()
 
     def gainBody(self):
         body = None
@@ -441,136 +449,10 @@ class Mob(Entity):
             return # No body parts. This will kill us next heartbeat.
 
         for part in BodyParts:
-            try:
-                name = part['name']
-            except:
-                name = raw.DummyPart['name']
-            try:
-                cover = part['cover']
-            except:
-                cover = raw.DummyPart['cover']
-            try:
-                place = part['place']
-            except:
-                place = raw.DummyPart['place']
-            try:
-                size = part['size']
-            except:
-                size = raw.DummyPart['size']
-            try:
-                eyes = part['eyes']
-            except:
-                eyes = raw.DummyPart['eyes']
-            try:
-                attack = part['attack']
-            except:
-                attack = raw.DummyPart['attack']
-            try:
-                StrScaling = BluePrint['StrScaling']
-            except:
-                StrScaling = raw.DummyPart['StrScaling']
-            try:
-                DexScaling = BluePrint['DexScaling']
-            except:
-                DexScaling = raw.DummyPart['DexScaling']
-            try:
-                addFlags = part['flags']
-            except:
-                addFlags = raw.DummyPart['flags']
-            try:
-                material = part['material']
-            except:
-                material = None
-
-            New = BodyPart(name, self, cover, place, size, eyes, attack,
-                           StrScaling, DexScaling, addFlags, material)
-
+            New = mutation.create_part(part, self)
             self.bodyparts.append(New)
 
-        handNo = 0
-        armNo = 0
-        legNo = 0
-        wingNo = 0
-        eyeNo = 0
-
-        for part in self.bodyparts:
-            eyeNo += part.eyes
-
-            if part.hasFlag('HAND'):
-                if handNo == 0:
-                    if self.hasIntrinsic('LEFT_HANDED'):
-                        part.flags.append('LEFT')
-                    else:
-                        part.flags.append('RIGHT')
-
-                    part.flags.append('MAIN') # TODO: Left-handedness.
-                    handNo += 1
-                elif handNo == 1:
-                    if self.hasIntrinsic('LEFT_HANDED'):
-                        part.flags.append('RIGHT')
-                    else:
-                        part.flags.append('LEFT')
-
-                    handNo += 1
-                else:
-                    part.flags.append('OTHER')
-                    handNo += 1
-            elif part.hasFlag('ARM'):
-                if armNo == 0:
-                    if self.hasIntrinsic('LEFT_HANDED'):
-                        part.flags.append('LEFT')
-                    else:
-                        part.flags.append('RIGHT')
-
-                    armNo += 1
-                elif armNo == 1:
-                    if self.hasIntrinsic('LEFT_HANDED'):
-                        part.flags.append('RIGHT')
-                    else:
-                        part.flags.append('LEFT')
-
-                    armNo += 1
-                else:
-                    part.flags.append('OTHER')
-                    armNo += 1
-            elif part.hasFlag('LEG'):
-                if legNo == 0:
-                    part.flags.append('RIGHT')
-                    legNo += 1
-                elif legNo == 1:
-                    part.flags.append('LEFT')
-                    legNo += 1
-                else:
-                    part.flags.append('OTHER')
-                    legNo += 1
-            elif part.hasFlag('WING'):
-                if legNo == 0:
-                    part.flags.append('RIGHT')
-                    wingNo += 1
-                elif legNo == 1:
-                    part.flags.append('LEFT')
-                    wingNo += 1
-                else:
-                    part.flags.append('OTHER')
-                    wingNo += 1
-
-        self.baseArms = armNo
-        self.baseLegs = legNo
-        self.baseWings = wingNo
-        self.baseEyes = eyeNo
-
-    def gainMutation(self):
-        # TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        for i in self.flags:
-            if i in raw.MutationTypes:
-                if i == 'MUTATION_CLAWS':
-                    for part in self.bodyparts:
-                        if part.hasFlag('HAND'):
-                            part.attack = raw.Claw
-                elif i == 'MUTATION_LARGE_CLAWS':
-                    for part in self.bodyparts:
-                        if part.hasFlag('HAND'):
-                            part.attack = raw.LargeClaw
+        mutation.name_parts(self)
 
     def recalculateAll(self):
         self.recalculateFOV()
@@ -613,11 +495,13 @@ class Mob(Entity):
                 toHeal = 0
             else:
                 for part in self.bodyparts:
-                    if part.wounded and var.rand_chance(max(1, self.getEnd())):
-                        if self.hasFlag('AVATAR'):
-                            ui.message("Your %s heals." % part.getName(), libtcod.azure)
+                    if part.wounded:
+                        chance = var.rand_int_from_float(toHeal + self.getEnd())
+                        if var.rand_chance(chance, 1000):
+                            if self.hasFlag('AVATAR'):
+                                ui.message("Your %s heals." % part.getName(), libtcod.azure)
 
-                        part.wounded = False
+                            part.wounded = False
 
             if self.HP + toHeal > self.maxHP:
                 self.HP = self.maxHP

@@ -848,7 +848,7 @@ def aiKite(Me, Target):
     return False
 
 def aiMove(Me, Target):
-    Mob.tactics = True # We want mobs that try to move past the player to be
+    Me.tactics = True  # We want mobs that try to move past the player to be
                        # defensive rather than aggresive.
     if Me.hasFlag('AI_DIJKSTRA'):
         return aiMoveDijkstra(Me, Target)
