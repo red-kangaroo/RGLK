@@ -14,8 +14,8 @@ import dungeon
 # Random functions:
 # -----------------
 # Let's hope I didn't mess up the chances...
-def rand_chance(percent):
-    if libtcod.random_get_int(0, 1, 100) > percent:
+def rand_chance(chance, inWhat = 100):
+    if libtcod.random_get_int(0, 1, inWhat) > chance:
         return False
     else:
         return True
@@ -71,6 +71,18 @@ def rand_int_from_float(number):
 
     return int(base)
 
+def rand_weighted(choices):
+    for (choice, chance) in choices:
+        if not rand_chance(chance, 1000):
+            choices.remove((choice, chance))
+
+    try:
+        (choice, chance) = random.choice(choices)
+    except:
+        choice = None
+
+    return choice
+
 # FOV:
 # ----
 # Call it from here, or BAD THINGS (tm) happen.
@@ -105,8 +117,6 @@ def bePolite():
 #  Global Variables
 ###############################################################################
 
-# TODO: Most of this should be in a script file.
-
 ScreenWidth = 100
 ScreenHeight = 60
 MapWidth = 80
@@ -134,10 +144,14 @@ ItemMaxNumber = 15
 TurnCount = 0
 DungeonLevel = 1 # Starting level of the player.
 
+# Wizard mode:
 WizModeActivated = True # For now.
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
+
+# Game constants:
+# TODO: This should rather be a check of gear, if we have AoY.
 CanAscend = False
 
 Maps = []
@@ -145,8 +159,11 @@ Entities = []
 MessageHistory = []
 
 TextColor = libtcod.white
-GameName = "Recondite Gaol of the Lachrymose Knights"
-# Once this was "Realm of the Glorious Lich King"
+GameName = "Recondite Gaol of the Lachrymose Knights" # Aka "Forlorn Jail of the Weeping Knights",
+                                                      # alias "The Overly Long and Flowery Title".
+                                                      # Once this was "Realm of the Glorious Lich King",
+                                                      # but that of course was nowhere as awsome as the
+                                                      # current title.
 
 # FOV map:
 FOVMap = libtcod.map_new(MapWidth, MapHeight)

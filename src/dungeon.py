@@ -339,7 +339,7 @@ def create_prefab(Prefab, room, map, DungeonLevel):
 
                 if item != None:
                     if item == 'RANDOM_ANY':
-                        item = weighted_choice(raw.ItemList, 'ITEM')
+                        item = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
                     elif item == 'RANDOM_ARTIFACT':
                         pass # TODO
 
@@ -348,7 +348,7 @@ def create_prefab(Prefab, room, map, DungeonLevel):
 
                 if mob != None:
                     if mob == 'RANDOM_ANY':
-                        mob = weighted_choice(raw.MobList, 'MOB')
+                        mob = var.rand_weighted(getRandomEntity('MOB', DungeonLevel))
 
                     NewMob = entity.spawn(x, y, mob, 'MOB')
                     var.Entities[DungeonLevel].append(NewMob)
@@ -1109,7 +1109,7 @@ def populate(DungeonLevel):
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
-        which = weighted_choice(raw.MobList, 'MOB')
+        which = var.rand_weighted(getRandomEntity('MOB', DungeonLevel))
         NewMob = entity.spawn(x, y, which, 'MOB')
 
         if NewMob.isBlocked(x, y, DungeonLevel):
@@ -1129,7 +1129,7 @@ def populate(DungeonLevel):
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
-        which = weighted_choice(raw.ItemList, 'ITEM')
+        which = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
         NewItem = entity.spawn(x, y, which, 'ITEM')
 
         if NewItem.isBlocked(x, y, DungeonLevel):
@@ -1147,8 +1147,16 @@ def populate(DungeonLevel):
 
         NewItem = None
 
-def weighted_choice(stuff, type = None):
+def getRandomEntity(type, DungeonLevel = 0):
+    # TODO: Base frequency on DL.
     choices = []
+
+    if type == 'MOB':
+        stuff = raw.MobList
+    elif type == 'ITEM':
+        stuff = raw.ItemList
+    else:
+        return None
 
     for i in stuff:
         frequency = 0
@@ -1161,10 +1169,10 @@ def weighted_choice(stuff, type = None):
             elif type == 'ITEM':
                 frequency = raw.DummyItem['frequency']
 
-        if var.rand_chance(frequency):
-            choices.append(i)
+        choices.append((i, frequency))
+        #print "%s, %s" % (i['name'], frequency)
 
-    return random.choice(choices)
+    return choices
 
 ###############################################################################
 #  Objects
