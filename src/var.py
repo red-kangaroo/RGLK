@@ -138,6 +138,7 @@ WizModeActivated = True # For now.
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
+CanAscend = False
 
 Maps = []
 Entities = []

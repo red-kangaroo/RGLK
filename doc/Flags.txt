@@ -18,6 +18,8 @@ RESIST_PHYSICAL
 General:
 NATURAL            Always used when multiweaponing.
 *UNARMED
+FLAME
+VORPAL
 
 
 Entity
@@ -59,8 +61,8 @@ AVATAR             Player-controlled entity.
 DEAD               A creature that died.
 SEEN               Whether player can currently see the entity.
 *ACIDIC             Causes acid damage when eaten and immune to stoning.
-*FLY
-*SWIM
+*FLY                As levitation, but based on wings.
+*SWIM               No SP cost of SWIM and WADE tiles.
 CANNOT_SEE         Light radius 0, ie. cannot see anything around.
 
 
@@ -80,10 +82,13 @@ SHIELD
 ARMOR
 
 TWO_HAND_OK        Can be equipped along with 2H weapon.
+ENCHANT_ACCURACY
+*ENCHANT_DAMAGE
 ENCHANT_DODGE
 ENCHANT_PROTECTION Enchantment increases PV, even on non-armor.
 ENCHANT_DOUBLE
-TWO_AND_HALF       Can be used two-handed even when not large, gaining less SP cost.
+ENCHANT_LIGHT
+*TWO_AND_HALF
 PAIRED
 
 Body
@@ -134,20 +139,23 @@ STAIRS_UP
 STAIRS_DOWN
 
 Special:
+*BURN
 CAN_BE_OPENED      Can have actionOpen applied to self.
 CAN_BE_CLOSED      Can have actionClose applied to self.
-*CAN_BE_DUG
+CAN_BE_DUG
 *CAN_BE_BURNED      Fire damage may transform them into ash pile.
 CAN_BE_CLIMBED
+CAN_BE_CHOPPED
 *CAN_BE_MELTED      Fire damage may transform them into water square.
 *CAN_BE_KICKED      Destroy with actionKick.
+*DISSOLVE
 *LOCKED
   KEY_SQUARE, KEY_FOO
 PLANT
 SECRET
-SLIDE              Walking may cause you to fumble. More knockback.
-STICKY             Walking may fail.
-SWIM               Requires stamina to move. Drowns with no stamina.
-WADE               Drains stamina as you move, but no negative effect at 0 SP.
+*SLIDE              Walking may cause you to fumble. More knockback.
+*STICKY             Walking may fail.
+*SWIM               Requires stamina to move. Drowns with no stamina.
+*WADE               Drains stamina as you move, but no negative effect at 0 SP.
 
 (*) TODO

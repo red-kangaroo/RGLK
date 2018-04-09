@@ -1102,9 +1102,10 @@ def postProcess(map, type = None):
 
 def populate(DungeonLevel):
     MonsterNo = 0
+    MonsterMax = var.MonsterMaxNumber + (2 * DungeonLevel)
     NewMob = None
 
-    while MonsterNo < var.MonsterMaxNumber:
+    while MonsterNo < MonsterMax: # TODO: Danger level.
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
@@ -1173,6 +1174,7 @@ class Terrain(object):
         self.char = char
         self.color = color
         self.name = name
+        self.material = 'STONE'
         self.BlockMove = BlockMove
         self.BlockSight = BlockSight
         self.explored = False
@@ -1203,13 +1205,17 @@ class Terrain(object):
         except:
             print "Failed to change %s" % self.name
         try:
+            self.material = NewTerrain['material']
+        except:
+            self.material = raw.DummyTerrain['material']
+        try:
             self.BlockMove = NewTerrain['BlockMove']
         except:
-            print "Failed to change %s" % self.name
+            self.BlockMove = raw.DummyTerrain['BlockMove']
         try:
             self.BlockSight = NewTerrain['BlockSight']
         except:
-            print "Failed to change %s" % self.name
+            self.BlockSight = raw.DummyTerrain['BlockSight']
         # Clear all flags. This way works, otherwise strange errors in dungeon
         # generation crop up from time to time.
         try:
@@ -1219,7 +1225,7 @@ class Terrain(object):
         try:
             self.flags = NewTerrain['flags']
         except:
-            self.flags = []
+            self.flags = raw.DummyTerrain['flags']
 
     def hasFlag(self, flag):
         if flag in self.flags:

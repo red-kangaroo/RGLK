@@ -168,19 +168,6 @@ def spawn(x, y, BluePrint, type):
         New = Item(x, y, char, color, name, material, size, BlockMove,
                    attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags, addIntrinsics)
 
-        # Generate some blessed and cursed items:
-        if New.beautitude == 0:
-            if var.rand_chance(10):
-                New.beautitude += 1
-            elif var.rand_chance(10):
-                New.beautitude -= 1
-
-        # And some items are enchanted:
-        mod = random.choice([-1, 1, 1])
-
-        while var.rand_chance(10):
-            New.enchantment += mod
-
         # Add special stats:
         New.acc = accuracy
         New.light = light
@@ -201,7 +188,6 @@ class Entity(object):
         self.y = y
         self.char = char
         self.color = color
-        self.name = name
         self.material = material
         self.size = size
         self.BlockMove = BlockMove
@@ -212,6 +198,9 @@ class Entity(object):
         self.beautitude = 0 # Negative for cursed/doomed, positive for blessed/holy.
         self.enchantment = 0
 
+        # Naming:
+        self.name = name
+        self.givenName = None
         self.prefix = ""
         self.suffix = ""
 
@@ -288,6 +277,9 @@ class Entity(object):
         return None
 
     def getIntrinsicPower(self, intrinsic):
+        if intrinsic == None:
+            return 0
+
         power = 0
 
         for i in self.intrinsics:
@@ -297,7 +289,7 @@ class Entity(object):
         if power > 0:
             power += self.enchantment
 
-        return None
+        return power
 
     def addIntrinsic(self, type, duration, power = 0):
         if self.hasIntrinsic(type):
@@ -416,7 +408,6 @@ class Mob(Entity):
 
         # General:
         self.carry = self.recalculateCarryingCapacity()
-        self.givenName = None
         self.tactics = True # True is defensive, False aggresive.
 
         self.flags.append('MOB')
@@ -432,6 +423,7 @@ class Mob(Entity):
         self.baseWings = 0
         self.baseEyes = 0
 
+        self.diet = [] # Filled in spawn() function.
         self.bodyparts = []
         self.gainBody()
         self.gainMutation()
@@ -604,44 +596,81 @@ class Mob(Entity):
 
     def regainHealth(self):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
-            self.HP += 0.2
+            toHeal = 0.2
 
-        # TODO:
-        #  Regeneration
-        #  Full / Stuffed
-        #  Unhealing
+            # Regeneration
+            if self.hasIntrinsic('REGEN_LIFE'):
+                toHeal += 0.3 * self.getIntrinsicPower('REGEN_LIFE')
 
-        for part in self.bodyparts:
-            if part.wounded and var.rand_chance(max(1, self.getEnd())):
-                if self.hasFlag('AVATAR'):
-                    ui.message("Your %s heals." % part.getName(), libtcod.azure)
+            # Unhealing
+            if self.hasIntrinsic('DRAIN_LIFE'):
+                toHeal -= 0.3 * self.getIntrinsicPower('DRAIN_LIFE')
 
-                part.wounded = False
+            # TODO:
+            #  Full / Stuffed
 
-        if self.HP > self.maxHP:
-            self.HP = self.maxHP
+            if toHeal < 0:
+                toHeal = 0
+            else:
+                for part in self.bodyparts:
+                    if part.wounded and var.rand_chance(max(1, self.getEnd())):
+                        if self.hasFlag('AVATAR'):
+                            ui.message("Your %s heals." % part.getName(), libtcod.azure)
+
+                        part.wounded = False
+
+            if self.HP + toHeal > self.maxHP:
+                self.HP = self.maxHP
+            else:
+                self.HP += toHeal
+
+        # If we are somehow overhealed, loose 1 HP per round.
+        if self.HP - 1 >= self.maxHP:
+            self.HP -= 1
 
     def regainMana(self):
         if not self.hasFlag('DEAD') and self.MP < self.maxMP:
-            self.MP += 0.3
+            toMana = 0.3
 
-        # TODO:
-        #  Starpower
-        #  Manaburn
+            # Starpower
+            if self.hasIntrinsic('REGEN_MANA'):
+                toMana += 0.5 * self.getIntrinsicPower('REGEN_MANA')
 
-        if self.MP > self.maxMP:
-            self.MP = self.maxMP
+            # Manaburn
+            if self.hasIntrinsic('DRAIN_MANA'):
+                toMana -= 0.5 * self.getIntrinsicPower('DRAIN_MANA')
+
+            if self.MP + toMana > self.maxMP:
+                self.MP = self.maxMP
+            elif self.MP + toMana < 0:
+                pass
+            else:
+                self.MP += toMana
+
+        if self.MP - 1 >= self.maxMP:
+            self.MP -= 1
 
     def regainStamina(self):
         if not self.hasFlag('DEAD') and self.SP < self.maxSP:
-            self.SP += 1 #0.5
+            toStamina = 1
 
-        # TODO:
-        #  Vigor
-        #  Fatigue
+            # Vigor
+            if self.hasIntrinsic('REGEN_STAM'):
+                toStamina += 0.5 * self.getIntrinsicPower('REGEN_STAM')
 
-        if self.SP > self.maxSP:
-            self.SP = self.maxSP
+            # Fatigue
+            if self.hasIntrinsic('DRAIN_STAM'):
+                toStamina -= 0.5 * self.getIntrinsicPower('DRAIN_STAM')
+
+            if self.SP + toStamina > self.maxSP:
+                self.SP = self.maxSP
+            elif self.SP + toStamina < 0:
+                pass # Do nothing, or we could increase negative stamina up to 0.
+            else:
+                self.SP += toStamina
+
+        if self.SP - 1 >= self.maxSP:
+            self.SP -= 1
 
     def regainActions(self):
         # This works even when dead, because items can have actions, too.
@@ -693,9 +722,12 @@ class Mob(Entity):
         # Get equipment bonuses:
         for i in self.getEquipment():
             try:
-                toHit += i.acc
+                if i.acc != 0:
+                    toHit += i.acc
+                if i.hasFlag('ENCHANT_ACCURACY'):
+                    toHit += i.enchantment
             except:
-                print "Failed to add accuracy rating!"
+                print "Failed to add accuracy!"
 
         toHit = var.rand_int_from_float(toHit)
 
@@ -949,7 +981,9 @@ class Mob(Entity):
 
                 # Find how much we blocked:
                 (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
-                 AttackRange, AttackFlags) = defender.getAttack()
+                 AttackRange, AttackFlags, inflict, explode) = defender.getAttack()
+
+                # TODO: Shields with inflict or explode.
 
                 # Add strength, scaled:
                 StrBonus = self.getStr() * raw.Scaling[defender.StrScaling]
@@ -1008,9 +1042,11 @@ class Mob(Entity):
 
         # Check resistances and vulnerabilities:
         if self.hasIntrinsic(raw.ResistanceTypeList[DamageType]):
-                resistance += self.getIntrinsicPower(raw.ResistanceTypeList[DamageType])
+            resistance += self.getIntrinsicPower(raw.ResistanceTypeList[DamageType])
         if self.hasIntrinsic(raw.VulnerabilityTypeList[DamageType]):
-                resistance -= self.getIntrinsicPower(raw.VulnerabilityTypeList[DamageType])
+            resistance -= self.getIntrinsicPower(raw.VulnerabilityTypeList[DamageType])
+        if self.hasIntrinsic('FRAGILE'):
+            resistance -= self.getIntrinsicPower('FRAGILE')
 
         # Protection Value adds to basic resistances against physical:
         if DamageType in ['BLUNT', 'SLASH', 'PIERCE'] and PV != None:
@@ -1080,8 +1116,9 @@ class Mob(Entity):
         if limb.hasFlag('VITAL'):
             self.checkDeath(True, attacker)
 
-        # And we are bleeding...
-        self.addIntrinsic('BLEED', libtcod.random_get_int(0, 3, 8), 1)
+        # And we are bleeding... but only if this is not a hand as a part of severing an arm.
+        if not silent:
+            self.addIntrinsic('BLEED', libtcod.random_get_int(0, 3, 8), 1)
 
         return True
 
@@ -1111,7 +1148,7 @@ class Mob(Entity):
 
         return equipment
 
-    def getActionAPCost(self):
+    def getActionAPCost(self, modifier = 1.0):
         cost = 1
 
         # You will do actions slower when you loose a limb. With more base limbs, you can
@@ -1125,6 +1162,7 @@ class Mob(Entity):
                 cost *= 1.5
 
         cost *= 1.3 ** (self.getBurdenState())
+        cost *= modifier
 
         return cost
 
@@ -1216,9 +1254,9 @@ class Mob(Entity):
         # Get equipment bonuses:
         for i in self.getEquipment():
             try:
-                light += i.light
+                light += i.getLightValue()
             except:
-                print "Failed to add light radius!"
+                pass #print "Failed to add light radius!"
 
         if light <= 0:
             light = 1
@@ -1342,6 +1380,9 @@ class Mob(Entity):
         return toUse
 
     def getIntrinsicPower(self, intrinsic):
+        if intrinsic == None:
+            return 0
+
         power = 0
 
         for i in self.intrinsics:
@@ -1415,13 +1456,29 @@ class Mob(Entity):
 
         for item in self.getEquipment():
             for i in item.intrinsics:
-                i.getHandled(self)
+                if i.getHandled(self) == None:
+                    item.intrinsics.remove(i)
 
     def isExtraFragile(self):
         if self.getEnd() < 0:
             return True
         else:
             return False
+
+    def isInediate(self):
+        if len(self.diet) == 0:
+            return True
+        else:
+            return False
+
+    def isFlying(self):
+        if self.hasFlag('FLY') and self.hasWings(True):
+            return True
+
+        if self.hasIntrinsic('LEVITATION'):
+            return True
+
+        return False
 
     def canBreakCurse(self, power = 0):
         # Through undeath of some skills, you may automatically break curses binding you.
@@ -1555,7 +1612,7 @@ class Mob(Entity):
 
                 if weapon != None:
                     (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
-                     AttackRange, AttackFlags) = weapon.getAttack()
+                     AttackRange, AttackFlags, inflict, explode) = weapon.getAttack()
                 else:
                     DiceNumber = raw.Slam['DiceNumber']
                     DiceValue = raw.Slam['DiceValue']
@@ -1644,7 +1701,7 @@ class Mob(Entity):
         print "-" * 10
 
     def receiveDamage(self, damage, limb = None, DamageType = None, attacker = None,
-                      weapon = None, flags = []):
+                      weapon = None, AttackFlags = []):
         if limb == None:
             limb = self.getLimbToHit()
 
@@ -1665,24 +1722,67 @@ class Mob(Entity):
         #       Different materials.
         #       Damage type effects.
 
-        # Wound the limb:
-        if not DamageType in ['BLEED', 'POISON']:
-            if var.rand_chance(damage):
-                if limb.wounded or self.isExtraFragile():
-                    # We sever the limb, but this also means we can no longer use it
-                    # for further methods, as it's not attached.
-                    if not self.severLimb(limb, attacker):
-                        self.addIntrinsic('BLEED', max(5, damage), 1)
+        if damage > 0:
+            # Inflict effects of the attack:
+            if weapon != None:
+                try:
+                     inflict = weapon.attack['inflict']
+                except:
+                    inflict = None
+
+                if inflict != None:
+                    for (intrinsic, DiceNumber, DiceValue, Bonus, power, chance) in inflict:
+                        if var.rand_chance(chance) == True:
+                            print "inflict %s" % intrinsic
+
+                            duration = var.rand_dice(DiceNumber, DiceValue, Bonus)
+
+                            try:
+                                exec(power)
+                            except:
+                                pass
+
+                            self.addIntrinsic(intrinsic, duration, power)
+
+            # Wound the limb:
+            if not DamageType in ['BLEED', 'POISON']:
+                if var.rand_chance(damage) or (weapon != None and 'VORPAL' in AttackFlags):
+                    if limb.wounded or self.isExtraFragile():
+                        # We sever the limb, but this also means we can no longer use it
+                        # for further methods, as it's not attached.
+                        if not self.severLimb(limb, attacker):
+                            self.addIntrinsic('BLEED', max(5, damage), libtcod.random_get_int(0, 1, damage))
+                        else:
+                            limb = None
                     else:
-                        limb = None
-                else:
-                    limb.wounded = True
-                    ui.message("%s %s is wounded." % (self.getName(True, possessive = True), limb.getName()),
-                               libtcod.light_red, self)
+                        limb.wounded = True
+                        ui.message("%s %s is wounded." % (self.getName(True, possessive = True), limb.getName()),
+                                   libtcod.light_red, self)
+
+            # TODO: Explode, next attack (through AttackFlags).
 
         # We might have alredy died here.
         if self.hasFlag('DEAD'):
             return
+
+        # Additional attacks through flags.
+        if 'FLAME' in AttackFlags: # Flaming adds 1d3 fire damage.
+            print "Adding flaming damage."
+
+            damage += self.resistDamage(libtcod.random_get_int(0, 1, 3), 'FIRE')
+            color = var.TextColor
+            fullStop = "."
+
+            if weapon != None:
+                if var.rand_chance(weapon.enchantment):
+                    self.addIntrinsic('AFLAME', var.rand_dice(1, 4, 1), 1)
+                    color = libtcod.light_red
+                    fullStop = "!"
+
+            if attacker != None:
+                ui.message("%s burn&S %s%s" % (attacker.getName(True), self.getName(), fullStop), color, attacker)
+            else:
+                ui.message("%s &ISARE burned%s" % (self.getName(True), fullStop), color, self)
 
         if damage > 0:
             # We get instakilled by enough damage.
@@ -1904,13 +2004,49 @@ class Mob(Entity):
                     self.actionSwap(bumpee)
                     return True
                 else:
+                    # TODO: Chatting etc.
                     self.actionWait()
                     return True
 
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
+            # First try opening doors.
             if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
                 if(self.actionOpen(x, y)):
                     return True
+
+            # Dig and chop!
+            if (self.hasIntrinsic('CAN_CHOP') and var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CHOPPED') and
+                self.isBlocked(x, y, var.DungeonLevel)):     # Here we want fallthrough with if instead of elif,
+                name = var.Maps[var.DungeonLevel][x][y].name # because we want to chop stuck doors when actionOpen fails.
+
+                if (var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR') and
+                    var.Maps[var.DungeonLevel][x][y].material == 'WOOD'):
+                    var.Maps[var.DungeonLevel][x][y].change(raw.BrokenDoor)
+                else:
+                    var.Maps[var.DungeonLevel][x][y].change(raw.DestroyedTerrainList[var.Maps[var.DungeonLevel][x][y].material])
+
+                var.changeFOVMap(x, y)
+                ui.message("%s chop&S down the %s." % (self.getName(True), name), actor = self)
+
+                modifier = 5 * (0.9 ** self.getIntrinsicPower('CAN_CHOP'))
+                self.AP -= self.getActionAPCost(modifier)
+                return True
+            elif (self.hasIntrinsic('CAN_DIG') and var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_DUG') and
+                  self.isBlocked(x, y, var.DungeonLevel)):
+                if var.Maps[var.DungeonLevel][x][y].hasFlag('WALL'):
+                    var.Maps[var.DungeonLevel][x][y].change(raw.DestroyedTerrainList[var.Maps[var.DungeonLevel][x][y].material])
+                else:
+                    print "Unhandled diggable tile."
+                    return False
+
+                var.changeFOVMap(x, y)
+                ui.message("%s dig&S." % self.getName(True), actor = self)
+
+                modifier = 5 * (0.9 ** self.getIntrinsicPower('CAN_DIG'))
+                self.AP -= self.getActionAPCost(modifier)
+                return True
+
+            # Try closing adjacent doors.
             elif var.Maps[var.DungeonLevel][x][y].BlockMove == True:
                 for n in range(y - 1, y + 2):
                     for m in range(x - 1, x + 2):
@@ -1975,6 +2111,12 @@ class Mob(Entity):
             return False
 
         if dz > 0 and var.Maps[var.DungeonLevel][self.x][self.y].hasFlag('STAIRS_UP'):
+            # Block upstairs on first level.
+            if var.DungeonLevel == 1 and not var.CanAscend:
+                if self.hasFlag('AVATAR'):
+                    ui.message("You cannot escape with the Seal of Unwept Tears still in place!", color = libtcod.azure)
+                return False
+
             if var.DungeonLevel - 1 >= 0:
                 if var.Maps[var.DungeonLevel - 1] == None:
                     dungeon.makeMap(True, var.DungeonLevel - 1)
@@ -2111,7 +2253,7 @@ class Mob(Entity):
                 var.Entities[var.DungeonLevel].append(item)
                 ui.message("%s drop&S %s." % (self.getName(True), item.getName()),
                            actor = self)
-                self.AP -= (self.getActionAPCost() / 3) # It's quick.
+                self.AP -= self.getActionAPCost(0.3) # It's quick.
 
         if len(self.inventory) >= 1:
             return True
@@ -2237,7 +2379,7 @@ class Mob(Entity):
                             if not self.hasFlag('AVATAR'):
                                 self.actionDrop(what = item)
 
-        return # Just for the good sleep of mine.
+        return True # Just for the good sleep of mine.
 
     def actionEquipment(self):
         if len(self.bodyparts) == 0:
@@ -2413,7 +2555,7 @@ class Mob(Entity):
                 ]
                 ui.message(random.choice(quips))
 
-            self.AP -= (self.getActionAPCost() / 2)
+            self.AP -= self.getActionAPCost(0.5)
             return False
         elif pickAll == True:
             # TODO: Not if monsters in sight?
@@ -2470,6 +2612,7 @@ class Mob(Entity):
         if self.getBurdenState() == 3:
             if self.hasFlag('AVATAR'):
                 ui.message("You can barely move with so much load.", color = libtcod.light_red)
+            self.AP -= self.getMoveAPCost()
             return False
         if self == Other:
             ui.message("%s attempt&S to swap with &SELF and fail&S." % self.getName(True), actor = self)
@@ -2488,15 +2631,25 @@ class Mob(Entity):
         ui.message("%s swap&S places with %s." % (self.getName(True), Other.getName()), actor = self)
 
         self.AP -= self.getMoveAPCost()
+        return True # Funny thing - I forgot to put 'return True' here and now I have
+                    # no idea how much needed it is. I am checking successful swapping
+                    # somewhere, am I not?
 
     def actionVomit(self):
+        if self.isInediate(): # Many undead can eat, so while they will not die from hunger,
+            return False      # they will still loose the AP. Also poison will have some
+                              # small effect on these undead - no damage, but vomiting.
+
+        ui.message("%s vomit&S." % self.getName(True), actor = self)
         # self.NP -= 100
-        pass
+        # attack random square with acid, plus make tile green
+        self.AP -= self.getActionAPCost()
+        return True
 
     def actionWait(self):
-        #print "%s waits." % self.name
         self.AP -= 1
         self.receiveStamina(2)
+        return True
 
     def actionWalk(self, dx, dy):
         if self.AP < 1:
@@ -2504,6 +2657,7 @@ class Mob(Entity):
         if self.getBurdenState() == 3:
             if self.hasFlag('AVATAR'):
                 ui.message("You can barely move with so much load.", color = libtcod.light_red)
+            self.AP -= self.getMoveAPCost()
             return False
 
         # TODO: If running, takes half a turn. With Unarmored and not running,
@@ -2563,10 +2717,25 @@ class Item(Entity):
             NewInt = intrinsic.Intrinsic(type, 30000, power)
             self.intrinsics.append(NewInt)
 
+        # Generate some blessed and cursed items:
         if self.hasFlag('ALWAYS_BLESSED'):
             self.beautitude += 1
         elif self.hasFlag('ALWAYS_CURSED'):
             self.beautitude -= 1
+        else:
+            if var.rand_chance(10):
+                self.beautitude += 1
+            elif var.rand_chance(10):
+                self.beautitude -= 1
+
+        # And some items are enchanted:
+        mod = random.choice([-1, 1, 1])
+
+        while var.rand_chance(10 + var.DungeonLevel): # We can find more and more highly
+            self.enchantment += mod                   # enchanted gear deeper into the dungeon.
+
+        if var.rand_chance(var.DungeonLevel):         # Deep enough in the dungeon, gear has much
+            self.enchantment = abs(self.enchantment)  # higher chance of positive enchantment.
 
         self.acc = 0 # This is not same as ToHitBonus from self.attack, this is used
                      # for general accuracy bonus for all attacks, eg. from armor.
@@ -2604,7 +2773,7 @@ class Item(Entity):
 
             # Stats:
             (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
-             AttackRange, AttackFlags) = self.getAttack()
+             AttackRange, AttackFlags, inflict, explode) = self.getAttack()
 
             ToHitBonus += self.acc
             ToHitBonus += self.enchantment
@@ -2690,6 +2859,14 @@ class Item(Entity):
 
         return PV
 
+    def getLightValue(self):
+        light = self.light
+
+        if self.hasFlag('ENCHANT_LIGHT'):
+            light += self.enchantment
+
+        return light
+
     def getSPCost(self):
         base = 5
         # Stamina cost of attacks is based on their scaling, as StrScaling attacks
@@ -2751,14 +2928,23 @@ class Item(Entity):
             AttackFlags = self.attack['flags']
         except:
             AttackFlags = raw.DummyAttack['flags']
+        try:
+            inflict = self.attack['inflict']
+        except:
+            inflict = raw.DummyAttack['inflict']
+        try:
+            explode = self.attack['explode']
+        except:
+            explode = raw.DummyAttack['explode']
 
         return (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
-                AttackRange, AttackFlags)
+                AttackRange, AttackFlags, inflict, explode)
 
     def getCoolness(self):
         cool = self.coolness
 
         cool += self.acc
+        cool += self.light
         cool += self.beautitude
         cool += self.enchantment
 
@@ -2766,11 +2952,16 @@ class Item(Entity):
             weaponBonus = 0
 
             (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
-             AttackRange, AttackFlags) = self.getAttack()
+             AttackRange, AttackFlags, inflict, explode) = self.getAttack()
 
             weaponBonus += ToHitBonus
             weaponBonus += DiceNumber * DiceValue
             weaponBonus += DamageBonus
+
+            if inflict != None:
+                weaponBonus += len(inflict)
+            if explode != None:
+                weaponBonus += 5
 
             weaponBonus *= raw.Scaling[self.StrScaling]
             weaponBonus *= raw.Scaling[self.DexScaling]
@@ -2903,11 +3094,16 @@ class BodyPart(Entity):
 
         if self.hasFlag('GRASP'):
             (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
-             AttackRange, AttackFlags) = self.getAttack()
+             AttackRange, AttackFlags, inflict, explode) = self.getAttack()
 
             cool += ToHitBonus
             cool += DiceNumber * DiceValue
             cool += DamageBonus
+
+            if inflict != None:
+                cool += len(inflict)
+            if explode != None:
+                cool += 5
 
             cool *= raw.Scaling[self.StrScaling]
             cool *= raw.Scaling[self.DexScaling]
@@ -2963,9 +3159,17 @@ class BodyPart(Entity):
             AttackFlags = self.attack['flags']
         except:
             AttackFlags = raw.DummyAttack['flags']
+        try:
+            inflict = self.attack['inflict']
+        except:
+            inflict = raw.DummyAttack['inflict']
+        try:
+            explode = self.attack['explode']
+        except:
+            explode = raw.DummyAttack['explode']
 
         return (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
-                AttackRange, AttackFlags)
+                AttackRange, AttackFlags, inflict, explode)
 
     def doEquip(self, item, actor = None):
         # TODO: Two-handers.

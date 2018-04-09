@@ -56,6 +56,7 @@ def initialize():
 
     # TODO: Better welcoming message.
     ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
+    ui.message("Press '?' to view help, or try the tutorial. Don't die!")
 
 def main_loop():
     while not libtcod.console_is_window_closed():

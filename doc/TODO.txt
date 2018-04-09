@@ -15,8 +15,6 @@ List of things to do and include:
    CONTROL_TELE
    DRAIN_LIFE unhealing
    DRAIN_MANA
-   REGEN_LIFE
-   REGEN_MANA
    REFLECT
    ESP
    SEARCH
@@ -25,7 +23,6 @@ List of things to do and include:
    CLAIR_VISION clairvoyance
    INFRA_VISION infravision
    CAN_JUMP
-   CAN_DIG
    CHOKE
    POISON
    FREEDOM
@@ -62,11 +59,10 @@ List of things to do and include:
    skills
    spells
 * multiple FOVMaps (forestry, clairvoyance)
-* item charges
 * Skills:
    Two-handers vs Dual wielding
 * checkDeath for WizMode
-* canSense()
+* better canSense()
 * builders for QIX and noise forest
 
 Rivers:
@@ -89,6 +85,7 @@ https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/cra
    "The foo is slain."
    "The foo dies screaming."
    "You kill the foo."
+* AFLAME equipment burns self and if used as weapon, victim
 
 MOB
 ===
@@ -104,13 +101,13 @@ allowed dungeon types = SEWER, DUNGEON, CATACOMB, MAZE
 
 ITEM
 ====
-CANNOT_BE_WISHED, CANNOT_BE_CLONED, CANNOT_BE_BROKEN, UNIQUE, KAMIKAZE, SADIST
+CANNOT_WISH, CANNOT_CLONE, CANNOT_BREAK, UNIQUE, KAMIKAZE, SADIST
 prefix, postfix
 price
 charges
+receiveDamage()
 
 Terrain
 =======
-acid
 blood
 charred floor

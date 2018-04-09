@@ -15,7 +15,9 @@ DummyAttack = {
 'DamageBonus': 0,
 'DamageType': 'BLUNT',
 'range': 1,
-'flags': []
+'flags': [],
+'inflict': None, # list of tuples: (intrinsic, DiceNumber, DiceValue, Bonus, power, chance)
+'explode': None
 }
 
 # TODO:
@@ -55,6 +57,7 @@ LargeClaw = {
 'DiceNumber': 2,
 'DiceValue': 3,
 'DamageType': 'SLASH',
+'inflict': [('BLEED', 1, 3, 1, 2, 40)],
 'flags': ['NATURAL']
 }
 
@@ -108,10 +111,45 @@ Hammer = {
 'DiceValue': 4
 }
 
+GiantClub = {
+'verb': 'club&S',
+'ToHitBonus': -2,
+'DiceNumber': 4,
+'DiceValue': 4
+}
+
+SmallAxe = {
+'verb': 'hack&S',
+'DiceNumber': 1,
+'DiceValue': 6,
+'DamageBonus': 1,
+'DamageType': 'SLASH'
+}
+
+LargeAxe = {
+'verb': 'hack&S',
+'DiceNumber': 2,
+'DiceValue': 6,
+'DamageType': 'SLASH'
+}
+
 WoodStaff = {
 'verb': 'strike&S',
 'DiceNumber': 2,
 'DiceValue': 2
+}
+
+IronStaff = {
+'verb': 'strike&S',
+'DiceNumber': 2,
+'DiceValue': 2,
+'DamageBonus': 2
+}
+
+LeadStaff = {
+'verb': 'strike&S',
+'DiceNumber': 2,
+'DiceValue': 3
 }
 
 KnifeAttack = {
@@ -124,10 +162,25 @@ KnifeAttack = {
 
 DaggerAttack = {
 'verb': 'stab&S',
-'ToHitBonus': 1,
 'DiceNumber': 1,
 'DiceValue': 4,
 'DamageType': 'PIERCE'
+}
+
+VenomDaggerAttack = {
+'verb': 'stab&S',
+'DiceNumber': 1,
+'DiceValue': 4,
+'inflict': [('POISON', 2, 3, 0, 'power = 1 + weapon.enchantment', 30)],
+'DamageType': 'PIERCE'
+}
+
+SickleAttack = {
+'verb': 'slash&ES',
+'ToHitBonus': 1,
+'DiceNumber': 2,
+'DiceValue': 3,
+'DamageType': 'SLASH'
 }
 
 SmallSword = {
@@ -137,11 +190,27 @@ SmallSword = {
 'DamageType': 'SLASH'
 }
 
+VorpalSwordAttack = {
+'verb': 'shred&S',
+'DiceNumber': 1,
+'DiceValue': 6,
+'DamageType': 'SLASH',
+'flags': ['VORPAL']
+}
+
 MediumSword = {
 'verb': 'slash&ES',
 'DiceNumber': 1,
 'DiceValue': 8,
 'DamageType': 'SLASH'
+}
+
+FlamingSwordAttack = {
+'verb': 'slash&ES',
+'DiceNumber': 1,
+'DiceValue': 8,
+'DamageType': 'SLASH',
+'flags': ['FLAME']
 }
 
 LargeSword = {
@@ -157,6 +226,14 @@ HugeSword = {
 'DiceValue': 5,
 'DamageBonus': 2,
 'DamageType': 'SLASH'
+}
+
+RapierAttack = {
+'verb': 'pierce&S',
+'ToHitBonus': 2,
+'DiceNumber': 1,
+'DiceValue': 7,
+'DamageType': 'PIERCE'
 }
 
 SmallShield = {
@@ -194,6 +271,27 @@ WhipAttack = {
 'DamageType': 'SLASH'
 }
 
+ChainAttack = {
+'verb': 'whip&S',
+'DiceNumber': 1,
+'DiceValue': 5,
+'DamageBonus': 1
+}
+
+SpearAttack = {
+'verb': 'stab&S',
+'DiceNumber': 1,
+'DiceValue': 12,
+'DamageType': 'PIERCE'
+}
+
+ScytheAttack = {
+'verb': 'reap&S',
+'DiceNumber': 3,
+'DiceValue': 3,
+'DamageType': 'SLASH'
+}
+
 BoulderRoll = {
 'verb': 'crush&ES',
 'ToHitBonus': -4,
@@ -221,7 +319,7 @@ ClubThrown = {
 
 KnifeThrown = {
 'verb': 'stab&S',
-'ToHitBonus': 3,
+'ToHitBonus': 2,
 'DiceNumber': 1,
 'DiceValue': 3,
 'DamageBonus': 2,
@@ -235,6 +333,25 @@ DaggerThrown = {
 'ToHitBonus': 1,
 'DiceNumber': 1,
 'DiceValue': 4,
+'range': 5,
+'DamageType': 'PIERCE',
+'flags': ['RANGED']
+}
+
+AxeThrown = {
+'verb': 'hack&S',
+'DiceNumber': 1,
+'DiceValue': 6,
+'range': 5,
+'DamageType': 'SLASH',
+'flags': ['RANGED']
+}
+
+SpearThrown = {
+'verb': 'pierce&S',
+'DiceNumber': 1,
+'DiceValue': 8,
+'DamageBonus': 1,
 'range': 5,
 'DamageType': 'PIERCE',
 'flags': ['RANGED']
@@ -305,6 +422,24 @@ ResistPoison = {
 'secret': True
 }
 
+ResistLight = {
+'name': 'light resistance',
+'type': 'RESIST_LIGHT',
+'secret': True
+}
+
+ResistDark = {
+'name': 'darkness resistance',
+'type': 'RESIST_DARK',
+'secret': True
+}
+
+ResistSound = {
+'name': 'sonic resistance',
+'type': 'RESIST_SOUND',
+'secret': True
+}
+
 VulnBlunt = {
 'name': 'blunt attack vulnerability',
 'type': 'VULN_BLUNT',
@@ -359,6 +494,24 @@ VulnPoison = {
 'secret': True
 }
 
+VulnLight = {
+'name': 'light vulnerability',
+'type': 'VULN_LIGHT',
+'secret': True
+}
+
+VulnDark = {
+'name': 'darkness vulnerability',
+'type': 'VULN_DARK',
+'secret': True
+}
+
+VulnSound = {
+'name': 'sonic vulnerability',
+'type': 'VULN_SOUND',
+'secret': True
+}
+
 ImmunePhysical = {
 'name': 'physical immunity',
 'type': 'IMMUNE_PHYSICAL',
@@ -401,6 +554,19 @@ ImmunePoison = {
 'secret': True
 }
 
+ImmuneDark = {
+'name': 'darkness immunity',
+'type': 'IMMUNE_DARK',
+'secret': True
+}
+
+Aflame = {
+'name': 'aflame',
+'type': 'AFLAME',
+'secret': False,
+'color': libtcod.red
+}
+
 Bleed = {
 'name': 'bleeding',
 'type': 'BLEED',
@@ -413,6 +579,42 @@ Poison = {
 'type': 'POISON',
 'secret': False,
 'color': libtcod.green
+}
+
+Regeneration = {
+'name': 'regeneration',
+'type': 'REGEN_LIFE',
+'secret': True
+}
+
+Starpower = {
+'name': 'starpower',
+'type': 'REGEN_MANA',
+'secret': True
+}
+
+Vigor = {
+'name': 'vigor',
+'type': 'REGEN_STAM',
+'secret': True
+}
+
+Unhealing = {
+'name': 'unhealing',
+'type': 'DRAIN_LIFE',
+'secret': True
+}
+
+Manaburn = {
+'name': 'manaburn',
+'type': 'DRAIN_MANA',
+'secret': True
+}
+
+Fatigue = {
+'name': 'fatigue',
+'type': 'DRAIN_STAM',
+'secret': True
 }
 
 Haste = {
@@ -437,6 +639,30 @@ Blindness = {
 LeftHanded = {
 'name': 'left-handed',
 'type': 'LEFT_HANDED',
+'secret': True
+}
+
+Bloodless = {
+'name': 'bloodless',
+'type': 'BLOODLESS',
+'secret': True
+}
+
+Fragile = {
+'name': 'fragile',
+'type': 'FRAGILE',
+'secret': True
+}
+
+CanDig = {
+'name': 'tunnelling',
+'type': 'CAN_DIG',
+'secret': True
+}
+
+CanChop = {
+'name': 'woodchopping',
+'type': 'CAN_CHOP',
 'secret': True
 }
 
@@ -511,6 +737,99 @@ WarHammer = {
 'flags': ['MELEE', 'WEAPON']
 }
 
+LanternHammer = { # In my language, 'lucerna' means lantern, so this is a play on
+'char': '\\',     # the good old D&D 'lucerne hammer'. ;)
+'color': libtcod.amber,
+'name': 'lantern hammer',
+'material': 'IRON',
+'size': 2,
+'light': 2,
+'StrScaling': 'A',
+'DexScaling': 'D',
+'attack': Hammer,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 10
+}
+
+GiantSpikedClub = {
+'char': '\\',
+'color': libtcod.darkest_orange,
+'name': 'giant spiked club',
+'material': 'WOOD',
+'size': 2,
+'StrScaling': 'A',
+'DexScaling': 'E',
+'attack': GiantClub,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 5
+}
+
+BroadAxe = {
+'char': '\\',
+'color': libtcod.silver,
+'name': 'broad axe',
+'material': 'IRON',
+'size': 0,
+'StrScaling': 'D',
+'DexScaling': 'C',
+'attack': SmallAxe,
+'ranged': AxeThrown,
+'intrinsics': [('CAN_CHOP', 1)],
+'flags': ['MELEE', 'WEAPON']
+}
+
+PickAxe = {
+'char': '\\',
+'color': libtcod.silver,
+'name': 'pick axe',
+'material': 'IRON',
+'size': 1,
+'StrScaling': 'D',
+'DexScaling': 'C',
+'attack': SmallAxe,
+'intrinsics': [('CAN_DIG', 1)],
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 15
+}
+
+BattleAxe = {
+'char': '\\',
+'color': libtcod.dark_grey,
+'name': 'battle axe',
+'material': 'IRON',
+'size': 2,
+'StrScaling': 'C',
+'DexScaling': 'D',
+'attack': LargeAxe,
+'flags': ['MELEE', 'WEAPON']
+}
+
+Spear = {
+'char': '|',
+'color': libtcod.darkest_orange,
+'name': 'spear',
+'material': 'WOOD',
+'size': 1,
+'StrScaling': 'D',
+'DexScaling': 'B',
+'attack': SpearAttack,
+'ranged': SpearThrown,
+'flags': ['MELEE', 'WEAPON']
+}
+
+Scythe = {
+'char': '|',
+'color': libtcod.darker_grey,
+'name': 'scythe',
+'material': 'IRON',
+'size': 2,
+'StrScaling': 'B',
+'DexScaling': 'C',
+'attack': ScytheAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 25
+}
+
 QuarterStaff = {
 'char': '|',
 'color': libtcod.darkest_orange,
@@ -522,7 +841,46 @@ QuarterStaff = {
 'DexScaling': 'B',
 'attack': WoodStaff,
 'flags': ['MELEE', 'WEAPON', 'ENCHANT_DODGE'],
-'frequency': 20
+'frequency': 15
+}
+
+IronShodStaff = {
+'char': '|',
+'color': libtcod.silver,
+'name': 'iron-shod staff',
+'material': 'IRON',
+'size': 1,
+'StrScaling': 'C', # TODO: ???
+'DexScaling': 'C',
+'attack': IronStaff,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 15
+}
+
+SilverTipStaff = {
+'char': '|',
+'color': libtcod.white,
+'name': 'silver-tipped staff',
+'material': 'SILVER',
+'size': 1,
+'StrScaling': 'C',
+'DexScaling': 'C',
+'attack': IronStaff,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 10
+}
+
+LeadFillStaff = {
+'char': '|',
+'color': libtcod.dark_grey,
+'name': 'lead-filled staff',
+'material': 'WOOD',
+'size': 1,
+'StrScaling': 'C',
+'DexScaling': 'C',
+'attack': LeadStaff,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 10
 }
 
 Knife = {
@@ -551,6 +909,72 @@ Dagger = {
 'flags': ['MELEE', 'WEAPON']
 }
 
+VenomDagger = {
+'char': ')',
+'color': libtcod.desaturated_green,
+'name': 'venom dagger',
+'material': 'IRON',
+'size': -2,
+'StrScaling': 'D',
+'DexScaling': 'S',
+'attack': VenomDaggerAttack,
+'ranged': DaggerThrown,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 10
+}
+
+SilverSickle = {
+'char': ')',
+'color': libtcod.white,
+'name': 'silver sickle',
+'material': 'SILVER',
+'size': -1,
+'StrScaling': 'B',
+'DexScaling': 'D',
+'attack': SickleAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 10
+}
+
+GoldSickle = {
+'char': ')',
+'color': libtcod.yellow,
+'name': 'golden sickle',
+'material': 'GOLD',
+'size': -1,
+'StrScaling': 'B',
+'DexScaling': 'D',
+'attack': SickleAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 10
+}
+
+Rapier = {
+'char': ')',
+'color': libtcod.silver,
+'name': 'rapier',
+'material': 'IRON',
+'size': 0,
+'StrScaling': 'C',
+'DexScaling': 'B',
+'attack': RapierAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 50
+}
+
+GoldRapier = {
+'char': ')',
+'color': libtcod.yellow,
+'name': 'gilded rapier',
+'material': 'GOLD',
+'size': 0,
+'StrScaling': 'C',
+'DexScaling': 'B',
+'attack': RapierAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 25
+}
+
 ShortSword = {
 'char': ')',
 'color': libtcod.silver,
@@ -564,6 +988,20 @@ ShortSword = {
 'flags': ['MELEE', 'WEAPON']
 }
 
+VorpalSword = {
+'char': ')',
+'color': libtcod.azure,
+'name': 'vorpal sword',
+'material': 'IRON',
+'size': -1,
+'DV': 1,
+'StrScaling': 'D',
+'DexScaling': 'A',
+'attack': VorpalSwordAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 15
+}
+
 LongSword = {
 'char': ')',
 'color': libtcod.silver,
@@ -574,6 +1012,20 @@ LongSword = {
 'DexScaling': 'C',
 'attack': MediumSword,
 'flags': ['MELEE', 'WEAPON', 'TWO_AND_HALF']
+}
+
+FlamingSword = {
+'char': ')',
+'color': libtcod.red,
+'name': 'flaming sword',
+'material': 'IRON',
+'size': 0,
+'light': 1,
+'StrScaling': 'C',
+'DexScaling': 'C',
+'attack': FlamingSwordAttack,
+'flags': ['MELEE', 'WEAPON', 'TWO_AND_HALF'],
+'frequency': 15
 }
 
 GreatSword = {
@@ -601,6 +1053,32 @@ Scimitar = {
 'frequency': 30
 }
 
+Chain = {
+'char': 'S',
+'color': libtcod.dark_grey,
+'name': 'chain',
+'material': 'IRON',
+'size': 1,
+'StrScaling': 'B',
+'DexScaling': 'C',
+'attack': ChainAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 25
+}
+
+Whip = {
+'char': 'S',
+'color': libtcod.darker_orange,
+'name': 'whip',
+'material': 'LEATHER',
+'size': 0,
+'StrScaling': 'E',
+'DexScaling': 'S',
+'attack': WhipAttack,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 25
+}
+
 # Shields:
 Buckler = {
 'char': '[',
@@ -612,7 +1090,7 @@ Buckler = {
 'StrScaling': 'C',
 'DexScaling': 'A',
 'flags': ['SHIELD', 'TWO_HAND_OK'],
-'frequency': 30
+'frequency': 40
 }
 
 RoundShield = {
@@ -627,6 +1105,20 @@ RoundShield = {
 'flags': ['SHIELD']
 }
 
+LanternShield = {
+'char': '[',
+'color': libtcod.amber,
+'name': 'lantern shield',
+'material': 'IRON',
+'size': -1,
+'light': 3,
+'attack': MediumShield,
+'StrScaling': 'B',
+'DexScaling': 'B',
+'flags': ['SHIELD'],
+'frequency': 15
+}
+
 KiteShield = {
 'char': '[',
 'color': libtcod.silver,
@@ -637,6 +1129,20 @@ KiteShield = {
 'StrScaling': 'A',
 'DexScaling': 'C',
 'flags': ['SHIELD']
+}
+
+IceShield = {
+'char': '[',
+'color': libtcod.cyan,
+'name': 'ice shield',
+'material': 'WATER', # It's made of ice, d'oh.
+'size': 0,
+'attack': LargeShield,
+'StrScaling': 'A',
+'DexScaling': 'C',
+'intrinsics': [('RESIST_FIRE', 1)],
+'flags': ['SHIELD'],
+'frequency': 15
 }
 
 TowerShield = {
@@ -682,7 +1188,7 @@ Crown = {
 'DV': 0,
 'size': -2,
 'flags': ['HEAD', 'ARMOR', 'ENCHANT_DOUBLE'],
-'frequency': 20
+'frequency': 10
 }
 
 Circlet = {
@@ -694,7 +1200,7 @@ Circlet = {
 'DV': 0,
 'size': -2,
 'flags': ['HEAD', 'ARMOR', 'ENCHANT_DODGE'],
-'frequency': 20
+'frequency': 10
 }
 
 Skullcap = {
@@ -740,6 +1246,10 @@ GreatHelm = {
 'flags': ['HEAD', 'ARMOR'],
 'frequency': 60
 }
+
+# horned helmet
+# gladiator helmet
+# plumed helmet
 
 # Handwear:
 LeatherGlove = {
@@ -893,6 +1403,17 @@ CrystalPlate = {
 'frequency': 10
 }
 
+LeatherTunic = {
+'char': ']',
+'color': libtcod.darker_orange,
+'name': 'leather tunic',
+'material': 'LEATHER',
+'size': 0,
+'DV': 0,
+'PV': 1,
+'flags': ['TORSO', 'ARMOR']
+}
+
 GreenTunic = {
 'char': ']',
 'color': libtcod.dark_green,
@@ -901,8 +1422,7 @@ GreenTunic = {
 'size': 0,
 'DV': 1,
 'PV': 0,
-'flags': ['TORSO', 'ARMOR'],
-'frequency': 50
+'flags': ['TORSO', 'ARMOR']
 }
 
 RedTunic = {
@@ -916,6 +1436,19 @@ RedTunic = {
 'frequency': 50
 }
 
+PiedTunic = {
+'char': ']',
+'color': libtcod.gold,
+'name': 'pied tunic',
+'material': 'CLOTH',
+'size': 0,
+'DV': 0,
+'PV': 0,
+'intrinsics': [('REGEN_STAM', 1)],
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 20
+}
+
 SnakeVest = {
 'char': ']',
 'color': libtcod.desaturated_green,
@@ -923,9 +1456,7 @@ SnakeVest = {
 'material': 'LEATHER',
 'size': 0,
 'accuracy': 1,
-'DV': 1,
-'PV': 1,
-'flags': ['TORSO', 'ARMOR'],
+'flags': ['TORSO', 'ARMOR', 'ENCHANT_ACCURACY'],
 'frequency': 10
 }
 
@@ -938,19 +1469,20 @@ BlackRobe = {
 'DV': 0,
 'PV': 0,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 30
+'frequency': 20
 }
 
 BrownRobe = {
 'char': ']',
-'color': libtcod.darkest_orange,
+'color': libtcod.darker_orange,
 'name': 'brown robe',
 'material': 'CLOTH',
 'size': 0,
 'DV': 0,
 'PV': 0,
+'intrinsics': [('REGEN_LIFE', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 30
+'frequency': 20
 }
 
 WhiteRobe = {
@@ -961,8 +1493,9 @@ WhiteRobe = {
 'size': 0,
 'DV': 0,
 'PV': 0,
+'intrinsics': [('REGEN_MANA', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 30
+'frequency': 20
 }
 
 BlueDress = {
@@ -973,8 +1506,8 @@ BlueDress = {
 'size': -1,
 'DV': 0,
 'PV': 0,
-'flags': ['TORSO', 'ARMOR'],
 'intrinsics': [('HASTE', 1)],
+'flags': ['TORSO', 'ARMOR'],
 'frequency': 10
 }
 
@@ -997,8 +1530,8 @@ BlackBelt = {
 'name': 'black belt',
 'material': 'CLOTH',
 'size': -1,
-'accuracy': 2,
-'flags': ['GROIN', 'ARMOR'],
+'accuracy': 1,
+'flags': ['GROIN', 'ARMOR', 'ENCHANT_ACCURACY'],
 'frequency': 60
 }
 
@@ -1090,7 +1623,7 @@ Clog = {
 'color': libtcod.darkest_orange,
 'name': 'clog',
 'material': 'WOOD',
-'size': -2,
+'size': -1,
 'DV': -1,
 'PV': 3,
 'flags': ['LEG', 'ARMOR', 'PAIRED']
@@ -1101,7 +1634,7 @@ Greave = {
 'color': libtcod.silver,
 'name': 'iron greave',
 'material': 'IRON',
-'size': -2,
+'size': -1,
 'DV': -2,
 'PV': 5,
 'flags': ['LEG', 'ARMOR', 'PAIRED'],
@@ -1113,7 +1646,7 @@ Anklet = {
 'color': libtcod.white,
 'name': 'silver anklet',
 'material': 'SILVER',
-'size': -2,
+'size': -1,
 'DV': 0,
 'PV': 0,
 'flags': ['LEG', 'ARMOR', 'ENCHANT_DODGE'],
@@ -1137,6 +1670,7 @@ SunStone = {
 'material': 'STONE',
 'light': 3,
 'size': -2,
+'flags': ['ENCHANT_LIGHT'],
 'frequency': 5
 }
 
@@ -1243,7 +1777,7 @@ Player = {
 'Wit': 0,
 'Ego': 0,
 'speed': 1.0,
-'sight': 0,
+'sight': 6,
 'sex': 'MOF',
 'intrinsics': [],
 'inventory': [Headband, ShortSword, RoundShield, SnakeVest, Baldric, SnakeSandal, SnakeSandal, SunStone],
@@ -1305,14 +1839,14 @@ Troll = {
 'name': 'troll',
 'Str': 2,
 'Dex': 0,
-'End': 4,
+'End': 0,
 'Wit': -1,
 'Ego': 0,
 'size': 1,
 'sex': 'MOF',
-'intrinsics': [], # TODO: Regeneration, revival.
+'intrinsics': [('REGEN_LIFE', 3)], # TODO: Revival.
 'flags': ['HUMANOID', 'USE_HEAD', 'MUTATION_LARGE_CLAWS'],
-'frequency': 20
+'frequency': 25
 }
 
 ###############################################################################
@@ -1511,6 +2045,7 @@ DummyTerrain = {
 'char': '.',
 'color': libtcod.white,
 'name': 'BUG: dummy terrain',
+'material': 'STONE',
 'BlockMove': False,
 'BlockSight': False,
 'flags': []
@@ -1539,15 +2074,17 @@ WoodWall = {
 'char': '#',
 'color': libtcod.darkest_orange,
 'name': 'wooden wall',
+'material': 'WOOD',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['WALL', 'CAN_BE_DUG', 'CAN_BE_BURNED']
+'flags': ['WALL', 'CAN_BE_CHOPPED', 'CAN_BE_BURNED']
 }
 
 IceWall = {
 'char': '#',
 'color': libtcod.dark_cyan,
 'name': 'ice wall',
+'material': 'WATER',
 'BlockMove': True,
 'BlockSight': True,
 'flags': ['WALL', 'CAN_BE_DUG', 'CAN_BE_MELTED']
@@ -1557,15 +2094,27 @@ EarthWall = {
 'char': '#',
 'color': libtcod.dark_orange,
 'name': 'earthen wall',
+'material': 'CLAY',
 'BlockMove': True,
 'BlockSight': True,
 'flags': ['WALL', 'CAN_BE_DUG']
+}
+
+GoldWall = {
+'char': '#',
+'color': libtcod.gold,
+'name': 'gold-plated wall',
+'material': 'GOLD',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['WALL']
 }
 
 IronWall = {
 'char': '#',
 'color': libtcod.silver,
 'name': 'iron wall',
+'material': 'IRON',
 'BlockMove': True,
 'BlockSight': True,
 'flags': ['WALL', 'CAN_BE_CORRODED']
@@ -1575,6 +2124,7 @@ IronBars = {
 'char': chr(240), # Ie. ≡
 'color': libtcod.silver,
 'name': 'iron bars',
+'material': 'IRON',
 'BlockMove': True,
 'BlockSight': False,
 'flags': ['WALL', 'CAN_BE_CORRODED']
@@ -1594,6 +2144,7 @@ WoodFloor = {
 'char': '.',
 'color': libtcod.darker_orange,
 'name': 'parquet',
+'material': 'WOOD',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'CAN_BE_BURNED']
@@ -1603,6 +2154,27 @@ EarthFloor = {
 'char': '.',
 'color': libtcod.dark_orange,
 'name': 'dirt floor',
+'material': 'CLAY',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND']
+}
+
+IronFloor = {
+'char': '.',
+'color': libtcod.silver,
+'name': 'iron floor',
+'material': 'IRON',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND']
+}
+
+GoldFloor = {
+'char': '.',
+'color': libtcod.yellow,
+'name': 'gold-plated floor',
+'material': 'GOLD',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND']
@@ -1612,6 +2184,7 @@ Carpet = {
 'char': '.',
 'color': libtcod.fuchsia,
 'name': 'carpet',
+'material': 'CLOTH',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'CAN_BE_BURNED']
@@ -1621,6 +2194,7 @@ IceFloor = {
 'char': '.',
 'color': libtcod.cyan,
 'name': 'ice floor',
+'material': 'WATER',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'SLIDE', 'CAN_BE_MELTED']
@@ -1630,6 +2204,7 @@ GrassFloor = {
 'char': '.',
 'color': libtcod.green,
 'name': 'grass',
+'material': 'PLANT',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'CAN_BE_BURNED']
@@ -1639,6 +2214,7 @@ Snow = {
 'char': '.',
 'color': libtcod.white,
 'name': 'snow',
+'material': 'WATER',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'CAN_BE_MELTED']
@@ -1648,6 +2224,7 @@ DeepSnow = {
 'char': ',',
 'color': libtcod.white,
 'name': 'deep snow',
+'material': 'WATER',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'CAN_BE_MELTED', 'WADE']
@@ -1676,33 +2253,37 @@ WoodDoor = {
 'char': '+',
 'color': libtcod.darkest_orange,
 'name': 'wooden door',
+'material': 'WOOD',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_KICKED']
+'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_CHOPPED', 'CAN_BE_KICKED']
 }
 
 SecretDoor = {              # Opened will be revealed and transformed into normal
 'char': '#',                # open doors. You need to zap them with invisibility
 'color': libtcod.dark_grey, # to make them secret again.
 'name': 'rock wall',
+'material': 'WOOD',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_KICKED', 'SECRET']
+'flags': ['DOOR', 'CAN_BE_OPENED', 'CAN_BE_BURNED', 'CAN_BE_CHOPPED', 'CAN_BE_KICKED', 'SECRET']
 }
 
 OpenDoor = {
 'char': '\'',
 'color': libtcod.darkest_orange,
 'name': 'open door',
+'material': 'WOOD',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['DOOR', 'CAN_BE_CLOSED', 'CAN_BE_BURNED']
+'flags': ['DOOR', 'CAN_BE_CLOSED', 'CAN_BE_BURNED', 'CAN_BE_CHOPPED']
 }
 
 BrokenDoor = {
 'char': '_',
 'color': libtcod.darkest_orange,
 'name': 'broken door',
+'material': 'WOOD',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['DOOR']
@@ -1712,6 +2293,7 @@ ClosedPort = {
 'char': '+',
 'color': libtcod.white,
 'name': 'lowered portcullis',
+'material': 'IRON',
 'BlockMove': True,
 'BlockSight': False,
 'flags': ['DOOR', 'PORTCULLIS', 'CAN_BE_OPENED']
@@ -1721,6 +2303,7 @@ OpenPort = {
 'char': '\'',
 'color': libtcod.white,
 'name': 'raised portcullis',
+'material': 'IRON',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['DOOR', 'PORTCULLIS', 'CAN_BE_CLOSED']
@@ -1730,6 +2313,7 @@ Curtain = {
 'char': '+',
 'color': libtcod.dark_fuchsia,
 'name': 'curtain',
+'material': 'CLOTH',
 'BlockMove': False,
 'BlockSight': True,
 'flags': ['DOOR']
@@ -1740,24 +2324,27 @@ LeafyTree = {
 'char': chr(5), # Ie. ♣
 'color': libtcod.dark_green,
 'name': 'tree',
+'material': 'PLANT',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['CAN_BE_BURNED', 'CAN_BE_CLIMBED', 'PLANT']
+'flags': ['CAN_BE_BURNED', 'CAN_BE_CHOPPED', 'CAN_BE_CLIMBED', 'PLANT']
 }
 
 ConifTree = {   # Coniferous tree
 'char': chr(6), # Ie. ♠
 'color': libtcod.darker_green,
 'name': 'tree',
+'material': 'PLANT',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['CAN_BE_BURNED', 'CAN_BE_CLIMBED', 'PLANT']
+'flags': ['CAN_BE_BURNED', 'CAN_BE_CHOPPED', 'CAN_BE_CLIMBED', 'PLANT']
 }
 
 Vines = {
 'char': '|',
 'color': libtcod.dark_green,
 'name': 'hanging vines',
+'material': 'PLANT',
 'BlockMove': False,
 'BlockSight': True,
 'flags': ['GROUND', 'CAN_BE_BURNED', 'PLANT']
@@ -1767,6 +2354,7 @@ TallGrass = {
 'char': '\"',
 'color': libtcod.dark_green,
 'name': 'tall grass',
+'material': 'PLANT',
 'BlockMove': False,
 'BlockSight': True,
 'flags': ['GROUND', 'CAN_BE_BURNED', 'PLANT']
@@ -1786,6 +2374,7 @@ BonePile = {
 'char': '*',
 'color': libtcod.white,
 'name': 'bone pile',
+'material': 'BONE',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'CAN_BE_KICKED']
@@ -1805,6 +2394,7 @@ ShallowWater = {
 'char': '~',
 'color': libtcod.blue,
 'name': 'shallow water',
+'material': 'WATER',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['LIQUID', 'WADE']
@@ -1814,6 +2404,7 @@ DeepWater = {
 'char': chr(247),
 'color': libtcod.darker_blue,
 'name': 'deep water',
+'material': 'WATER',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['LIQUID', 'SWIM']
@@ -1825,13 +2416,24 @@ Lava = {
 'name': 'lava',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['LIQUID']
+'flags': ['LIQUID', 'STICKY', 'BURN'] # You cannot swim in lava, it's more like sticky, hot mud.
+}
+
+AcidPool = {
+'char': '~',
+'color': libtcod.yellow,
+'name': 'acid',
+'material': 'WATER', # Well, yeah. Why not?
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['LIQUID', 'SWIM', 'DISSOLVE']
 }
 
 Mud = {
 'char': '~',
 'color': libtcod.darker_orange,
 'name': 'mud',
+'material': 'CLAY',
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['LIQUID', 'STICKY', 'WADE']
@@ -1860,9 +2462,10 @@ BookShelf = {
 'char': chr(252),
 'color': libtcod.darker_orange,
 'name': 'bookshelf',
+'material': 'WOOD',
 'BlockMove': True,
 'BlockSight': True,
-'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED']
+'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED', 'CAN_BE_CHOPPED', 'CAN_BE_BURNED']
 }
 
 '''
@@ -2125,20 +2728,22 @@ Scaling = {
 
 MaterialsList = [
 'BONE',
+'CLAY',
 'CLOTH',
 'FLESH',
 'GLASS',
 'GOLD',
 'IRON',
 'LEATHER',
+'PAPER',
 'PLANT',
 'SILVER',
 'STONE',
+'WATER',
 'WOOD'
 ]
 
 DamageTypeList = [
-'BLEED',
 'BLUNT',
 'SLASH',
 'PIERCE',
@@ -2147,7 +2752,11 @@ DamageTypeList = [
 'COLD',
 'ELECTRIC',
 'NECROTIC',
-'POISON'
+'POISON',
+'BLEED',
+'LIGHT',
+'DARK',
+'SOUND'
 ]
 
 ResistanceTypeList = {
@@ -2160,7 +2769,10 @@ ResistanceTypeList = {
 'COLD': 'RESIST_COLD',
 'ELECTRIC': 'RESIST_SHOCK',
 'NECROTIC': 'RESIST_NECRO',
-'POISON': 'RESIST_POISON'
+'POISON': 'RESIST_POISON',
+'LIGHT': 'RESIST_LIGHT',
+'DARK': 'RESIST_DARK',
+'SOUND': 'RESIST_SOUND'
 }
 
 VulnerabilityTypeList = {
@@ -2173,7 +2785,10 @@ VulnerabilityTypeList = {
 'COLD': 'VULN_COLD',
 'ELECTRIC': 'VULN_SHOCK',
 'NECROTIC': 'VULN_NECRO',
-'POISON': 'VULN_POISON'
+'POISON': 'VULN_POISON',
+'LIGHT': 'VULN_LIGHT',
+'DARK': 'VULN_DARK',
+'SOUND': 'VULN_SOUND'
 }
 
 ImmunityTypeList = {
@@ -2186,7 +2801,10 @@ ImmunityTypeList = {
 'COLD': 'IMMUNE_COLD',
 'ELECTRIC': 'IMMUNE_SHOCK',
 'NECROTIC': 'IMMUNE_NECRO',
-'POISON': 'IMMUNE_POISON'
+'POISON': 'IMMUNE_POISON',
+'LIGHT': 'BLIND',
+'DARK': 'IMMUNE_DARK',
+'SOUND': 'DEAF'
 }
 
 # Items:
@@ -2195,18 +2813,39 @@ ItemList = [
 # Weapons:
 Cudgel,
 Mace,
-QuarterStaff,
 WarHammer,
+LanternHammer,
+GiantSpikedClub,
+BroadAxe,
+PickAxe,
+BattleAxe,
+Spear,
+Scythe,
+QuarterStaff,
+IronShodStaff,
+SilverTipStaff,
+LeadFillStaff,
 Knife,
 Dagger,
+VenomDagger,
+SilverSickle,
+GoldSickle,
+Rapier,
+GoldRapier,
 ShortSword,
+VorpalSword,
 LongSword,
+FlamingSword,
 GreatSword,
 Scimitar,
+Chain,
+Whip,
 # Shields:
 Buckler,
 RoundShield,
+LanternShield,
 KiteShield,
+IceShield,
 TowerShield,
 # Headgear:
 Bandana,
@@ -2234,6 +2873,8 @@ CrystalShard,
 CrystalPlate,
 GreenTunic,
 RedTunic,
+LeatherTunic,
+PiedTunic,
 SnakeVest,
 BlackRobe,
 BrownRobe,
@@ -2268,6 +2909,9 @@ Chest,
 # -----------
 IntrinsicList = [
 # Resistances, vulnerabilities and immunities:
+ResistLight,
+ResistDark,
+ResistSound,
 ResistCold,
 ResistFire,
 ResistAcid,
@@ -2277,6 +2921,9 @@ ResistPierce,
 ResistPoison,
 ResistNecrotic,
 ResistElectricity,
+VulnLight,
+VulnDark,
+VulnSound,
 VulnCold,
 VulnFire,
 VulnAcid,
@@ -2287,6 +2934,7 @@ VulnPoison,
 VulnNecrotic,
 VulnElectricity,
 ImmunePhysical,
+ImmuneDark,
 ImmuneCold,
 ImmuneFire,
 ImmuneAcid,
@@ -2294,12 +2942,25 @@ ImmunePoison,
 ImmuneNecrotic,
 ImmuneElectricity,
 # DoT:
+Aflame,
 Bleed,
 Poison,
-# Other:
+# Buffs:
+Regeneration,
+Starpower,
+Vigor,
 Haste,
+CanDig,
+CanChop,
+# Debuffs:
 Slow,
+Fragile,
 Blindness,
+Unhealing,
+Manaburn,
+Fatigue,
+# Other:
+Bloodless,
 LeftHanded,
 NoneIntrinsic
 ]
@@ -2381,6 +3042,26 @@ MutationTypes = [
 'MUTATION_CLAWS',
 'MUTATION_LARGE_CLAWS'
 ]
+
+# Dungeon features:
+# -----------------
+
+DestroyedTerrainList = {
+'BONE': RockFloor, # TODO: Bone floor.
+'CLAY': EarthFloor,
+'CLOTH': RockFloor,
+'FLESH': RockFloor,
+'GLASS': RockFloor,
+'GOLD': GoldFloor,
+'IRON': IronFloor,
+'LEATHER': RockFloor,
+'PAPER': RockFloor,
+'PLANT': GrassFloor,
+'SILVER': RockFloor,
+'STONE': RockFloor,
+'WATER': IceFloor,
+'WOOD': WoodFloor
+}
 
 # Prefab rooms:
 # -------------

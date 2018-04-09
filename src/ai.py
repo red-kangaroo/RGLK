@@ -265,6 +265,20 @@ def handleKeys(Player):
                     i.receiveDamage(i.maxHP, 'NECROTIC')
             return
 
+        # See stats
+        if Key.vk == libtcod.KEY_F9:
+            options = Player.intrinsics
+
+            for i in Player.getEquipment():
+                for n in i.intrinsics:
+                    options.append(n)
+
+            if len(options) == 0:
+                ui.message("You have no special features.")
+            else:
+                ui.option_menu("Your intrinsics:", options)
+            return
+
         # Level teleport
         if Key.vk == libtcod.KEY_F11:
             pass # TODO
@@ -711,19 +725,26 @@ def aiDoNothing(Me):
     Me.actionWait()
 
 def aiCheckFlee(Mob):
-    if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 10)):
+    if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 20)):
         if not Mob.hasFlag('AI_FLEE'):
             Mob.flags.append('AI_FLEE') # Start fleeing behaviour.
             Mob.tactics = True          # Switch to defensive.
             ui.message("%s flee&S." % Mob.getName(True), actor = Mob)
 
-    if (Mob.hasFlag('AI_FLEE') and Mob.SP >= (Mob.maxSP / 2) and
-        Mob.HP >= (Mob.maxHP / 2)):
-        Mob.tactics = False             # Switch to aggresive.
-        for i in Mob.flags:                 # I had a bug here that would cause
-            if i == 'AI_FLEE':              # mobs to nevr stop fleeing. This
-                Mob.flags.remove('AI_FLEE') # cannot happen anymore.
-                ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
+    if Mob.hasFlag('AI_FLEE'):
+        stop = False
+
+        if Mob.SP >= (Mob.maxSP / 2) and Mob.HP >= (Mob.maxHP / 2):
+            stop = True
+
+        if Mob.SP == Mob.maxSP:
+            stop = True
+
+        if stop:
+            for i in Mob.flags:                 # I had a bug here that would cause
+                if i == 'AI_FLEE':              # mobs to never stop fleeing. This
+                    Mob.flags.remove('AI_FLEE') # cannot happen anymore.
+                    ui.message("%s no longer flee&S." % Mob.getName(True), actor = Mob)
 
 def aiDoFlee(Me, Target):
     if not Me.hasFlag('AI_FLEE'):
@@ -827,6 +848,8 @@ def aiKite(Me, Target):
     return False
 
 def aiMove(Me, Target):
+    Mob.tactics = True # We want mobs that try to move past the player to be
+                       # defensive rather than aggresive.
     if Me.hasFlag('AI_DIJKSTRA'):
         return aiMoveDijkstra(Me, Target)
     else:

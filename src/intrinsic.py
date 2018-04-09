@@ -6,6 +6,7 @@ import math
 import random
 
 import raw
+import ui
 import var
 
 ###############################################################################
@@ -41,8 +42,8 @@ class Intrinsic(object):
         else:
             return False
 
-    def getName(self, capitalize = False):
-        name = self.name
+    def getName(self, capitalize = False, tmpOption = False): # tmpOption to be compatible with getName() of Entities.
+        name = self.name                                      # Maybe to use later?
 
         if self.type == 'BLEED' and self.power >= 5:
             name = 'hemorrhage'
@@ -74,15 +75,34 @@ class Intrinsic(object):
     def getHandled(self, owner):
         # TODO: Handle intrinsics for 'MOB' and 'ITEM', not others.
 
+        # Returning None gets rid of the intrinsic.
         if self.type == None:
+            return None
+        if self.power < 0:
             return None
         if not self.isPermanent():
             self.duration -= 1
-
-            if self.duration <= 0:
-                return None
+        if self.duration <= 0:
+            return None
 
         # TODO: The effects.
+
+        # Aflame:
+        if self.type == 'AFLAME':
+            if owner.hasFlag('MOB'):
+                ui.message("%s burn&S!" % owner.getName(True), libtcod.light_red, owner)
+
+                limb = owner.getLimbToHit()
+
+                # Fire wounds limbs.
+                if var.rand_chance(self.power * 10):
+                    limb.wounded = True
+
+                damage = libtcod.random_get_int(0, 1, 6) # Take 1d6 fire damage.
+                owner.receiveDamage(damage, limb = limb, DamageType = 'FIRE')
+
+            elif owner.hasFlag('ITEM'):
+                pass # TODO: item destruction
 
         # Bleeding:
         if self.type == 'BLEED':
@@ -92,8 +112,8 @@ class Intrinsic(object):
                     if self.power >= 5:
                         self.duration == 30000
 
-                power = max(0, var.rand_int_from_float(self.power))
-                damage = libtcod.random_get_int(0, 0, power)
+                power = max(1, var.rand_int_from_float(self.power))
+                damage = libtcod.random_get_int(0, 1, power)
                 owner.receiveDamage(damage, DamageType = 'BLEED')
 
         # Poison:
@@ -102,6 +122,20 @@ class Intrinsic(object):
                 # Let's make sure we're in poison power 1 - 5 range, for damage
                 # from 1d2 to 5d6.
                 power = max(1, min(5, self.power))
+
+                if power <= 2:
+                    fullStop = "."
+                elif power <= 4:
+                    fullStop = "!"
+                else:
+                    fullStop = "!!!"
+
+                ui.message("%s &ISARE poisoned%s" % (owner.getName(True), fullStop), libtcod.light_red, owner)
+
+                if var.rand_chance(power * 5):
+                    owner.actionVomit()
+
                 damage = var.rand_dice(power, power + 1, 0)
+                owner.receiveDamage(damage, DamageType = 'POISON')
 
         return True
