@@ -73,23 +73,31 @@ Generation:
   These flags are removed at item generation, setting object properties.
 ALWAYS_BLESSED
 ALWAYS_CURSED
+PAIRED             Generated as a pair.
 
-MELEE
-RANGED
-
+Item types:
 WEAPON
 SHIELD
 ARMOR
+POTION
+FOOD
+
+Equipment:
+MELEE
+RANGED
 
 TWO_HAND_OK        Can be equipped along with 2H weapon.
+*TWO_AND_HALF
+
 ENCHANT_ACCURACY
 *ENCHANT_DAMAGE
 ENCHANT_DODGE
 ENCHANT_PROTECTION Enchantment increases PV, even on non-armor.
 ENCHANT_DOUBLE
 ENCHANT_LIGHT
-*TWO_AND_HALF
-PAIRED
+
+Consumables:
+HEAL
 
 Body
 ====

@@ -35,6 +35,14 @@ class Intrinsic(object):
             self.secret = i['secret']
         except:
             self.secret = raw.DummyIntrinsic['secret']
+        try:
+            self.begin = i['beginMsg']
+        except:
+            self.begin = raw.DummyIntrinsic['beginMsg']
+        try:
+            self.end = i['endMsg']
+        except:
+            self.end = raw.DummyIntrinsic['endMsg']
 
     def isPermanent(self):
         if self.duration >= 30000:

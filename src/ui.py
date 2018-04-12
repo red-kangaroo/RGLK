@@ -23,7 +23,7 @@ def render_all(Player):
 
     render_map(Player)
     render_UI(Player)
-    render_messages()
+    render_messages(Player)
 
     # And draw it all on the screen:
     libtcod.console_flush()
@@ -68,7 +68,7 @@ def render_map(Player):
     # Render map:
     libtcod.console_blit(var.MapConsole, 0, 0, var.MapWidth, var.MapHeight, 0, 0, 0)
 
-def render_messages():
+def render_messages(Player):
     libtcod.console_set_default_foreground(var.MessagePanel, var.TextColor)
     libtcod.console_set_default_background(var.MessagePanel, libtcod.black)
     libtcod.console_clear(var.MessagePanel)
@@ -79,11 +79,16 @@ def render_messages():
         s = 0
     y = 0
 
+    if Player != None:
+        diff = int(math.ceil(Player.getMoveAPCost())) # This makes messages colored
+    else:                                             # even if player needs more than
+        diff = 1 # Otherise, use 1 turn.              # one turn to move due to burden
+                                                      # or lost limbs.
     while y <= var.PanelHeight:
         try:
             (line, color, turn) = var.MessageHistory[s]
-            if turn >= (var.TurnCount - 1): # Turn count increases before redrawing
-                                            # screen, so here we need T - 1 for color.
+            if turn >= (var.TurnCount - diff): # Turn count increases before redrawing
+                                               # screen, so here we need T - 1 for color.
                 libtcod.console_set_default_foreground(var.MessagePanel, color)
             else:
                 libtcod.console_set_default_foreground(var.MessagePanel, libtcod.darker_grey)
@@ -306,6 +311,93 @@ def option_menu(header, options):
                     if what in range(0, len(options) + 1):
                         return what
 
+def inventory_menu(Player):
+    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+    libtcod.console_clear(var.MenuPanel)
+
+    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                  "You carry the following:")
+
+    if Player.getBurdenState() > 2:
+        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.red)
+    elif Player.getBurdenState() > 0:
+        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.yellow)
+
+    libtcod.console_print_rect_ex(var.MenuPanel, 68, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.RIGHT,
+                                  "Weight: %s/%s" % (len(Player.inventory), Player.carry))
+
+    index = ord('a')
+    option = 0
+    y = 3
+    page = 0
+
+    while option < len(Player.inventory):
+        item = Player.inventory[option]
+        text = chr(index) + ') ' + item.getName(False, True)
+
+        if item.beautitude > 0:
+            libtcod.console_set_default_foreground(var.MenuPanel, libtcod.chartreuse)
+        elif item.beautitude < 0:
+            libtcod.console_set_default_foreground(var.MenuPanel, libtcod.red)
+        else:
+            libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
+        libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 text)
+
+        index += 1
+        option += 1
+        y += 1
+
+        if y == 28 or option >= len(Player.inventory):
+            # Add instructions:
+            libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+            libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
+                                     "[press letter; Space for next; Esc to exit]")
+            libtcod.console_print_ex(var.MenuPanel, 68, 28, libtcod.BKGND_SET, libtcod.RIGHT,
+                                     "page: %s" % str(page + 1))
+
+            # Draw it and wait for input:
+            libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+            libtcod.console_flush()
+
+            while True:
+                Key = libtcod.console_wait_for_keypress(True)
+
+                if Key.vk == libtcod.KEY_ESCAPE:
+                    return None
+
+                if Key.vk == libtcod.KEY_SPACE:
+                    libtcod.console_clear(var.MenuPanel)
+                    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
+                    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                                  "You carry the following:")
+
+                    if Player.getBurdenState() > 2:
+                        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.red)
+                    elif Player.getBurdenState() > 0:
+                        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.yellow)
+
+                    libtcod.console_print_rect_ex(var.MenuPanel, 68, 1, var.MenuWidth, var.MenuHeight,
+                                                  libtcod.BKGND_SET, libtcod.RIGHT,
+                                                  "Weight: %s/%s" % (len(Player.inventory), Player.carry))
+
+                    index = ord('a')
+                    y = 3
+                    page += 1
+                    break
+
+                else:
+                    what = Key.c - ord('a') + (26 * page)
+
+                    if what in range(0, len(Player.inventory) + 1):
+                        return what
+
 def equip_menu(bodyparts):
     libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
     libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
@@ -335,7 +427,15 @@ def equip_menu(bodyparts):
         if len(part.inventory) == 0:
             text = ""
         else:
-            text = part.inventory[0].getName(full = True)
+            item = part.inventory[0]
+            text = item.getName(full = True)
+
+            if item.beautitude > 0:
+                libtcod.console_set_default_foreground(var.MenuPanel, libtcod.chartreuse)
+            elif item.beautitude < 0:
+                libtcod.console_set_default_foreground(var.MenuPanel, libtcod.red)
+            else:
+                libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
 
         libtcod.console_print_ex(var.MenuPanel, 20, y, libtcod.BKGND_SET, libtcod.LEFT,
                                  text)
@@ -494,19 +594,14 @@ def message(text, color = var.TextColor, actor = None):
 def grammar(text, actor = None):
     # Some grammar:
     if actor == None or actor.hasFlag('AVATAR'):
-        text = text.replace('&S', '')
-    else:
-        text = text.replace('&S', 's')
-
-    if actor == None or actor.hasFlag('AVATAR'):
-        text = text.replace('&ES', '')
-    else:
-        text = text.replace('&ES', 'es')
-
-    if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&ISARE', 'are')
     else:
         text = text.replace('&ISARE', 'is')
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&HASHAVE', 'have')
+    else:
+        text = text.replace('&HASHAVE', 'has')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&IY', 'y')
@@ -526,6 +621,18 @@ def grammar(text, actor = None):
             text = text.replace('&SUBJ', 'it')
 
     if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&SUBC', 'You')
+    else:
+        if actor.sex == 'MALE':
+            text = text.replace('&SUBC', 'He')
+        elif actor.sex == 'FEMALE':
+            text = text.replace('&SUBC', 'She')
+        elif actor.sex == 'UNDEFINED':
+            text = text.replace('&SUBC', 'Xe')
+        else:
+            text = text.replace('&SUBC', 'It')
+
+    if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&OBJ', 'you')
     else:
         if actor.sex == 'MALE':
@@ -536,6 +643,18 @@ def grammar(text, actor = None):
             text = text.replace('&OBJ', 'xem')
         else:
             text = text.replace('&OBJ', 'it')
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&OBJC', 'You')
+    else:
+        if actor.sex == 'MALE':
+            text = text.replace('&OBJC', 'Him')
+        elif actor.sex == 'FEMALE':
+            text = text.replace('&OBJC', 'Her')
+        elif actor.sex == 'UNDEFINED':
+            text = text.replace('&OBJC', 'Xem')
+        else:
+            text = text.replace('&OBJC', 'It')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&POSS', 'your')
@@ -560,5 +679,15 @@ def grammar(text, actor = None):
             text = text.replace('&SELF', 'xemself')
         else:
             text = text.replace('&SELF', 'itself')
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&S', '')
+    else:
+        text = text.replace('&S', 's')
+
+    if actor == None or actor.hasFlag('AVATAR'):
+        text = text.replace('&ES', '')
+    else:
+        text = text.replace('&ES', 'es')
 
     return text

@@ -115,7 +115,8 @@ GiantClub = {
 'verb': 'club&S',
 'ToHitBonus': -2,
 'DiceNumber': 4,
-'DiceValue': 4
+'DiceValue': 4,
+'DamageType': 'PIERCE'
 }
 
 SmallAxe = {
@@ -365,204 +366,272 @@ DummyIntrinsic = {
 'name': 'BUG: dummy intrinsic',
 'type': None,
 'secret': False,
+'beginMsg': " gain&S a dummy intrinsic. Yes, seeing this is a bug.",
+'endMsg': " loose&S a dummy intrinsic. Yes, seeing this is a bug.",
 'color': libtcod.white
 }
 
 ResistBlunt = {
 'name': 'blunt attack resistance',
 'type': 'RESIST_BLUNT',
+'beginMsg': " look&S tough.",
+'endMsg': " look&S squishy.",
 'secret': True
 }
 
 ResistSlash = {
 'name': 'slashing attack resistance',
 'type': 'RESIST_SLASH',
+'beginMsg': " look&S hardy.",
+'endMsg': " look&S feeble.",
 'secret': True
 }
 
 ResistPierce = {
 'name': 'piercing attack resistance',
 'type': 'RESIST_PIERCE',
+'beginMsg': " look&S thick-skinned.",
+'endMsg': " look&S frail.",
 'secret': True
 }
 
 ResistAcid = {
 'name': 'acid resistance',
 'type': 'RESIST_ACID',
+'beginMsg': " feel&S basic.",
+'endMsg': " feel&S acidic.",
 'secret': True
 }
 
 ResistFire = {
 'name': 'fire resistance',
 'type': 'RESIST_FIRE',
+'beginMsg': " feel&S a pleasant chill.",
+'endMsg': " feel&S feverish.",
 'secret': True
 }
 
 ResistCold = {
 'name': 'cold resistance',
 'type': 'RESIST_COLD',
+'beginMsg': " feel&S quite warm.",
+'endMsg': " feel&S an icy chill.",
 'secret': True
 }
 
 ResistElectricity = {
 'name': 'shock resistance',
 'type': 'RESIST_SHOCK',
+'beginMsg': " feel&S grounded.",
+'endMsg': " feel&S electrified.",
 'secret': True
 }
 
 ResistNecrotic = {
 'name': 'necrotic resistance',
 'type': 'RESIST_NECRO',
+'beginMsg': " feel&S truly alive.",
+'endMsg': " feel&S a deadly chill.",
 'secret': True
 }
 
 ResistPoison = {
 'name': 'poison resistance',
 'type': 'RESIST_POISON',
+'beginMsg': " feel&S especially healthy.",
+'endMsg': " feel&S weak of stomach.",
 'secret': True
 }
 
 ResistLight = {
 'name': 'light resistance',
 'type': 'RESIST_LIGHT',
+'beginMsg': " feel&S enlightened.",
+'endMsg': " feel&S a light headache.",
 'secret': True
 }
 
 ResistDark = {
 'name': 'darkness resistance',
 'type': 'RESIST_DARK',
+'beginMsg': " &ISARE no longer afraid of the dark.",
+'endMsg': " hear&S something go bump.", # in the night
 'secret': True
 }
 
 ResistSound = {
 'name': 'sonic resistance',
 'type': 'RESIST_SOUND',
+'beginMsg': " &ISARE hard of hearing.",
+'endMsg': " feel&S an upcoming migraine.",
 'secret': True
 }
 
 VulnBlunt = {
 'name': 'blunt attack vulnerability',
 'type': 'VULN_BLUNT',
+'beginMsg': " look&S squishy.",
+'endMsg': " look&S tough.",
 'secret': True
 }
 
 VulnSlash = {
 'name': 'slashing attack vulnerability',
 'type': 'VULN_SLASH',
+'beginMsg': " look&S feeble.",
+'endMsg': " look&S hardy.",
 'secret': True
 }
 
 VulnPierce = {
 'name': 'piercing attack vulnerability',
 'type': 'VULN_PIERCE',
+'beginMsg': " look&S frail.",
+'endMsg': " look&S thick-skinned.",
 'secret': True
 }
 
 VulnAcid = {
 'name': 'acid vulnerability',
 'type': 'VULN_ACID',
+'beginMsg': " feel&S very acidic.",
+'endMsg': " feel&S much less acidic.",
 'secret': True
 }
 
 VulnFire = {
 'name': 'fire vulnerability',
 'type': 'VULN_FIRE',
+'beginMsg': " feel&S too hot.",
+'endMsg': " cool&S down a bit.",
 'secret': True
 }
 
 VulnCold = {
 'name': 'cold vulnerability',
 'type': 'VULN_COLD',
+'beginMsg': " shiver&S.",
+'endMsg': " warm&S up a bit.",
 'secret': True
 }
 
 VulnElectricity = {
 'name': 'shock vulnerability',
 'type': 'VULN_SHOCK',
+'beginMsg': " feel&S currently amplified.",
+'endMsg': " feel&S insulated.",
 'secret': True
 }
 
 VulnNecrotic = {
 'name': 'necrotic vulnerability',
 'type': 'VULN_NECRO',
+'beginMsg': " feel&S a deadly chill.",
+'endMsg': " feel&S truly alive.",
 'secret': True
 }
 
 VulnPoison = {
 'name': 'poison vulnerability',
 'type': 'VULN_POISON',
+'beginMsg': " feel&S somewhat sickly.",
+'endMsg': " feel&S rather healthy.",
 'secret': True
 }
 
 VulnLight = {
 'name': 'light vulnerability',
 'type': 'VULN_LIGHT',
+'beginMsg': " feel&S a light headache.",
+'endMsg': " want&S to be in the dark no longer.",
 'secret': True
 }
 
 VulnDark = {
 'name': 'darkness vulnerability',
 'type': 'VULN_DARK',
+'beginMsg': " fear&S the shadows.",
+'endMsg': " feel&S goth.",
 'secret': True
 }
 
 VulnSound = {
 'name': 'sonic vulnerability',
 'type': 'VULN_SOUND',
+'beginMsg': " feel&S an upcoming migraine.",
+'endMsg': " &ISARE hard of hearing.",
 'secret': True
 }
 
 ImmunePhysical = {
 'name': 'physical immunity',
 'type': 'IMMUNE_PHYSICAL',
+'beginMsg': " feel&S rock-hard.",
+'endMsg': " feel&S soft.",
 'secret': True
 }
 
 ImmuneAcid = {
 'name': 'acid immunity',
 'type': 'IMMUNE_ACID',
+'beginMsg': " feel&S very basic.",
+'endMsg': " feel&S acidic.",
 'secret': True
 }
 
 ImmuneFire = {
 'name': 'fire immunity',
 'type': 'IMMUNE_FIRE',
+'beginMsg': " feel&S very cool!",
+'endMsg': " feel&S feverish.",
 'secret': True
 }
 
 ImmuneCold = {
 'name': 'cold immunity',
 'type': 'IMMUNE_COLD',
+'beginMsg': " feel&S smoking hot.",
+'endMsg': " feel&S an icy chill.",
 'secret': True
 }
 
 ImmuneElectricity = {
 'name': 'shock immunity',
 'type': 'IMMUNE_SHOCK',
+'beginMsg': " feel&S insulated.",
+'endMsg': " feel&S electrified.",
 'secret': True
 }
 
 ImmuneNecrotic = {
 'name': 'necrotic immunity',
 'type': 'IMMUNE_NECRO',
+'beginMsg': " feel&S truly alive.",
+'endMsg': " feel&S a deadly chill.",
 'secret': True
 }
 
 ImmunePoison = {
 'name': 'poison immunity',
 'type': 'IMMUNE_POISON',
+'beginMsg': " feel&S especially healthy.",
+'endMsg': " feel&S weak of stomach.",
 'secret': True
 }
 
 ImmuneDark = {
 'name': 'darkness immunity',
 'type': 'IMMUNE_DARK',
+'beginMsg': " feel&S the darkness rising.",
+'endMsg': " feel&S the darkness subside.",
 'secret': True
 }
 
 Aflame = {
 'name': 'aflame',
 'type': 'AFLAME',
+'beginMsg': " catch&ES aflame!",
+'endMsg': " no longer burn&S.",
 'secret': False,
 'color': libtcod.red
 }
@@ -570,6 +639,8 @@ Aflame = {
 Bleed = {
 'name': 'bleeding',
 'type': 'BLEED',
+'beginMsg': " bleed&S profusely!",
+'endMsg': " no longer bleed&S.",
 'secret': False,
 'color': libtcod.red
 }
@@ -577,6 +648,8 @@ Bleed = {
 Poison = {
 'name': 'poisoned',
 'type': 'POISON',
+'beginMsg': " &ISARE posioned.",
+'endMsg': " feel&S better.",
 'secret': False,
 'color': libtcod.green
 }
@@ -584,54 +657,72 @@ Poison = {
 Regeneration = {
 'name': 'regeneration',
 'type': 'REGEN_LIFE',
+'beginMsg': " can see &POSS bruises fading quickly.",
+'endMsg': " feel&S unwell.",
 'secret': True
 }
 
 Starpower = {
 'name': 'starpower',
 'type': 'REGEN_MANA',
+'beginMsg': " feel&S the stars watching.",
+'endMsg': " feel&S down.",
 'secret': True
 }
 
 Vigor = {
 'name': 'vigor',
 'type': 'REGEN_STAM',
+'beginMsg': " feel&S invigorated.",
+'endMsg': " feel&S fatigued.",
 'secret': True
 }
 
 Unhealing = {
 'name': 'unhealing',
 'type': 'DRAIN_LIFE',
+'beginMsg': " can feel all &POSS old pains.",
+'endMsg': " feel&S better.",
 'secret': True
 }
 
 Manaburn = {
 'name': 'manaburn',
 'type': 'DRAIN_MANA',
+'beginMsg': " can smell the aether burning in &POSS veins.",
+'endMsg': " feel&S energized.",
 'secret': True
 }
 
 Fatigue = {
 'name': 'fatigue',
 'type': 'DRAIN_STAM',
+'beginMsg': " feel&S fatigued.",
+'endMsg': " feel&S refreshed.",
 'secret': True
 }
 
 Haste = {
 'name': 'hasted',
 'type': 'HASTE',
+'beginMsg': " &ISARE moving faster.",
+'endMsg': " slow&S down.",
 'secret': False
 }
 
 Slow = {
 'name': 'slowed',
 'type': 'SLOW',
+'beginMsg': " &ISARE moving slowly.",
+'endMsg': " speed&S up.",
 'secret': False
 }
 
 Blindness = {
 'name': 'blind',
 'type': 'BLIND',
+'beginMsg': " cannot see!",
+'endMsg': " can see again.",
 'secret': False,
 'color': libtcod.grey
 }
@@ -639,36 +730,48 @@ Blindness = {
 LeftHanded = {
 'name': 'left-handed',
 'type': 'LEFT_HANDED',
+'beginMsg': " feel&S sinister.",
+'endMsg': " feel&S right.",
 'secret': True
 }
 
 Bloodless = {
 'name': 'bloodless',
 'type': 'BLOODLESS',
+'beginMsg': " feel&S exsanguinated.",
+'endMsg': " listen&S to &POSS heart.",
 'secret': True
 }
 
 Fragile = {
 'name': 'fragile',
 'type': 'FRAGILE',
+'beginMsg': " feel&S very fragile.",
+'endMsg': " toughen&S up.",
 'secret': True
 }
 
 CanDig = {
 'name': 'tunnelling',
 'type': 'CAN_DIG',
+'beginMsg': " feel&S like some mining.",
+'endMsg': " feel&S lazy.",
 'secret': True
 }
 
 CanChop = {
 'name': 'woodchopping',
 'type': 'CAN_CHOP',
+'beginMsg': " feel&S like some woodcutting.",
+'endMsg': " feel&S lazy.",
 'secret': True
 }
 
 NoneIntrinsic = {
 'name': 'none intrinsic',
 'type': None,
+'beginMsg': " feel&S nothing at all.",
+'endMsg': " feel&S even less than nothing.",
 'secret': False
 }
 
@@ -1389,7 +1492,7 @@ CrystalShard = {
 'DV': -4,
 'PV': 8,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 100
+'frequency': 50
 }
 
 CrystalPlate = {
@@ -1401,7 +1504,7 @@ CrystalPlate = {
 'DV': -5,
 'PV': 10,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 100
+'frequency': 50
 }
 
 LeatherTunic = {
@@ -1434,7 +1537,7 @@ RedTunic = {
 'size': 0,
 'accuracy': 2,
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 500
+'frequency': 300
 }
 
 PiedTunic = {
@@ -1654,6 +1757,31 @@ Anklet = {
 'frequency': 200
 }
 
+# Potions:
+HealPotion = {
+'char': '!',
+'color': libtcod.red, # TODO: Randomization.
+'name': 'healing potion',
+'material': 'WATER',
+'size': -2,
+'ranged': MisThrown, # TODO: Splash.
+'flags': ['POTION', 'HEAL'],
+'coolness': 20, # TODO
+'frequency': 300
+}
+
+# Tools:
+Bandage = {
+'char': '{',
+'color': libtcod.white,
+'name': 'bandage',
+'material': 'CLOTH',
+'size': -2,
+'flags': ['APPLY', 'BANDAGE'],
+'coolness': 10,
+'frequency': 500
+}
+
 # General:
 GoldPiece = {
 'char': '$',
@@ -1782,8 +1910,8 @@ Player = {
 'sight': 6,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [Headband, ShortSword, RoundShield, SnakeVest, Baldric, SnakeSandal, SnakeSandal, SunStone],
-'flags': ['HUMANOID', 'AVATAR', 'UNDEAD'],
+'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage],
+'flags': ['HUMANOID', 'AVATAR', 'UNDEAD'], # TODO
 'frequency': 0
 }
 
@@ -2893,6 +3021,10 @@ HighBoot,
 Clog,
 Greave,
 Anklet,
+# Potions:
+HealPotion,
+# Tools:
+Bandage,
 # Other:
 GoldPiece,
 SunStone,

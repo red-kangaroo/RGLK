@@ -313,11 +313,14 @@ class Entity(object):
             NewInt = intrinsic.Intrinsic(type, duration, power)
             self.intrinsics.append(NewInt)
 
-    def removeIntrinsic(self, intrinsic):
+    def removeIntrinsic(self, intrinsic, power = None):
         if not self.hasIntrinsic(intrinsic):
             return False
         else:
-            self.intrinsics.remove(self.getIntrinsic(intrinsic))
+            if power == None:
+                self.intrinsics.remove(self.getIntrinsic(intrinsic))
+            else:
+                self.getIntrinsic(intrinsic).power -= power
             return True
 
     def handleIntrinsics(self):
@@ -405,18 +408,22 @@ class Mob(Entity):
         # Calculate stats:
         self.bonusHP = 0
         self.bonusMP = 0
-        self.maxHP = self.recalculateHealth()
+        self.maxHP = 0
+        self.recalculateHealth()
         self.HP = self.maxHP
-        self.maxMP = self.recalculateMana()
+        self.maxMP = 0
+        self.recalculateMana()
         self.MP = self.maxMP
-        self.maxSP = self.recalculateStamina()
+        self.maxSP = 0
+        self.recalculateStamina()
         self.SP = self.maxSP
         # TODO: NP, pain, heat
         self.XL = 1
         self.XP = 900 # TODO
 
         # General:
-        self.carry = self.recalculateCarryingCapacity()
+        self.carry = 1
+        self.recalculateCarryingCapacity()
         self.tactics = True # True is defensive, False aggresive.
 
         self.flags.append('MOB')
@@ -464,17 +471,17 @@ class Mob(Entity):
     def recalculateFOV(self):
         libtcod.map_compute_fov(var.FOVMap, self.x, self.y, self.getLightRadius(), True, 0)
 
-    def recalculateCarryingCapacity(self):
-        return max(1, 10 + (2 * self.getStr()))
-
     def recalculateHealth(self):
-        return max(1, ((20 * (1.2 ** self.getEnd())) + self.bonusHP))
+        self.maxHP = max(1, ((20 * (1.2 ** self.getEnd())) + self.bonusHP))
 
     def recalculateMana(self):
-        return max(0, ((20 * (1.2 ** self.getEgo())) + self.bonusMP))
+        self.maxMP = max(0, ((20 * (1.2 ** self.getEgo())) + self.bonusMP))
 
     def recalculateStamina(self):
-        return max(1, (20 * (1.2 ** self.getStr())))
+        self.maxSP = max(1, (20 * (1.2 ** self.getStr())))
+
+    def recalculateCarryingCapacity(self):
+        self.carry = max(1, 10 + (2 * self.getStr()))
 
     def regainHealth(self):
         if not self.hasFlag('DEAD') and self.HP < self.maxHP:
@@ -1039,16 +1046,15 @@ class Mob(Entity):
         # become more slow then creature with less base limbs, because you are not
         # accustomed to having such a small number of limbs. Imagine a spider - it is not
         # faster because it only lost two legs, even if it still has six remaining.
-        if not self.hasArms():
-            if self.baseArms > 0:
-                cost *= 1.3 ** (self.baseArms - self.hasArms(False))
-            else:
-                cost *= 1.5
+        if self.baseArms > 0:
+            cost *= 1.3 ** (self.baseArms - self.hasHands(False))
+        else:
+            cost *= 1.5
 
         cost *= 1.3 ** (self.getBurdenState())
         cost *= modifier
 
-        return cost
+        return max(0.1, cost)
 
     def getAttackAPCost(self):
         cost = 1
@@ -1058,7 +1064,7 @@ class Mob(Entity):
 
         cost *= 1.3 ** (self.getBurdenState())
 
-        return cost
+        return max(0.1, cost)
 
     def getMoveAPCost(self):
         cost = 1
@@ -1067,16 +1073,15 @@ class Mob(Entity):
         # become more slow then creature with less base limbs, because you are not
         # accustomed to having such a small number of limbs. Imagine a spider - it is not
         # faster because it only lost two legs, even if it still has six remaining.
-        if not self.hasLegs():
-            if self.baseLegs > 0:
-                cost *= 1.3 ** (self.baseLegs - self.hasLegs(False))
-            else:
-                # With no legs at all (eg. slug), you move slowly.
-                cost *= 1.5
+        if self.baseLegs > 0:
+            cost *= 1.3 ** (self.baseLegs - self.hasLegs(False))
+        else:
+            # With no legs at all (eg. slug), you move slowly.
+            cost *= 1.5
 
         cost *= 1.3 ** (self.getBurdenState())
 
-        return cost
+        return max(0.1, cost)
 
     def getName(self, capitalize = False, full = False, possessive = False):
         name = self.name
@@ -1172,20 +1177,20 @@ class Mob(Entity):
         else:
             return eyeNo
 
-    def hasArms(self, boolean = True):
-        armNo = 0
+    def hasHands(self, boolean = True):
+        handNo = 0
 
         for part in self.bodyparts:
-            if part.hasFlag('ARM'):
-                armNo += 1
+            if part.hasFlag('HAND'):
+                handNo += 1
 
         if boolean:
-            if armNo >= self.baseArms and armNo > 0:
+            if handNo >= self.baseArms and handNo > 0:
                 return True
             else:
                 return False
         else:
-            return armNo
+            return handNo
 
     def hasLegs(self, boolean = True):
         legNo = 0
@@ -1333,10 +1338,35 @@ class Mob(Entity):
             NewInt = intrinsic.Intrinsic(type, duration, power)
             self.intrinsics.append(NewInt)
 
+            if NewInt.color == libtcod.white:
+                color = libtcod.azure
+            else:
+                color = NewInt.color
+
+            # TODO: Maybe not for DEAD?
+            ui.message(self.getName(True) + NewInt.begin, color, actor = self)
+
+    def removeIntrinsic(self, intrinsic, power = None):
+        for i in self.intrinsics:
+            if i.type == intrinsic:
+                if power == None:
+                    self.intrinsics.remove(i)
+
+                    if i.type != None and not self.hasFlag('DEAD'):
+                        ui.message(self.getName(True) + i.end, actor = self)
+                else:
+                    i.power -= power # If this results in negative power, it will
+                return True          # be removed by the next handling routine.
+
+        return False
+
     def handleIntrinsics(self):
         for i in self.intrinsics:
             if i.getHandled(self) == None:
                 self.intrinsics.remove(i)
+
+                if i.type != None and not self.hasFlag('DEAD'):
+                    ui.message(self.getName(True) + i.end, actor = self)
 
         for item in self.getEquipment():
             for i in item.intrinsics:
@@ -1723,6 +1753,7 @@ class Mob(Entity):
             # Drop all equipped and carried items.
             for part in self.bodyparts:
                 item = part.doDeEquip()
+
                 if item != None:
                     self.inventory.append(item)
 
@@ -1754,6 +1785,42 @@ class Mob(Entity):
             return False
 
     # Actions:
+    def actionApply(self, item, dx, dy):
+        # Prevent weird cases:
+        if self.AP < 1:
+            return False
+        if self.hasHands(False) == 0:
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot use items with no hands.")
+            return False
+
+        if dx == 0 and dy == 0:
+            if item.beApplied(self):
+                self.AP -= self.getActionAPCost()
+                return True
+            else:
+                return False
+        else:
+            Target = None
+            x = self.x + dx
+            y = self.y + dy
+
+            for mob in var.Entities[var.DungeonLevel]:
+                if mob.x == x and mob.y == y and mob.hasFlag('MOB'):
+                    Target = mob
+                    break
+
+        if Target == None:
+            if self.hasFlag('AVATAR'):
+                ui.message("No one is there.")
+            return False
+        else:
+            if item.beApplied(self, Target):
+                self.AP -= self.getActionAPCost()
+                return True
+
+        return False
+
     def actionAttack(self, dx, dy, victim):
         # Set our victim as AI target:
         self.target = victim
@@ -1773,15 +1840,6 @@ class Mob(Entity):
             if self.hasFlag('AVATAR'):
                 ui.message("You can only attack creatures.")
             return False
-
-        # Get all useable body parts:
-        handNo = 0
-        legNo = 0
-        for i in self.bodyparts:
-            if i.hasFlag('HAND'):
-                handNo += 1
-            elif i.hasFlag('LEG'):
-                legNo += 1
 
         # TODO: This does not work well!
         primaryAttacks = []
@@ -1806,7 +1864,7 @@ class Mob(Entity):
                     secondaryAttacks.append(i)
 
             elif i.hasFlag('LEG'):
-                if self.hasFlag('USE_LEGS') or handNo == 0:
+                if self.hasFlag('USE_LEGS') or self.hasHands(False) == 0:
                     primaryAttacks.append(i)
                 else:
                     secondaryAttacks.append(i)
@@ -1814,7 +1872,7 @@ class Mob(Entity):
                 # TODO: Kicking with boots.
 
             elif i.hasFlag('HEAD'):
-                if self.hasFlag('USE_HEAD') or (handNo == 0 and legNo == 0):
+                if self.hasFlag('USE_HEAD') or (self.hasHands(False) == 0 and self.hasLegs() == False):
                     primaryAttacks.append(i)
                 else:
                     tertiaryAttacks.append(i)
@@ -1983,8 +2041,8 @@ class Mob(Entity):
             if self.hasFlag('AVATAR'):
                 ui.message("You cannot climb with so much load.", color = libtcod.light_red)
             return False
-        if self.hasArms() == False and self.hasLegs() == False and dz > 0:
-            # This prevents us from climbing upwards with no limbds left. We can still
+        if (self.hasHands(False) == 0 or self.hasLegs(False) == 0) and dz > 0:
+            # This prevents us from climbing upwards with no limbs left. We can still
             # "fall" down, though.
             if self.hasFlag('AVATAR'):
                 ui.message("You cannot climb with no limbs.", color = libtcod.light_red)
@@ -2215,7 +2273,8 @@ class Mob(Entity):
             ui.message("You carry no items.")
             return False
         else:
-            ui.option_menu("You carry the following:", self.inventory)
+            ui.inventory_menu(self)
+            # TODO
             return True
 
     def actionAutoEquip(self, takeTime = True):
@@ -2490,6 +2549,36 @@ class Mob(Entity):
     def actionPush(self, dx, dy):
         pass
 
+    def actionQuaff(self):
+        if self.isInediate():
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot drink.")
+            return False
+
+        options = []
+
+        for i in self.inventory:
+            if i.hasFlag('POTION'):
+                options.append(i)
+
+        if len(options) == 0:
+            if self.hasFlag('AVATAR'):
+                ui.message("You have nothing to drink.")
+            return False
+
+        toDrink = ui.option_menu("Quaff what?", options)
+
+        if toDrink == None:
+            return False
+        else:
+            if options[toDrink].beEaten(self):
+                self.AP -= self.getActionAPCost()
+
+        if len(options) > 1:
+            return True
+        else:
+            return False
+
     def actionSwap(self, Other):
         if self.AP < 1:
             return False
@@ -2708,6 +2797,16 @@ class Item(Entity):
 
         return name
 
+    def getDestroyed(self, Owner = None):
+        if Owner == None:
+            for i in var.Entities[var.DungeonLevel]:
+                if i == self: # We should make sure we are actually lying on the floor.
+                    var.Entities[var.DungeonLevel].remove(self)
+                    del self
+        else:
+            Owner.inventory.remove(self)
+            del self
+
     def getAccuracyValue(self):
         try:
             toHit = self.attack['ToHitBonus']
@@ -2873,16 +2972,96 @@ class Item(Entity):
 
         return slot
 
-    def beEaten(self, Eater):
-        # return if too full
-        if self.hasFlag('POTION'):
-            pass # quaffing
-        elif self.material in Eater.diet:
-            pass
+    # Various use methods:
+    def beApplied(self, User, victim = None):
+        if victim == None:
+            victim = User
+
+        if self.hasFlag('HORN'):
+            effect = "Nothing happens."
+
+            if self.hasFlag('FOO'):
+                pass
+
+            ui.message("%s blow&S the %s. %s" % (User.getName(True), self.getName(), effect), actor = User)
+            return True
         else:
+            if self.hasFlag('BANDAGE'):
+                if victim == User:
+                    ui.message("%s bandage&S &SELF." % User.getName(True), actor = User)
+                else:
+                    ui.message("%s bandage&S %s wounds." % (User.getName(True), victim.getName(possessive = True)), actor = User)
+
+                power = self.beautitude + self.enchantment
+                User.receiveHeal(power) # Yes, this can theoretically damage us.
+
+                if self.beautitude >= 0:
+                    if User.hasIntrinsic('BLEED'):
+                        User.removeIntrinsic('BLEED')
+                else:
+                    if User.hasIntrinsic('BLEED'):
+                        User.removeIntrinsic('BLEED', max(1, power))
+
+                for part in User.bodyparts: # And remove all wounds.
+                    if part.wounded:
+                        part.wounded = False
+
+                self.getDestroyed(User)
+                return True
+
+            elif self.hasFlag('FOO'):
+                pass
+
+        return False
+
+    def beEaten(self, Eater):
+        if not self.material in Eater.diet:
             if Eater.hasFlag('AVATAR'):
-                ui.message("You cannot eat that.")
+                ui.message("You cannot consume that.")
             return False
+        # NP+
+        # return if too full
+
+        if self.hasFlag('FOOD'):
+            pass
+
+        if self.hasFlag('POTION'):
+            effect = "Nothing happens."
+
+            if self.hasFlag('HEAL'):
+                if Eater.HP >= Eater.maxHP:
+                    toHeal = 1 + self.enchantment + self.beautitude
+                    Eater.bonusHP += libtcod.random_get_int(0, min(1, toHeal), max(0, toHeal))
+                    Eater.recalculateHealth()
+
+                if self.beautitude > 0:
+                    toHeal = 20
+                    effect = "&SUBC feel&S much better."
+                elif self.beautitude == 0:
+                    toHeal = var.rand_dice(1, 10, 10)
+                    effect = "&SUBC feel&S better."
+                else:
+                    toHeal = var.rand_dice(1, 10)
+                    effect = "&SUBC feel&S somewhat better."
+
+                toHeal += self.enchantment + self.beautitude
+
+                Eater.receiveHeal(toHeal)
+
+                if self.beautitude >= 0:
+                    if Eater.hasIntrinsic('BLEED'):
+                        Eater.removeIntrinsic('BLEED')
+
+            elif self.hasFlag('FOO'):
+                pass
+            else:
+                return False
+
+            ui.message("%s drink&S the %s. %s" % (Eater.getName(True), self.getName(), effect), actor = Eater)
+            self.getDestroyed(Eater)
+            return True
+
+        return False
 
     def beZapped(self, Zapper):
         pass
@@ -3086,14 +3265,17 @@ class BodyPart(Entity):
             return None
         else:
             for item in self.inventory:
-                if actor != None:
-                    if item.beautitude < 0 and not actor.canBreakCurse(item.beautitude):
-                        if actor.hasFlag('AVATAR'):
-                            ui.message("%s is cursed and you cannot take it off." % item.getName(True))
-                        continue
+                if item != None:
+                    if actor != None:
+                        if item.beautitude < 0 and not actor.canBreakCurse(item.beautitude):
+                            if actor.hasFlag('AVATAR'):
+                                ui.message("%s is cursed and you cannot take it off." % item.getName(True))
+                            continue
 
-                self.inventory.remove(item)
-                return item
+                    self.inventory.remove(item)
+                    return item
+
+        return None
 
 #class Cloud(Entity):
 #    def __init__(self, x, y, color, name, #These are base Entity arguments.

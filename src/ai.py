@@ -247,6 +247,10 @@ def handleKeys(Player):
         if Key.vk == libtcod.KEY_F6:
             where = askForDirection(Player)
 
+            if where == None or where == 'self':
+                ui.message("Never mind.")
+                return
+
             x = Player.x + where[0]
             y = Player.y + where[1]
 
@@ -323,11 +327,46 @@ def handleKeys(Player):
         # Interact
         if Key.vk == libtcod.KEY_SPACE:
             where = askForDirection(Player)
-            if where != None:
+            if where == 'self':
+                # TODO
+                ui.message("You should not play with yourself right now!")
+            elif where != None:
                 Player.actionInteract(where)
             else:
                 # This should not take a turn.
                 ui.message("Never mind.")
+            return
+
+        # Apply
+        if Key.vk == libtcod.KEY_CHAR and Key.c == ord('a'):
+            options = []
+
+            for i in Player.inventory:
+                if i.hasFlag('APPLY'):
+                    options.append(i)
+
+            if len(options) == 0:
+                ui.message("You have nothing to apply.")
+                return
+
+            toApply = ui.option_menu("Apply what?", options)
+
+            if toApply == None:
+                ui.message("Never mind.")
+                return
+
+            where = askForDirection(Player)
+            if where == 'self':
+                dx = 0
+                dy = 0
+            elif where != None:
+                dx = where[0]
+                dy = where[1]
+            else:
+                ui.message("Never mind.")
+                return
+
+            Player.actionApply(options[toApply], dx, dy)
             return
 
         # Climb up and down
@@ -342,7 +381,9 @@ def handleKeys(Player):
         # Close
         if Key.vk == libtcod.KEY_CHAR and Key.c == ord('c'):
             where = askForDirection(Player)
-            if where != None:
+            if where == 'self':
+                ui.message("You feel very close minded.")
+            elif where != None:
                 x = Player.x + where[0]
                 y = Player.y + where[1]
 
@@ -372,7 +413,9 @@ def handleKeys(Player):
         # Jump
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('j'))):
             where = askForDirection(Player)
-            if where != None:
+            if where == 'self':
+                Player.actionJump([0, 0, 0])
+            elif where != None:
                 Player.actionJump(where)
             else:
                 # This should not take a turn.
@@ -387,7 +430,10 @@ def handleKeys(Player):
         # Open
         if Key.vk == libtcod.KEY_CHAR and Key.c == ord('o'):
             where = askForDirection(Player)
-            if where != None:
+            if where == 'self':
+                # TODO: Opening containers.
+                ui.message("Containers not yet working, sorry.")
+            elif where != None:
                 x = Player.x + where[0]
                 y = Player.y + where[1]
 
@@ -410,6 +456,11 @@ def handleKeys(Player):
                 pass # Return to menu if something remains to pick up.
             return
 
+        # Quaff
+        if not Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('q'):
+            Player.actionQuaff()
+            return
+
         # Save game
         if (Key.lctrl and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('s'))):
             ui.message("Saving...", libtcod.chartreuse)
@@ -421,7 +472,7 @@ def handleKeys(Player):
         # Swap places
         if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('x'))):
             where = askForDirection(Player)
-            if where != None:
+            if where != None and where != 'self':
                 x = Player.x + where[0]
                 y = Player.y + where[1]
 
@@ -492,9 +543,9 @@ def askForDirection(Player):
         if Key.vk == libtcod.KEY_ESCAPE:
             return None
 
-        #if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
-        #    libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
-        #    return self TODO
+        if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
+            libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
+            return 'self'
 
         dx = 0
         dy = 0

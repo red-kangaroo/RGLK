@@ -20,7 +20,7 @@ def rand_chance(chance, inWhat = 100):
     else:
         return True
 
-def rand_dice(DiceNumber, DiceValue, Bonus):
+def rand_dice(DiceNumber, DiceValue, Bonus = 0):
     result = 0
 
     while DiceNumber > 0:

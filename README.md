@@ -26,6 +26,7 @@ General:
  Alt + Enter  toggle full screen
  Space        interact
 
+ a            apply item
  c            close
  d            drop item
  E            equipment menu
@@ -36,8 +37,9 @@ General:
  L            look
  M            message history
  o            open
- Ctrl + s     save and quit
+ q            quaff a potion
  Ctrl + q     quit and abandon
+ Ctrl + s     save and quit
  X            exchange places
  <            climb up
  >            climb down
