@@ -172,7 +172,7 @@ VenomDaggerAttack = {
 'verb': 'stab&S',
 'DiceNumber': 1,
 'DiceValue': 4,
-'inflict': [('POISON', 2, 3, 0, 'power = 1 + weapon.enchantment', 30)],
+'inflict': [('POISON', 2, 5, 0, 'power = 1 + weapon.enchantment', 30)],
 'DamageType': 'PIERCE'
 }
 
@@ -1354,6 +1354,10 @@ GreatHelm = {
 # horned helmet
 # gladiator helmet
 # plumed helmet
+# hood
+# halo
+# chain coif
+# mask
 
 # Handwear:
 LeatherGlove = {
@@ -1615,6 +1619,14 @@ BlueDress = {
 'frequency': 100
 }
 
+# zombie hide armor
+# troll hide armor
+# mithril chain mail
+# dragon scale mail
+# gold plate mail
+# fur cloak
+# cloak of invisibility
+
 # Belts:
 LeatherBelt = {
 'char': '-',
@@ -1674,6 +1686,8 @@ Baldric = {
 'flags': ['GROIN', 'ARMOR'],
 'frequency': 700
 }
+
+# belt of levitation
 
 # Legwear:
 Sandal = {
@@ -1770,6 +1784,18 @@ HealPotion = {
 'frequency': 300
 }
 
+MutationPotion = {
+'char': '!',
+'color': libtcod.green,
+'name': 'vial of mutagen',
+'material': 'WATER',
+'size': -2,
+'ranged': MisThrown, # TODO: Splash.
+'flags': ['POTION', 'MUTATION'],
+'coolness': 0,
+'frequency': 50
+}
+
 # Tools:
 Bandage = {
 'char': '{',
@@ -1811,6 +1837,16 @@ Berry = {
 'size': -2,
 'flags': ['FOOD'],
 'frequency': 300
+}
+
+MacGuffin = {
+'char': chr(12),
+'color': libtcod.yellow,
+'name': 'amulet of Yendor',
+'material': 'GOLD',
+'size': -2,
+'flags': ['MAC_GUFFIN', 'ALWAYS_BLESSED', 'ENCHANT_LIGHT'],
+'frequency': 0
 }
 
 # Furniture, containers and similar:
@@ -1889,12 +1925,13 @@ DummyMonster = {
 'material': 'FLESH',
 'sex': 'NEUTER',
 'size': 0,
-'diet': ['FLESH', 'WATER'],
+'diet': ['FLESH', 'PLANT', 'WATER'],
 'intrinsics': [],
 'inventory': [],
 'mutations': [],
 'flags': ['HUMANOID'],
-'frequency': 1000
+'frequency': 1000,
+'DL': 0
 }
 
 Player = {
@@ -1910,16 +1947,34 @@ Player = {
 'sight': 6,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage],
+'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, MutationPotion, MutationPotion, MutationPotion, MutationPotion, MutationPotion],
 'flags': ['HUMANOID', 'AVATAR', 'UNDEAD'], # TODO
 'frequency': 0
 }
 
-Kobold = {
+KoboldForager = {
 'char': 'k',
 'color': libtcod.red,
-'name': 'kobold',
+'name': 'kobold forager',
 'Str': 0,
+'Dex': 2,
+'End': -3,
+'Wit': 1,
+'Ego': 0,
+'speed': 1,
+'sight': 6,
+'size': -1,
+'sex': 'MOF',
+'flags': ['HUMANOID', 'AI_SCAVENGER'],
+'mutations': ['MUTATION_CLAWS'],
+'frequency': 600
+}
+
+KoboldHunter = {
+'char': 'k',
+'color': libtcod.darker_orange,
+'name': 'kobold hunter',
+'Str': 1,
 'Dex': 3,
 'End': -3,
 'Wit': 1,
@@ -1928,9 +1983,48 @@ Kobold = {
 'sight': 8,
 'size': -1,
 'sex': 'MOF',
-'flags': ['HUMANOID', 'AI_SCAVENGER'],
+'inventory': [Dagger],
+'flags': ['HUMANOID'],
 'mutations': ['MUTATION_CLAWS'],
-'frequency': 750
+'frequency': 600
+}
+
+KoboldFisher = {
+'char': 'k',
+'color': libtcod.blue,
+'name': 'kobold fisher',
+'Str': 0,
+'Dex': 3,
+'End': -2,
+'Wit': 1,
+'Ego': 0,
+'speed': 1,
+'sight': 6,
+'size': -1,
+'sex': 'MOF',
+'inventory': [Spear],
+'flags': ['HUMANOID'],
+'mutations': ['MUTATION_CLAWS'],
+'frequency': 600
+}
+
+KoboldWarrior = {
+'char': 'k',
+'color': libtcod.pink,
+'name': 'kobold warrior',
+'Str': 1,
+'Dex': 2,
+'End': -1,
+'Wit': 1,
+'Ego': 0,
+'speed': 1,
+'sight': 6,
+'size': -1,
+'sex': 'MOF',
+'inventory': [Cudgel, RoundShield],
+'flags': ['HUMANOID'],
+'mutations': ['MUTATION_CLAWS'],
+'frequency': 500
 }
 
 KoboldWhelp = {
@@ -1942,11 +2036,11 @@ KoboldWhelp = {
 'End': -5,
 'Wit': 1,
 'Ego': 0,
-'speed': 1.1,
+'speed': 1.2,
 'sight': 8,
 'size': -2,
 'sex': 'MOF',
-'flags': ['HUMANOID', 'AI_KITE'],
+'flags': ['HUMANOID', 'AI_KITE', 'AI_SCAVENGER'],
 'frequency': 500
 }
 
@@ -1960,8 +2054,25 @@ Orc = {
 'Wit': 0,
 'Ego': 0,
 'sex': 'MOF',
-'inventory': [ShortSword, RoundShield, LeatherArmor, LowBoot, LowBoot],
+'inventory': [LongSword, KiteShield, LeatherArmor, LowBoot, LowBoot],
 'flags': ['HUMANOID']
+}
+
+Ogre = {
+'char': 'O',
+'color': libtcod.desaturated_green,
+'name': 'ogre',
+'Str': 3,
+'Dex': 1,
+'End': 0,
+'Wit': -2,
+'Ego': 0,
+'size': 1,
+'sex': 'MOF',
+'inventory': [GiantSpikedClub],
+'intrinsics': [('REGEN_STAM', 3)],
+'flags': ['HUMANOID'],
+'frequency': 250
 }
 
 Troll = {
@@ -1970,15 +2081,50 @@ Troll = {
 'name': 'troll',
 'Str': 2,
 'Dex': 0,
-'End': 0,
+'End': 2,
 'Wit': -1,
 'Ego': 0,
 'size': 1,
 'sex': 'MOF',
 'intrinsics': [('REGEN_LIFE', 3)], # TODO: Revival.
 'flags': ['HUMANOID', 'USE_HEAD'],
-'mutations': ['MUTATION_LARGE_CLAWS'],
+'mutations': ['MUTATION_CLAWS_LARGE'],
 'frequency': 250
+}
+
+Alien = {
+'char': 'y',
+'color': libtcod.cyan,
+'name': 'yill',
+'Str': 0,
+'Dex': 0,
+'End': 0,
+'Wit': 3,
+'Ego': 3,
+'sex': 'UNDEFINED',
+'flags': ['ALIEN', 'USE_LEGS', 'AI_DIJKSTRA'],
+'frequency': 100
+}
+
+BlackKnight = {
+'char': 'K',
+'color': libtcod.darkest_grey,
+'name': 'black knight',
+'Str': 4,
+'Dex': 4,
+'End': 4,
+'Wit': 4,
+'Ego': 4,
+'speed': 1.5,
+'sight': 5,
+'sex': 'MOF',
+'intrinsics': [('REGEN_LIFE', 1), ('REGEN_MANA', 1), ('REGEN_STAM', 1),
+               ('BLOODLESS', 1), ('CAN_DIG', 2), ('IMMUNE_POISON', 1)],
+'inventory': [FlamingSword, IceShield, FullHelm, Gauntlet, Gauntlet, PlateArmor,
+              PlateSkirt, Greave, Greave, MacGuffin],
+'mutations': ['RANDOM_ANY'],
+'flags': ['HUMANOID', 'USE_LEGS'],
+'frequency': 0
 }
 
 ###############################################################################
@@ -3023,6 +3169,7 @@ Greave,
 Anklet,
 # Potions:
 HealPotion,
+MutationPotion,
 # Tools:
 Bandage,
 # Other:
@@ -3107,10 +3254,15 @@ SpellList = [
 # Monsters:
 # ---------
 MobList = [
-Kobold,
+KoboldForager,
+KoboldFisher,
+KoboldHunter,
+KoboldWarrior,
 KoboldWhelp,
 Orc,
-Troll
+Ogre,
+Troll,
+Alien
 ]
 
 # Body types:

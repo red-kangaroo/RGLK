@@ -6,6 +6,7 @@ import math
 import random
 import sys
 
+import dungeon
 import entity
 import game
 import raw
@@ -285,8 +286,73 @@ def handleKeys(Player):
 
         # Level teleport
         if Key.vk == libtcod.KEY_F11:
-            pass # TODO
-            return
+            where = askForDirection(Player)
+            dz = where[2]
+
+            if where == None or where == 'self' or dz == 0:
+                ui.message("Never mind.")
+                return
+
+            if dz > 0:
+                if var.DungeonLevel - 1 >= 0:
+                    if var.Maps[var.DungeonLevel - 1] == None:
+                        dungeon.makeMap(True, var.DungeonLevel - 1)
+
+                    toClimb = [Player.x, Player.y]
+
+                    for y in range(0, var.MapHeight):
+                        for x in range(0, var.MapWidth):
+                            if var.Maps[var.DungeonLevel - 1][x][y].hasFlag('STAIRS_DOWN'):
+                                toClimb = [x, y]
+
+                    Player.x = toClimb[0]
+                    Player.y = toClimb[1]
+
+                    var.Entities[var.DungeonLevel - 1].append(Player)
+                    var.Entities[var.DungeonLevel].remove(Player)
+                    var.DungeonLevel -= 1
+
+                    if Player.hasFlag('AVATAR'):
+                        game.save()           # This is to prevent crashes from completely erasing
+                        var.calculateFOVMap() # all progress you had.
+                        libtcod.console_clear(var.MapConsole)
+
+                    ui.message("You level-teleport.", libtcod.chartreuse)
+                    return
+                else:
+                    ui.message("You cannot teleport furhter up!", libtcod.chartreuse)
+                    return
+            elif dz < 0:
+                if var.DungeonLevel + 1 <= var.FloorMaxNumber:
+                    if var.Maps[var.DungeonLevel + 1] == None:
+                        dungeon.makeMap(True, var.DungeonLevel + 1)
+
+                    toClimb = [Player.x, Player.y]
+
+                    for y in range(0, var.MapHeight):
+                        for x in range(0, var.MapWidth):
+                            if var.Maps[var.DungeonLevel + 1][x][y].hasFlag('STAIRS_UP'):
+                                toClimb = [x, y]
+
+                    Player.x = toClimb[0]
+                    Player.y = toClimb[1]
+
+                    var.Entities[var.DungeonLevel + 1].append(Player)
+                    var.Entities[var.DungeonLevel].remove(Player)
+                    var.DungeonLevel += 1
+
+                    if Player.hasFlag('AVATAR'):
+                        game.save()
+                        var.calculateFOVMap()
+                        libtcod.console_clear(var.MapConsole)
+
+                    ui.message("You level-teleport.", libtcod.chartreuse)
+                    return
+                else:
+                    ui.message("You cannot teleport furhter down!", libtcod.chartreuse)
+                    return
+
+            return # Just to be sure we'll have no fallthrough.
 
         # Regenerate map
         if Key.vk == libtcod.KEY_F12:
@@ -543,7 +609,7 @@ def askForDirection(Player):
         if Key.vk == libtcod.KEY_ESCAPE:
             return None
 
-        if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('.')) or
+        if ((not Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('.'))) or
             libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
             return 'self'
 

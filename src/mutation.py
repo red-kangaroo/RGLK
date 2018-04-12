@@ -7,6 +7,7 @@ import random
 
 import entity
 import raw
+import ui
 import var
 
 ###############################################################################
@@ -14,9 +15,18 @@ import var
 ###############################################################################
 
 MutationList = [
+'MUTATION_HEAD_EXTRA',
+'MUTATION_ARM_EXTRA',
+'MUTATION_ARM_TENTACLE',
+'MUTATION_LEG_EXTRA',
+'MUTATION_LEG_TALON',
+'MUTATION_LEG_TENTACLE',
 'MUTATION_CLAWS',
-'MUTATION_LARGE_CLAWS',
-'MUTATION_WINGS'
+'MUTATION_CLAWS_LARGE',
+'MUTATION_EYE_EXTRA',
+'MUTATION_WINGS',
+'MUTATION_TAIL_WEAPON',
+'MUTATION_TAIL_PREHENSIVE'
 ]
 
 ###############################################################################
@@ -24,19 +34,141 @@ MutationList = [
 ###############################################################################
 
 def gain(mutation, mutant):
-    if not mutation in MutationList:
+    if mutation == 'RANDOM_ANY':
+        mutation = random.choice(MutationList)
+    elif not mutation in MutationList:
         print "Unhandled mutation: %s" % mutation
         return False
 
-    if mutation == 'MUTATION_CLAWS':
+    if mutation == 'MUTATION_HEAD_EXTRA':
+        new = create_part(raw.Head, mutant)
+        mutant.bodyparts.insert(0, new)
+
+        ui.message("%s grow&S a new head." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_ARM_EXTRA':
+        index = None
+
+        # Hands should be normally placed after arms, so look for the last hand in
+        # body parts. Also don't break, because we're looking for the last one, not
+        # the first one. In case any hands were cut off, we also look for the last
+        # arm. And finally, if no arms exist, look for a torso.
+
+        for part in mutant.bodyparts:
+            if part.hasFlag('ARM') or part.hasFlag('HAND'):
+                index = mutant.bodyparts.index(part)
+
+        if index == None:
+            for part in mutant.bodyparts:
+                if part.hasFlag('TORSO'):
+                    index = mutant.bodyparts.index(part)
+                    break
+
+        if index != None:
+            new1 = create_part(raw.Arm, mutant)
+            new2 = create_part(raw.Hand, mutant)
+
+            mutant.bodyparts.insert(index + 1, new1)
+            mutant.bodyparts.insert(index + 2, new2)
+
+            name_parts(mutant)
+
+            ui.message("%s grow&S a new arm." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_ARM_TENTACLE':
+        index = None
+        for part in mutant.bodyparts:
+            if part.hasFlag('ARM') or part.hasFlag('HAND'):
+                index = mutant.bodyparts.index(part)
+
+        if index == None:
+            for part in mutant.bodyparts:
+                if part.hasFlag('TORSO'):
+                    index = mutant.bodyparts.index(part)
+                    break
+
+        if index != None:
+            new = create_part(raw.TentacleArm, mutant)
+            mutant.bodyparts.insert(index + 1, new)
+
+            name_parts(mutant)
+
+            ui.message("%s grow&S a tentacle." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_LEG_EXTRA':
+        index = None
+        for part in mutant.bodyparts:
+            if part.hasFlag('LEG'):
+                index = mutant.bodyparts.index(part)
+
+        new = create_part(raw.Leg, mutant)
+
+        if index != None:
+            mutant.bodyparts.insert(index + 1, new)
+        else:
+            mutant.bodyparts.append(new)
+
+        name_parts(mutant)
+
+        ui.message("%s grow&S a new leg." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_LEG_TALON':
+        index = None
+        for part in mutant.bodyparts:
+            if part.hasFlag('LEG'):
+                index = mutant.bodyparts.index(part)
+
+        new = create_part(raw.Talon, mutant)
+
+        if index != None:
+            mutant.bodyparts.insert(index + 1, new)
+        else:
+            mutant.bodyparts.append(new)
+
+        if not mutant.hasFlag('USE_LEGS'):
+            mutant.flags.append('USE_LEGS')
+
+        name_parts(mutant)
+
+        ui.message("%s grow&S a talon." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_LEG_TENTACLE':
+        index = None
+        for part in mutant.bodyparts:
+            if part.hasFlag('LEG'):
+                index = mutant.bodyparts.index(part)
+
+        new = create_part(raw.TentacleLeg, mutant)
+
+        if index != None:
+            mutant.bodyparts.insert(index + 1, new)
+        else:
+            mutant.bodyparts.append(new)
+
+        name_parts(mutant)
+
+        ui.message("%s grow&S a tentacle." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_CLAWS':
         for part in mutant.bodyparts:
             if part.hasFlag('HAND'):
                 part.attack = raw.Claw
 
-    elif mutation == 'MUTATION_LARGE_CLAWS':
+        ui.message("%s grow&S claws." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_CLAWS_LARGE':
         for part in mutant.bodyparts:
             if part.hasFlag('HAND'):
                 part.attack = raw.LargeClaw
+
+        ui.message("%s grow&S large claws." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_EYE_EXTRA':
+        part = random.choice(mutant.bodyparts)
+        part.eyes += 1
+
+        ui.message("%s grow&S an eye on &POSS %s." % (mutant.getName(True), part.getName()),
+                   libtcod.chartreuse, actor = mutant)
 
     elif mutation == 'MUTATION_WINGS':
         index = None
@@ -52,7 +184,47 @@ def gain(mutation, mutant):
             mutant.bodyparts.insert(index + 1, new1)
             mutant.bodyparts.insert(index + 2, new2)
 
-        name_parts(mutant)
+            name_parts(mutant)
+
+            if not mutant.hasFlag('FLY'):
+                mutant.flags.append('FLY')
+
+            ui.message("%s grow&S wings." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_TAIL_WEAPON':
+        index = None
+        for part in mutant.bodyparts:
+            if part.hasFlag('GROIN'):
+                index = mutant.bodyparts.index(part)
+                break
+
+        new = create_part(raw.Tail, mutant)
+
+        if index != None:
+            mutant.bodyparts.insert(index + 1, new)
+        else:
+            mutant.bodyparts.append(new)
+
+        if not mutant.hasFlag('USE_NATURAL'):  # Thanks to this, we will use the tail
+            mutant.flags.append('USE_NATURAL') # to attack.
+
+        ui.message("%s grow&S a bony tail." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
+
+    elif mutation == 'MUTATION_TAIL_PREHENSIVE':
+        index = None
+        for part in mutant.bodyparts:
+            if part.hasFlag('GROIN'):
+                index = mutant.bodyparts.index(part)
+                break
+
+        new = create_part(raw.PrehensiveTail, mutant)
+
+        if index != None:
+            mutant.bodyparts.insert(index + 1, new)
+        else:
+            mutant.bodyparts.append(new)
+
+        ui.message("%s grow&S a prehensive tail." % mutant.getName(True), libtcod.chartreuse, actor = mutant)
 
     return True
 
@@ -114,65 +286,60 @@ def name_parts(mutant):
         eyeNo += part.eyes
 
         if part.getPlacement() != None:
-            continue
+            if part.hasFlag('HAND'):
+                handNo += 1
+            elif part.hasFlag('ARM'):
+                armNo += 1
+            elif part.hasFlag('LEG'):
+                legNo += 1
+            elif part.hasFlag('WING'):
+                wingNo += 1
+
+            continue # Don't name again.
 
         if part.hasFlag('HAND'):
             if handNo == 0:
-                if mutant.hasIntrinsic('LEFT_HANDED'):
-                    part.flags.append('LEFT')
-                else:
-                    part.flags.append('RIGHT')
-
                 part.flags.append('MAIN')
-                handNo += 1
-            elif handNo == 1:
+
+            handNo += 1
+
+            if var.isEven(handNo):
                 if mutant.hasIntrinsic('LEFT_HANDED'):
                     part.flags.append('RIGHT')
                 else:
                     part.flags.append('LEFT')
-
-                handNo += 1
             else:
-                part.flags.append('OTHER')
-                handNo += 1
+                if mutant.hasIntrinsic('LEFT_HANDED'):
+                    part.flags.append('LEFT')
+                else:
+                    part.flags.append('RIGHT')
         elif part.hasFlag('ARM'):
-            if armNo == 0:
-                if mutant.hasIntrinsic('LEFT_HANDED'):
-                    part.flags.append('LEFT')
-                else:
-                    part.flags.append('RIGHT')
+            armNo += 1
 
-                armNo += 1
-            elif armNo == 1:
+            if var.isEven(armNo):
                 if mutant.hasIntrinsic('LEFT_HANDED'):
                     part.flags.append('RIGHT')
                 else:
                     part.flags.append('LEFT')
-
-                armNo += 1
             else:
-                part.flags.append('OTHER')
-                armNo += 1
+                if mutant.hasIntrinsic('LEFT_HANDED'):
+                    part.flags.append('LEFT')
+                else:
+                    part.flags.append('RIGHT')
         elif part.hasFlag('LEG'):
-            if legNo == 0:
-                part.flags.append('RIGHT')
-                legNo += 1
-            elif legNo == 1:
+            legNo += 1
+
+            if var.isEven(legNo):
                 part.flags.append('LEFT')
-                legNo += 1
             else:
-                part.flags.append('OTHER')
-                legNo += 1
+                part.flags.append('RIGHT')
         elif part.hasFlag('WING'):
-            if wingNo == 0:
-                part.flags.append('RIGHT')
-                wingNo += 1
-            elif wingNo == 1:
+            wingNo += 1
+
+            if var.isEven(wingNo):
                 part.flags.append('LEFT')
-                wingNo += 1
             else:
-                part.flags.append('OTHER')
-                wingNo += 1
+                part.flags.append('RIGHT')
 
     mutant.baseArms = armNo
     mutant.baseLegs = legNo

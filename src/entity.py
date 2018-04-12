@@ -104,7 +104,7 @@ def spawn(x, y, BluePrint, type):
                 NewItem = spawn(x, y, i, 'ITEM')
                 New.inventory.append(NewItem)
 
-            New.actionAutoEquip(False)
+            New.actionAutoEquip(True)
 
         if len(mutations) != 0:
             for m in mutations:
@@ -260,7 +260,7 @@ class Entity(object):
             return True
 
         for i in var.Entities[DL]:
-            if (i.BlockMove and i.x == x and i.y == y):
+            if i != self and i.BlockMove and i.x == x and i.y == y:
                 return True
 
         return False
@@ -419,7 +419,7 @@ class Mob(Entity):
         self.SP = self.maxSP
         # TODO: NP, pain, heat
         self.XL = 1
-        self.XP = 900 # TODO
+        self.XP = 0 # TODO
 
         # General:
         self.carry = 1
@@ -533,7 +533,7 @@ class Mob(Entity):
 
             if self.MP + toMana > self.maxMP:
                 self.MP = self.maxMP
-            elif self.MP + toMana < 0:
+            elif self.MP < 0 and (self.MP + toMana) < self.MP:
                 pass
             else:
                 self.MP += toMana
@@ -555,7 +555,7 @@ class Mob(Entity):
 
             if self.SP + toStamina > self.maxSP:
                 self.SP = self.maxSP
-            elif self.SP + toStamina < 0:
+            elif self.SP < 0 and (self.SP + toStamina) < self.SP:
                 pass # Do nothing, or we could increase negative stamina up to 0.
             else:
                 self.SP += toStamina
@@ -977,12 +977,11 @@ class Mob(Entity):
         # We need to sever the hand as well when we are severing the arm.
         # TODO: Make this work better with mutliple arms.
         if limb.hasFlag('ARM'):
-            flag = limb.getPlacement()
+            index = self.bodyparts.index(limb)
+            part = self.bodyparts[index + 1]
 
-            for part in self.bodyparts:
-                if part.hasFlag('HAND') and part.hasFlag(flag):
-                    self.severLimb(part, attacker, True)
-                    break
+            if part.hasFlag('HAND'):
+                self.severLimb(part, attacker, True)
 
         # TODO:
         #  Some damage types destroy limbs.
@@ -1391,6 +1390,20 @@ class Mob(Entity):
 
         if self.hasIntrinsic('LEVITATION'):
             return True
+
+        return False
+
+    def isWinner(self):
+        if not self.hasFlag('AVATAR'):
+            return False
+
+        for i in self.inventory:
+            if i.hasFlag('MAC_GUFFIN'):
+                return True
+
+        for i in self.getEquipment():
+            if i.hasFlag('MAC_GUFFIN'):
+                return True
 
         return False
 
@@ -2054,10 +2067,12 @@ class Mob(Entity):
 
         if dz > 0 and var.Maps[var.DungeonLevel][self.x][self.y].hasFlag('STAIRS_UP'):
             # Block upstairs on first level.
-            if var.DungeonLevel == 1 and not var.CanAscend:
-                if self.hasFlag('AVATAR'):
+            if var.DungeonLevel == 1:
+                if not self.isWinner():
                     ui.message("You cannot escape with the Seal of Unwept Tears still in place!", color = libtcod.azure)
-                return False
+                    return False
+                else:
+                    ui.message("Congratulations! You won!", color = libtcod.azure)
 
             if var.DungeonLevel - 1 >= 0:
                 if var.Maps[var.DungeonLevel - 1] == None:
@@ -2277,7 +2292,7 @@ class Mob(Entity):
             # TODO
             return True
 
-    def actionAutoEquip(self, takeTime = True):
+    def actionAutoEquip(self, forced = False):
         for part in self.bodyparts:
             slot = part.getSlot()
 
@@ -2292,8 +2307,12 @@ class Mob(Entity):
                         cool = -1
 
                     itemCool = item.getCoolness()
-                    if item.size < part.size:
-                        itemCool = -2
+
+                    if item.size < part.size and slot != 'GRASP':
+                        if forced:
+                            item.size = part.size
+                        else:
+                            itemCool = -2
 
                     if itemCool > cool:
                         if slot == 'GRASP':
@@ -2304,7 +2323,7 @@ class Mob(Entity):
                         if equip != None:
                             self.inventory.append(equip)
 
-                            if takeTime:
+                            if not forced:
                                 self.AP -= self.getActionAPCost()
 
                         if part.doEquip(item) == True:
@@ -2312,12 +2331,12 @@ class Mob(Entity):
 
                             self.inventory.remove(item)
 
-                            if takeTime:
+                            if not forced:
                                 self.AP -= self.getActionAPCost()
                         else:
                             ui.message("%s fail&S to equip %s." % (self.getName(True), item.getName()), actor = self)
 
-                            if takeTime:
+                            if not forced:
                                 self.AP -= self.getActionAPCost()
                             if not self.hasFlag('AVATAR'):
                                 self.actionDrop(what = item)
@@ -3051,6 +3070,17 @@ class Item(Entity):
                 if self.beautitude >= 0:
                     if Eater.hasIntrinsic('BLEED'):
                         Eater.removeIntrinsic('BLEED')
+
+            elif self.hasFlag('MUTATION'):
+                # TODO: Good/bad based on BUC.
+                mutationMax = max(1, 1 + self.enchantment)
+                mutationNo = 0
+
+                while mutationNo < mutationMax:
+                    mutation.gain('RANDOM_ANY', Eater)
+                    mutationNo += 1
+
+                effect = "&SUBC feel&S weird."
 
             elif self.hasFlag('FOO'):
                 pass

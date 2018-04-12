@@ -75,19 +75,19 @@ def makeMap(Populate, DungeonLevel):
     # Add entities.
     if Populate:
         populate(DungeonLevel)
+    else:
+        # We might have trapped someone while re-generating the level:
+        for i in var.Entities[DungeonLevel]:
+            if i.isBlocked(i.x, i.y, DungeonLevel):
+                x = 0
+                y = 0
 
-    for i in var.Entities[DungeonLevel]:
-        # On the off-chance we trap someone in dungeon generation:
-        if i.isBlocked(i.x, i.y, DungeonLevel):
-            x = 0
-            y = 0
+                while i.isBlocked(x, y, DungeonLevel):
+                    x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+                    y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
-            while i.isBlocked(x, y, DungeonLevel):
-                x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
-                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
-
-            i.x = x
-            i.y = y
+                i.x = x
+                i.y = y
 
 def makeLake(liquid, map):
     # This is basically a bit changed drunken cave.
@@ -1146,6 +1146,22 @@ def populate(DungeonLevel):
             ItemNo += 1
 
         NewItem = None
+
+    # Special bosses:
+    if DungeonLevel in [0, 25]: # The black knight.
+        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+        NewMob = entity.spawn(x, y, raw.BlackKnight, 'MOB')
+        var.Entities[DungeonLevel].append(NewMob)
+
+        if NewMob.isBlocked(x, y, DungeonLevel):
+            while NewMob.isBlocked(x, y, DungeonLevel):
+                x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            NewMob.x = x
+            NewMob.y = y
 
 def getRandomEntity(type, DungeonLevel = 0):
     # TODO: Base frequency on DL.

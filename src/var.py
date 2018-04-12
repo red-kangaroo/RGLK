@@ -113,6 +113,12 @@ def beRude():
 def bePolite():
     pass
 
+def isEven(number):
+    if number % 2 == 0:
+        return True
+    else:
+        return False
+
 ###############################################################################
 #  Global Variables
 ###############################################################################
@@ -149,10 +155,6 @@ WizModeActivated = True # For now.
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
-
-# Game constants:
-# TODO: This should rather be a check of gear, if we have AoY.
-CanAscend = False
 
 Maps = []
 Entities = []
