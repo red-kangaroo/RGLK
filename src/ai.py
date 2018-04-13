@@ -194,6 +194,7 @@ def handleKeys(Player):
     # WIZARD MODE:
     if Key.vk == libtcod.KEY_CHAR and Key.c == ord('~'):
         # TODO
+        Player.givenName = "Cheater"
         var.WizModeActivated = True
         return
 

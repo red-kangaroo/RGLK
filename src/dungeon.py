@@ -1138,11 +1138,6 @@ def populate(DungeonLevel):
         if NewItem != None:
             var.Entities[DungeonLevel].append(NewItem)
 
-            # Handle pairs:
-            if NewItem.hasFlag('PAIRED'):
-                NextItem = entity.spawn(x, y, which, 'ITEM')
-                var.Entities[DungeonLevel].append(NextItem)
-
             ItemNo += 1
 
         NewItem = None

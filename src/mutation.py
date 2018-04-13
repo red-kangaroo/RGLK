@@ -254,11 +254,11 @@ def create_part(part, mutant):
     except:
         attack = raw.DummyPart['attack']
     try:
-        StrScaling = BluePrint['StrScaling']
+        StrScaling = part['StrScaling']
     except:
         StrScaling = raw.DummyPart['StrScaling']
     try:
-        DexScaling = BluePrint['DexScaling']
+        DexScaling = part['DexScaling']
     except:
         DexScaling = raw.DummyPart['DexScaling']
     try:
@@ -270,7 +270,7 @@ def create_part(part, mutant):
     except:
         material = None
 
-    New = entity.BodyPart(name, mutant, cover, place, size, eyes, attack,
+    New = entity.BodyPart(name, part, mutant, cover, place, size, eyes, attack,
                           StrScaling, DexScaling, addFlags, material)
 
     return New

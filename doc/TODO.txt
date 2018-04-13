@@ -64,7 +64,7 @@ List of things to do and include:
 * checkDeath for WizMode
 * better canSense()
 * builders for QIX and noise forest
-* item stacks
+* splitting item stacks, requires being able to write how much
 * containers
    satchel
    oilskin sack

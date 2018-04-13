@@ -115,7 +115,7 @@ def render_UI(Player):
 
     # Player's name:
     libtcod.console_print_ex(var.UIPanel, 1, 1, libtcod.BKGND_NONE, libtcod.LEFT,
-                             Player.getName(True, True))
+                             Player.getGivenName())
     if Player.sex == 'MALE':
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.blue)
         libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,

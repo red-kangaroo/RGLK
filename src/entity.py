@@ -28,6 +28,8 @@ def spawn(x, y, BluePrint, type):
         print "Failed to spawn an entity."
         return False
 
+    myType = BluePrint
+
     if type == 'MOB':
         try:
             material = BluePrint['material']
@@ -94,7 +96,7 @@ def spawn(x, y, BluePrint, type):
             if var.rand_chance(25):
                 addIntrinsics.append(('LEFT_HANDED', 0))
 
-        New = Mob(x, y, char, color, name, material, size,
+        New = Mob(x, y, char, color, name, myType, material, size,
                      Str, Dex, End, Wit, Ego, sex, speed, sight, addFlags, addIntrinsics)
 
         New.diet = diet
@@ -174,7 +176,7 @@ def spawn(x, y, BluePrint, type):
         if not material in raw.MaterialsList:
             print "Warning: %s is unhandled material." % material
 
-        New = Item(x, y, char, color, name, material, size, BlockMove,
+        New = Item(x, y, char, color, name, myType, material, size, BlockMove,
                    attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags, addIntrinsics)
 
         # Add special stats:
@@ -192,11 +194,12 @@ def spawn(x, y, BluePrint, type):
 
 # Player, monsters...
 class Entity(object):
-    def __init__(self, x, y, char, color, name, material, size, BlockMove = False):
+    def __init__(self, x, y, char, color, name, type, material, size, BlockMove = False):
         self.x = x
         self.y = y
         self.char = char
         self.color = color
+        self.type = type
         self.material = material
         self.size = size
         self.BlockMove = BlockMove
@@ -357,6 +360,9 @@ class Entity(object):
     def getAttack(self):
         return None
 
+    def canStack(self):
+        return False
+
     # Heartbeat of all entities.
     def Be(self):
         # How else to check if entity has a speed variable?
@@ -378,11 +384,11 @@ class Entity(object):
         #       through the main loop of var.Entities
 
 class Mob(Entity):
-    def __init__(self, x, y, char, color, name, material, size, #These are base Entity arguments.
+    def __init__(self, x, y, char, color, name, type, material, size, #These are base Entity arguments.
                  Str, Dex, End, Wit, Ego, sex, speed, FOVBase, addFlags = [], addIntrinsics = []):
         BlockMove = True # All mobs block movement, but not all entities,
                          # so pass this to Entity __init__
-        super(Mob, self).__init__(x, y, char, color, name, material, size, BlockMove)
+        super(Mob, self).__init__(x, y, char, color, name, type, material, size, BlockMove)
 
         # Attributes:
         self.Str = Str
@@ -1126,6 +1132,12 @@ class Mob(Entity):
 
         return name
 
+    def getGivenName(self):
+        if self.givenName != None and self.givenName != "":
+            return self.givenName.capitalize()
+        else:
+            return self.name.capitalize()
+
     def getBurdenState(self):
         if len(self.inventory) <= self.carry:
             return 0 # Unencumbered
@@ -1779,6 +1791,7 @@ class Mob(Entity):
 
                 if item != None:
                     self.inventory.append(item)
+                    item.tryStacking(self)
 
             self.actionDrop(True)
 
@@ -2199,6 +2212,7 @@ class Mob(Entity):
                 item.x = self.x
                 item.y = self.y
                 var.Entities[var.DungeonLevel].append(item)
+                item.tryStacking()
                 # Used only on death, so no AP nor drop messages.
         else:
             if what != None:
@@ -2218,8 +2232,11 @@ class Mob(Entity):
                 item.x = self.x
                 item.y = self.y
                 var.Entities[var.DungeonLevel].append(item)
+                item.tryStacking()
+
                 ui.message("%s drop&S %s." % (self.getName(True), item.getName()),
                            actor = self)
+
                 self.AP -= self.getActionAPCost(0.3) # It's quick.
 
         if len(self.inventory) >= 1:
@@ -2332,19 +2349,34 @@ class Mob(Entity):
                         equip = part.doDeEquip(self)
                         if equip != None:
                             self.inventory.append(equip)
+                            equip.tryStacking(self)
 
                             if not forced:
                                 self.AP -= self.getActionAPCost()
 
-                        if part.doEquip(item) == True:
+                        if len(part.inventory) != 0:
+                            continue
+
+                        toEquip = item.removeFromStack()
+
+                        if toEquip == None:
+                            toEquip = item
+
+                        if part.doEquip(toEquip) == True:
                             ui.message("%s equip&S %s." % (self.getName(True), item.getName()), actor = self)
 
-                            self.inventory.remove(item)
+                            try:
+                                self.inventory.remove(toEquip)
+                            except:
+                                pass # This happens when toEquip was split from our inventory and not appended in it.
 
                             if not forced:
                                 self.AP -= self.getActionAPCost()
                         else:
                             ui.message("%s fail&S to equip %s." % (self.getName(True), item.getName()), actor = self)
+
+                            if toEquip != item:
+                                toEquip.tryStacking(self)
 
                             if not forced:
                                 self.AP -= self.getActionAPCost()
@@ -2369,6 +2401,8 @@ class Mob(Entity):
 
                 if item != None:
                     self.inventory.append(item)
+                    item.tryStacking(self)
+
                     self.AP -= self.getActionAPCost()
                 else:
                     ui.render_all(self)
@@ -2407,11 +2441,23 @@ class Mob(Entity):
                             ui.render_all(self)
                             return True
 
-                    if self.bodyparts[part].doEquip(options[item], self) == True:
-                        self.inventory.remove(options[item])
+                    toEquip = options[item].removeFromStack()
+
+                    if toEquip == None:
+                        toEquip = options[item]
+
+                    if self.bodyparts[part].doEquip(toEquip, self) == True:
+                        try:
+                            self.inventory.remove(toEquip)
+                        except:
+                            pass
+
                         self.AP -= self.getActionAPCost()
                         return True
                     else:
+                        if toEquip != options[item]:
+                            toEquip.tryStacking(self)
+
                         ui.message("You fail to equip %s." % options[item].getName())
                         ui.render_all(self)
                         return True
@@ -2539,6 +2585,7 @@ class Mob(Entity):
                     break
 
                 self.inventory.append(i)
+                i.tryStacking(self)
                 var.Entities[var.DungeonLevel].remove(i)
                 ui.message("%s pick&S up %s." % (self.getName(True), i.getName()), actor = self)
                 self.AP -= self.getActionAPCost()
@@ -2554,6 +2601,7 @@ class Mob(Entity):
                 return False
             else:
                 self.inventory.append(options[toPick])
+                options[toPick].tryStacking(self)
                 var.Entities[var.DungeonLevel].remove(options[toPick])
                 ui.message("%s pick&S up %s." % (self.getName(True), options[toPick].getName()),
                            actor = self)
@@ -2601,8 +2649,16 @@ class Mob(Entity):
         if toDrink == None:
             return False
         else:
-            if options[toDrink].beEaten(self):
+            toQuaff = options[toDrink].removeFromStack()
+
+            if toQuaff == None:
+                toQuaff = options[toDrink]
+
+            if toQuaff.beEaten(self):
                 self.AP -= self.getActionAPCost()
+            else:
+                if toQuaff != options[toDrink]:
+                    toQuaff.tryStacking(self)
 
         if len(options) > 1:
             return True
@@ -2701,9 +2757,9 @@ class Mob(Entity):
         return moved
 
 class Item(Entity):
-    def __init__(self, x, y, char, color, name, material, size, BlockMove, #These are base Entity arguments.
+    def __init__(self, x, y, char, color, name, type, material, size, BlockMove, #These are base Entity arguments.
                  attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags = [], addIntrinsics = []):
-        super(Item, self).__init__(x, y, char, color, name, material, size, BlockMove)
+        super(Item, self).__init__(x, y, char, color, name, type, material, size, BlockMove)
 
         self.attack = attack
         self.ranged = ranged
@@ -2745,8 +2801,17 @@ class Item(Entity):
         self.light = 0
         self.coolness = cool
 
+        # Item stacks:
+        if self.hasFlag('PAIRED'):
+            self.stack = 2
+        else:
+            self.stack = 1
+
     def getName(self, capitalize = False, full = False):
-        name = self.name
+        name = self.prefix + self.name + self.suffix
+
+        if self.stack > 1:
+            name = name + "s" # TODO: Plurals
 
         # TODO:
         # if full == False, show only base name
@@ -2822,6 +2887,17 @@ class Item(Entity):
 
             name = name + attack + defense + scaling
 
+        if self.stack > 1:
+            if self.stack == 2 and self.hasFlag('PAIRED'):
+                name = "pair of " + name
+            else:
+                name = "heap of " + str(self.stack) + " " + name
+        elif self.stack <= 0:
+            name = "BUG: 0 stack item: " + name
+
+        if self.givenName != None:
+            name = name + " named " + self.givenName
+
         if capitalize == True:
             name = name.capitalize()
 
@@ -2834,8 +2910,126 @@ class Item(Entity):
                     var.Entities[var.DungeonLevel].remove(self)
                     del self
         else:
-            Owner.inventory.remove(self)
+            try:
+                Owner.inventory.remove(self)
+            except:
+                pass # Tmp item that was not appended to Owner.inventory.
+
             del self
+
+    def canStack(self):
+        return True
+
+    def tryStacking(self, Owner = None):
+        if Owner != None:
+            for i in Owner.inventory:
+                if self.addToStack(i, Owner):
+                    return True
+        else:
+            for i in var.Entities[var.DungeonLevel]:
+                if i.hasFlag('ITEM') and i.x == self.x and i.y == self.y:
+                    if self.addToStack(i, Owner):
+                        return True
+
+        return False
+
+    def isSameAs(self, other):
+        # Now this is going to be long...
+
+        if len(self.inventory) != 0 or len(other.inventory) != 0:
+            return False
+
+        if self.type != other.type:
+            return False
+
+        if self.material != other.material:
+            return False
+
+        if self.size != other.size:
+            return False
+
+        if self.attack != other.attack:
+            return False
+
+        if self.ranged != other.ranged:
+            return False
+
+        if self.DefenseValue != other.DefenseValue:
+            return False
+
+        if self.ProtectionValue != other.ProtectionValue:
+            return False
+
+        if self.StrScaling != other.StrScaling:
+            return False
+
+        if self.DexScaling != other.DexScaling:
+            return False
+
+        if self.beautitude != other.beautitude:
+            return False
+
+        if self.enchantment != other.enchantment:
+            return False
+
+        if self.acc != other.acc:
+            return False
+
+        if self.light != other.light:
+            return False
+
+        if len(self.intrinsics) != len(other.intrinsics):
+            return False
+        else:
+            for intrinsic in self.intrinsics:
+                if not other.hasIntrinsic(intrinsic):
+                    return False
+
+        return True
+
+    def addToStack(self, other, Owner = None):
+        if self == other:
+            return False
+
+        if self.isSameAs(other):
+            other.stack += self.stack
+            self.getDestroyed(Owner)
+            return True
+        else:
+            return False
+
+    def removeFromStack(self, number = 1):
+        number = max(1, number) # We cannot remove less than 1 item from stack.
+
+        if len(self.inventory) != 0:
+            return None
+        if self.stack <= number:
+            return None
+
+        NewItem = spawn(self.x, self.y, self.type, 'ITEM')
+        NewItem.material = self.material
+        NewItem.size = self.size
+        NewItem.attack = self.attack
+        NewItem.ranged = self.ranged
+        NewItem.DefenseValue = self.DefenseValue
+        NewItem.ProtectionValue = self.ProtectionValue
+        NewItem.StrScaling = self.StrScaling
+        NewItem.DexScaling = self.DexScaling
+        NewItem.beautitude = self.beautitude
+        NewItem.enchantment = self.enchantment
+        NewItem.acc = self.acc
+        NewItem.light = self.light
+
+        for intrinsic in self.intrinsics:
+            if NewItem.hasIntrinsic(intrinsic):
+                continue
+            else:
+                NewItem.addIntrinsic(intrinsic.type, intrinsic.duration, intrinsic.power)
+
+        NewItem.stack = number
+        self.stack -= number
+
+        return NewItem
 
     def getAccuracyValue(self):
         try:
@@ -2992,10 +3186,10 @@ class Item(Entity):
         return cool
 
     def getSlot(self):
-        slot = None
-
-        for i in self.flags:
-            if i in ['HEAD', 'TORSO', 'GROIN', 'LEG', 'WING', 'TAIL']:
+        slot = None          # I has a bug here that made no monsters equip any
+                             # gloves or gauntlets. I hate how long it can take to
+        for i in self.flags: # find such a minor bug and fix it.
+            if i in ['HEAD', 'TORSO', 'GROIN', 'ARM', 'LEG', 'WING', 'TAIL']:
                 slot = i
             elif i in ['WEAPON', 'SHIELD']:
                 slot = 'GRASP'
@@ -3108,7 +3302,7 @@ class Item(Entity):
         pass
 
 class BodyPart(Entity):
-    def __init__(self, name, #These are base Entity arguments.
+    def __init__(self, name, type, #These are base Entity arguments.
                  mob, cover, place, size, eyes, attack, StrScaling, DexScaling,
                  addFlags, material = None):
         x = mob.x
@@ -3123,7 +3317,7 @@ class BodyPart(Entity):
         # equip items smaller than the body part.
         size = min(2, max(-2, mob.size + size))
 
-        super(BodyPart, self).__init__(x, y, char, color, name, material, size)
+        super(BodyPart, self).__init__(x, y, char, color, name, type, material, size)
 
         #self.flags.append('ITEM')
         self.flags.append('BODY_PART')
@@ -3319,13 +3513,13 @@ class BodyPart(Entity):
         return None
 
 #class Cloud(Entity):
-#    def __init__(self, x, y, color, name, #These are base Entity arguments.
+#    def __init__(self, x, y, color, name, type, #These are base Entity arguments.
 #                 attack, addFlags):
 #        char = chr(177)
 #        material = 'AIR'
 #        size = 2 # Clouds should count as huge.
 #
-#        super(Cloud, self).__init__(x, y, char, color, name, material, size)
+#        super(Cloud, self).__init__(x, y, char, color, name, type, material, size)
 #
 #        self.flags.append('CLOUD')
 #        for i in addFlags:
