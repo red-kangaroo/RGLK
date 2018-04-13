@@ -1148,7 +1148,22 @@ def populate(DungeonLevel):
         NewItem = None
 
     # Special bosses:
-    if DungeonLevel in [0, 25]: # The black knight.
+    if DungeonLevel == 2: # A guaranteed kobold miner.
+        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+        NewMob = entity.spawn(x, y, raw.KoboldMiner, 'MOB')
+        var.Entities[DungeonLevel].append(NewMob)
+
+        if NewMob.isBlocked(x, y, DungeonLevel):
+            while NewMob.isBlocked(x, y, DungeonLevel):
+                x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            NewMob.x = x
+            NewMob.y = y
+
+    if DungeonLevel in [0, 15]: # The black knight.
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 

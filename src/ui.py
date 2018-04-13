@@ -352,7 +352,7 @@ def inventory_menu(Player):
         option += 1
         y += 1
 
-        if y == 28 or option >= len(Player.inventory):
+        if y == 27 or option >= len(Player.inventory):
             # Add instructions:
             libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
             libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,

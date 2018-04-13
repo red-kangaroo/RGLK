@@ -64,6 +64,16 @@ List of things to do and include:
 * checkDeath for WizMode
 * better canSense()
 * builders for QIX and noise forest
+* item stacks
+* containers
+   satchel
+   oilskin sack
+   bag of holding
+   bag of tricks
+   bag of alchemy
+   chest
+   magic chest
+   strongbox
 
 Rivers:
 http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
@@ -98,6 +108,7 @@ Stand verb?
 block sight?
 a / an
 allowed dungeon types = SEWER, DUNGEON, CATACOMB, MAZE
+makeUndead()
 
 ITEM
 ====

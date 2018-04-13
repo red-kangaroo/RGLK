@@ -1146,10 +1146,20 @@ class Mob(Entity):
             except:
                 pass #print "Failed to add light radius!"
 
-        if light <= 0:
-            light = 1
+        # And special light sources that can only be carried in inventory.
+        for i in self.inventory:
+            if i.hasFlag('CARRY_LIGHT'):
+                try:
+                    light += i.getLightValue()
+                except:
+                    pass
+
+        if light <= 0: # Sadly, libtcod requires at least radius 1, because 0 or less
+            light = 1  # means unlimited sight radius.
+
             if not self.hasFlag('CANNOT_SEE'):
                 self.flags.append('CANNOT_SEE')
+
         elif light > 0 and self.hasFlag('CANNOT_SEE'):
             self.flags.remove('CANNOT_SEE')
 
@@ -2532,7 +2542,8 @@ class Mob(Entity):
                 var.Entities[var.DungeonLevel].remove(i)
                 ui.message("%s pick&S up %s." % (self.getName(True), i.getName()), actor = self)
                 self.AP -= self.getActionAPCost()
-                return True
+
+            return True
         else:
             if not self.hasFlag('AVATAR'):
                 return False

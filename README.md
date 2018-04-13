@@ -30,6 +30,7 @@ General:
  c            close
  d            drop item
  E            equipment menu
+ Ctrl + e     auto-equip
  g  or  ,     pick up item
  Ctrl + g     pick up all
  i            inventory
@@ -54,5 +55,6 @@ Wizard mode:
  F4           gain all items
  F6           possess creature
  F9           see intrinsics
+ F11          level teleport
  F12          generate new level
 ```

@@ -115,7 +115,7 @@ def getAICommand(Mob):
                 Mob.actionWait()
                 return
         else:
-            if var.rand_chance(50):
+            if var.rand_chance(30):
                 # Close doors, chat with friends...
                 for y in range(Mob.y - 1, Mob.y + 2):
                     for x in range(Mob.x - 1, Mob.x + 2):
@@ -468,6 +468,11 @@ def handleKeys(Player):
         if (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
             while Player.actionEquipment() == True:
                 pass # Return to menu.
+            ui.message("You change equipment.")
+            return
+
+        if (Key.lctrl and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
+            Player.actionAutoEquip()
             ui.message("You change equipment.")
             return
 

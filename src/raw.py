@@ -1272,6 +1272,17 @@ Bandana = {
 'flags': ['HEAD', 'ARMOR']
 }
 
+Hood = {
+'char': '-',
+'color': libtcod.dark_green,
+'name': 'hood',
+'material': 'CLOTH',
+'DV': 2,
+'size': -2,
+'flags': ['HEAD', 'ARMOR'],
+'frequency': 250
+}
+
 Headband = {
 'char': '-',
 'color': libtcod.red,
@@ -1317,6 +1328,18 @@ Skullcap = {
 'frequency': 750
 }
 
+Coif = {
+'char': '-',
+'color': libtcod.silver,
+'name': 'chain coif',
+'material': 'IRON',
+'PV': 1,
+'DV': 1,
+'size': -2,
+'flags': ['HEAD', 'ARMOR'],
+'frequency': 250
+}
+
 Helm = {
 'char': '-',
 'color': libtcod.silver,
@@ -1324,7 +1347,8 @@ Helm = {
 'material': 'IRON',
 'PV': 2,
 'size': -2,
-'flags': ['HEAD', 'ARMOR']
+'flags': ['HEAD', 'ARMOR'],
+'frequency': 400
 }
 
 FullHelm = {
@@ -1351,13 +1375,37 @@ GreatHelm = {
 'frequency': 500
 }
 
+Halo = {
+'char': '-',
+'color': libtcod.yellow,
+'name': 'halo',
+'material': 'AETHER',
+'PV': 0,
+'DV': 0,
+'light': 2,
+'size': -2,
+'flags': ['HEAD', 'ARMOR', 'ENCHANT_LIGHT'],
+'frequency': 100
+}
+
+Mask = {
+'char': '-',
+'color': libtcod.darkest_orange,
+'name': 'mask',
+'material': 'WOOD',
+'PV': 0,
+'DV': 0,
+'size': -2,
+'flags': ['HEAD', 'ARMOR'],
+'frequency': 300
+}
+
 # horned helmet
 # gladiator helmet
 # plumed helmet
-# hood
-# halo
-# chain coif
-# mask
+# fedora
+# witch hat
+# wizard hat
 
 # Handwear:
 LeatherGlove = {
@@ -1707,9 +1755,9 @@ SnakeSandal = {
 'name': 'snakeskin sandal',
 'material': 'LEATHER',
 'size': -1,
-'DV': 2,
+'DV': 1,
 'PV': 0,
-'flags': ['LEG', 'ARMOR', 'PAIRED'],
+'flags': ['LEG', 'ARMOR', 'PAIRED', 'ENCHANT_DODGE'],
 'frequency': 100
 }
 
@@ -1733,7 +1781,7 @@ HighBoot = {
 'DV': 0,
 'PV': 2,
 'flags': ['LEG', 'ARMOR', 'PAIRED'],
-'frequency': 700
+'frequency': 400
 }
 
 Clog = {
@@ -1767,7 +1815,7 @@ Anklet = {
 'size': -1,
 'DV': 0,
 'PV': 0,
-'flags': ['LEG', 'ARMOR', 'ENCHANT_DODGE'],
+'flags': ['LEG', 'ARMOR', 'ENCHANT_PROTECTION'],
 'frequency': 200
 }
 
@@ -1825,7 +1873,7 @@ SunStone = {
 'material': 'STONE',
 'light': 3,
 'size': -2,
-'flags': ['ENCHANT_LIGHT'],
+'flags': ['ENCHANT_LIGHT', 'CARRY_LIGHT'],
 'frequency': 50
 }
 
@@ -2008,6 +2056,25 @@ KoboldFisher = {
 'frequency': 600
 }
 
+KoboldMiner = {
+'char': 'k',
+'color': libtcod.dark_grey,
+'name': 'kobold miner',
+'Str': 1,
+'Dex': 2,
+'End': -2,
+'Wit': 1,
+'Ego': 0,
+'speed': 1,
+'sight': 6,
+'size': -1,
+'sex': 'MOF',
+'inventory': [PickAxe],
+'flags': ['HUMANOID'],
+'mutations': ['MUTATION_CLAWS'],
+'frequency': 50
+}
+
 KoboldWarrior = {
 'char': 'k',
 'color': libtcod.pink,
@@ -2103,7 +2170,7 @@ Alien = {
 'Ego': 3,
 'sex': 'UNDEFINED',
 'flags': ['ALIEN', 'USE_LEGS', 'AI_DIJKSTRA'],
-'frequency': 100
+'frequency': 50
 }
 
 BlackKnight = {
@@ -2815,12 +2882,26 @@ LetterS = {
 'height': 7
 }
 
+# Strange shapes.
 Curved = {
 'file': 'rooms/curved',
 'width': 10,
 'height': 8
 }
 
+CrissCross = {
+'file': 'rooms/crisscross',
+'width': 6,
+'height': 6
+}
+
+Whirl = {
+'file': 'rooms/whirl',
+'width': 7,
+'height': 7
+}
+
+# Four-way junctions.
 Foursome1 = {
 'file': 'rooms/foursome1',
 'width': 10,
@@ -2831,6 +2912,14 @@ Foursome2 = {
 'file': 'rooms/foursome2',
 'width': 10,
 'height': 8
+}
+
+# T-junction.
+TJunction = {
+'file': 'rooms/tjunction',
+'width': 5,
+'height': 4,
+'0': (RockFloor, None, Boulder, None)
 }
 
 # A very secretly hidden rooms.
@@ -2864,6 +2953,21 @@ Secret4 = {
 'frequency': 10,
 'width': 10,
 'height': 9
+}
+
+# Barracks.
+Barracks1 = {
+'file': 'rooms/barracks1',
+'width': 9,
+'height': 5,
+'X': (RockFloor, None, Bed, None)
+}
+
+Barracks2 = {
+'file': 'rooms/barracks2',
+'width': 7,
+'height': 7,
+'X': (RockFloor, None, Bed, None)
 }
 
 # Guard stations.
@@ -2917,6 +3021,12 @@ SmallRooms2 = {
 '!': (IronBars, None, None, None)
 }
 
+SmallRooms3 = {
+'file': 'rooms/smallrooms3',
+'width': 9,
+'height': 9
+}
+
 # Why not?
 Why1 = {
 'file': 'rooms/why1',
@@ -2930,19 +3040,18 @@ Why2 = {
 'height': 6,
 }
 
-# T-junction.
-TJunction = {
-'file': 'rooms/tjunction',
-'width': 5,
-'height': 4,
-'0': (RockFloor, None, Boulder, None)
-}
-
 # Checkers room!
 Checkers = {
 'file': 'rooms/checkers',
 'width': 9,
 'height': 7
+}
+
+# Large castle-like corridor.
+Castle = {
+'file': 'rooms/castle',
+'width': 15,
+'height': 15
 }
 
 # A small library.
@@ -2964,13 +3073,189 @@ Pillars1 = {
 Pillars2 = {
 'file': 'rooms/pillars2',
 'width': 9,
-'height': 11,
+'height': 11
 }
 
 Pillars3 = {
 'file': 'rooms/pillars3',
 'width': 9,
+'height': 9
+}
+
+Pillars4 = {
+'file': 'rooms/pillars4',
+'width': 11,
+'height': 11
+}
+
+Pillars5 = {
+'file': 'rooms/pillars5',
+'width': 7,
+'height': 7
+}
+
+Pillars6 = {
+'file': 'rooms/pillars6',
+'width': 9,
+'height': 5
+}
+
+Pillars7 = {
+'file': 'rooms/pillars7',
+'width': 11,
+'height': 11
+}
+
+Pillars8 = {
+'file': 'rooms/pillars8',
+'width': 11,
+'height': 11
+}
+
+Pillars9a = {
+'file': 'rooms/pillars9',
+'width': 11,
+'height': 11,
+'~': (DeepWater, None, None, None)
+}
+
+Pillars9b = {
+'file': 'rooms/pillars9',
+'width': 11,
+'height': 11,
+'~': (Lava, None, None, None)
+}
+
+Pillars9c = {
+'file': 'rooms/pillars9',
+'width': 11,
+'height': 11,
+'~': (AcidPool, None, None, None)
+}
+
+Pillars10 = {
+'file': 'rooms/pillars10',
+'width': 11,
+'height': 9
+}
+
+# Pool rooms.
+Pool1a = {
+'file': 'rooms/pool1',
+'width': 9,
+'height': 10,
+'~': (DeepWater, None, None, None)
+}
+
+Pool1b = {
+'file': 'rooms/pool1',
+'width': 9,
+'height': 10,
+'~': (Lava, None, None, None)
+}
+
+Pool1c = {
+'file': 'rooms/pool1',
+'width': 9,
+'height': 10,
+'~': (AcidPool, None, None, None)
+}
+
+Pool2a = {
+'file': 'rooms/pool2',
+'width': 7,
+'height': 7,
+'~': (DeepWater, None, None, None)
+}
+
+Pool2b = {
+'file': 'rooms/pool2',
+'width': 7,
+'height': 7,
+'~': (Lava, None, None, None)
+}
+
+Pool2c = {
+'file': 'rooms/pool2',
+'width': 7,
+'height': 7,
+'~': (AcidPool, None, None, None)
+}
+
+Pool3 = {
+'file': 'rooms/pool3',
+'width': 9,
 'height': 9,
+'~': (Lava, None, None, None)
+}
+
+# Circular corridors.
+Circle1 = {
+'file': 'rooms/circle1',
+'width': 4,
+'height': 4
+}
+
+Circle2 = {
+'file': 'rooms/circle2',
+'width': 5,
+'height': 5
+}
+
+Circle3 = {
+'file': 'rooms/circle3',
+'width': 7,
+'height': 7
+}
+
+# Lucy in the skies...
+Diamond1 = {
+'file': 'rooms/diamond1',
+'width': 7,
+'height': 7
+}
+
+Diamond2 = {
+'file': 'rooms/diamond2',
+'width': 7,
+'height': 7,
+')': (RockFloor, None, 'RANDOM_ANY', None)
+}
+
+Diamond3 = {
+'file': 'rooms/diamond3',
+'width': 7,
+'height': 7
+}
+
+Diamond4 = {
+'file': 'rooms/diamond4',
+'width': 7,
+'height': 7
+}
+
+Diamond5 = {
+'file': 'rooms/diamond5',
+'width': 7,
+'height': 7
+}
+
+Diamond6 = {
+'file': 'rooms/diamond6',
+'width': 7,
+'height': 7
+}
+
+Diamond7 = {
+'file': 'rooms/diamond7',
+'width': 7,
+'height': 7
+}
+
+Diamond8 = {
+'file': 'rooms/diamond8',
+'width': 7,
+'height': 7
 }
 
 ###############################################################################
@@ -3000,6 +3285,7 @@ Scaling = {
 }
 
 MaterialsList = [
+'AETHER',
 'BONE',
 'CLAY',
 'CLOTH',
@@ -3123,12 +3409,16 @@ TowerShield,
 # Headgear:
 Bandana,
 Headband,
+Hood,
 Skullcap,
+Coif,
 Helm,
 FullHelm,
 GreatHelm,
 Crown,
 Circlet,
+Halo,
+Mask,
 # Handwear:
 LeatherGlove,
 BlackGlove,
@@ -3257,6 +3547,7 @@ MobList = [
 KoboldForager,
 KoboldFisher,
 KoboldHunter,
+KoboldMiner,
 KoboldWarrior,
 KoboldWhelp,
 Orc,
@@ -3344,10 +3635,25 @@ DestroyedTerrainList = {
 # Prefab rooms:
 # -------------
 RoomList = [
+Barracks1,
+Barracks2,
 Cage1,
 Cage2,
+Castle,
 Checkers,
+Circle1,
+Circle2,
+Circle3,
+CrissCross,
 Curved,
+Diamond1,
+Diamond2,
+Diamond3,
+Diamond4,
+Diamond5,
+Diamond6,
+Diamond7,
+Diamond8,
 Foursome1,
 Foursome2,
 Guard1,
@@ -3361,6 +3667,22 @@ Library,
 Pillars1,
 Pillars2,
 Pillars3,
+Pillars4,
+Pillars5,
+Pillars6,
+Pillars7,
+Pillars8,
+Pillars9a,
+Pillars9b,
+Pillars9c,
+Pillars10,
+Pool1a,
+Pool1b,
+Pool1c,
+Pool2a,
+Pool2b,
+Pool2c,
+Pool3,
 Prison,
 Secret1,
 Secret2,
@@ -3368,7 +3690,9 @@ Secret3,
 Secret4,
 SmallRooms1,
 SmallRooms2,
+SmallRooms3,
 TJunction,
+Whirl,
 Why1,
 Why2
 ]

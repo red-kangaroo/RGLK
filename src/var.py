@@ -141,7 +141,7 @@ RoomMaxNumber = 99
 BSPMaxDepth = 10
 BSPMinSize = 5
 DrunkenSteps = 5000
-FloorMaxNumber = 25 # Depths of the dungeon.
+FloorMaxNumber = 15 # Depths of the dungeon.
 
 # TODO: Should depend on dungeon level.
 MonsterMaxNumber = 10
