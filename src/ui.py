@@ -247,6 +247,18 @@ def render_UI(Player):
         libtcod.console_print_ex(var.UIPanel, 1, 54, libtcod.BKGND_NONE, libtcod.LEFT,
                                  Player.target.getName(True))
 
+        if Player.target.sex == 'MALE':
+            libtcod.console_set_default_foreground(var.UIPanel, libtcod.blue)
+            libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+                                     chr(11))
+        elif Player.target.sex == 'FEMALE':
+            libtcod.console_set_default_foreground(var.UIPanel, libtcod.pink)
+            libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+                                     chr(12))
+
+        # Restore the text color. :D
+        libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
+
         # This will one day only work in WizMode:
         render_bar(1, 56, 18, 'HP', int(math.floor(Player.target.HP)), int(math.floor(Player.target.maxHP)),
                    libtcod.dark_red, libtcod.darker_red)
@@ -277,6 +289,17 @@ def option_menu(header, options):
 
     while option < len(options):
         text = chr(index) + ') ' + options[option].getName(False, True)
+
+        try:
+            if options[option].beautitude > 0:
+                libtcod.console_set_default_foreground(var.MenuPanel, libtcod.chartreuse)
+            elif options[option].beautitude < 0:
+                libtcod.console_set_default_foreground(var.MenuPanel, libtcod.red)
+            else:
+                libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+        except:
+            libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
         libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
                                  text)
         index += 1
@@ -558,6 +581,50 @@ def main_menu(Player = None):
             return what
         elif Key.vk == libtcod.KEY_ESCAPE:
             return None
+
+def item_description(item):
+    if item.beautitude > 0:
+        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.chartreuse)
+    elif item.beautitude < 0:
+        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.red)
+    else:
+        libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+    libtcod.console_clear(var.MenuPanel)
+
+    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                  item.getName(full = True))
+
+    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+    libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
+                             "[Space for next; Esc to exit]")
+
+    lines = item.getDescription()
+    line = 0
+    y = 3
+
+    while line < len(lines):
+        libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 lines[line])
+        line += 1
+        y += 1
+
+        if y == 27 or line >= len(lines):
+            # Draw it and wait for input:
+            libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+            libtcod.console_flush()
+
+            while True:
+                Key = libtcod.console_wait_for_keypress(True)
+
+                if Key.vk == libtcod.KEY_ESCAPE:
+                    return None
+
+                if Key.vk == libtcod.KEY_SPACE:
+                    y = 3
+                    break
 
 def render_bar(x, y, totalWidth, name, value, maxValue, barColor, backColor):
     # Calculate width of bar:

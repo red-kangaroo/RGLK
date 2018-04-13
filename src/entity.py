@@ -360,8 +360,11 @@ class Entity(object):
     def getAttack(self):
         return None
 
-    def canStack(self):
+    def tryStacking(self, Owner = None):
         return False
+
+    def removeFromStack(self, number = None):
+        return None
 
     # Heartbeat of all entities.
     def Be(self):
@@ -381,7 +384,7 @@ class Entity(object):
         self.handleIntrinsics()
 
         # TODO: Call Be() for inventory items from here, because they will not go
-        #       through the main loop of var.Entities
+        #       through the main loop of var.Entities.
 
 class Mob(Entity):
     def __init__(self, x, y, char, color, name, type, material, size, #These are base Entity arguments.
@@ -603,6 +606,31 @@ class Mob(Entity):
     def getEgo(self):
         return self.Ego
 
+    def getAppearance(self): # Used for living mobs.
+        pass
+
+    def getDescription(self): # Used for corpses.
+        lines = []
+        underscore = "-" * 26
+
+        lines.append("General")
+        lines.append(underscore)
+        lines.append("Material: %s" % self.material.lower())
+        lines.append("Size    : %s" % raw.Sizes[self.size])
+        lines.append("Sex     : %s" % self.sex.lower())
+        lines.append("")
+
+        lines.append("Statistics")
+        lines.append(underscore)
+        lines.append("Strength : %s" % str(self.getStr()))
+        lines.append("Dexterity: %s" % str(self.getDex()))
+        lines.append("Endurance: %s" % str(self.getEnd()))
+        lines.append("Wits     : %s" % str(self.getWit()))
+        lines.append("Ego      : %s" % str(self.getEgo()))
+        lines.append("Speed    : %s" % str(int(self.speed * 100))) # Gah, % does not work!
+
+        return lines
+
     def getAccuracyBonus(self, weapon = None, base = False):
         toHit = 0.0
 
@@ -615,6 +643,11 @@ class Mob(Entity):
                 toHit += weapon.getAccuracyValue()
             except:
                 pass # Body parts have no accuracy bonus.
+
+            try:
+                toHit += weapon.eyes
+            except:
+                pass # And items have no eyes.
 
         # Get equipment bonuses:
         for i in self.getEquipment():
@@ -1345,7 +1378,7 @@ class Mob(Entity):
         toUse = None
 
         for i in self.intrinsics:
-            if i.type == intrinsic:
+            if i.type == type:
                 toUse = i
 
         if toUse != None:
@@ -2315,8 +2348,12 @@ class Mob(Entity):
             ui.message("You carry no items.")
             return False
         else:
-            ui.inventory_menu(self)
-            # TODO
+            describe = ui.inventory_menu(self)
+
+            if describe == None:
+                return False
+            else:
+                ui.item_description(self.inventory[describe])
             return True
 
     def actionAutoEquip(self, forced = False):
@@ -2903,6 +2940,118 @@ class Item(Entity):
 
         return name
 
+    def getDescription(self):
+        lines = []
+        underscore = "-" * 26
+
+        lines.append("General")
+        lines.append(underscore)
+        lines.append("Material: %s" % self.material.lower())
+        lines.append("Size    : %s" % raw.Sizes[self.size])
+
+        if self.light != 0:
+            lit = "Light   : " + str(self.getLightValue())
+
+            if self.hasFlag('CARRY_LIGHT'):
+                lit = lit + " (carry)"
+
+            lines.append(lit)
+
+        if self.acc != 0 and not self.hasFlag('WEAPON'):
+            toHit = self.acc
+
+            if self.hasFlag('ENCHANT_ACCURACY'):
+                toHit += self.enchantment
+
+            lines.append("Accuracy: %s" % toHit)
+
+        lines.append("")
+
+        lines.append("Combat")
+        lines.append(underscore)
+
+        (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+         AttackRange, AttackFlags, inflict, explode) = self.getAttack()
+
+        ToHitBonus += self.acc
+        ToHitBonus += self.enchantment
+        DamageBonus += self.enchantment
+
+        if ToHitBonus >= 0:
+            acc = "+" + str(ToHitBonus)
+        else:
+            acc = str(ToHitBonus)
+
+        damage = str(DiceNumber) + "d" + str(DiceValue)
+        if DamageBonus > 0:
+            damage += "+" + str(DamageBonus)
+        elif DamageBonus < 0:
+            damage += str(DamageBonus)
+
+        lines.append("Melee:")
+        lines.append("  to hit: " + acc)
+        lines.append("  damage: " + damage + " " + DamageType.lower())
+        lines.append("")
+
+        (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+         AttackRange, AttackFlags, inflict, explode) = self.getRanged()
+
+        ToHitBonus += self.acc
+        ToHitBonus += self.enchantment
+        DamageBonus += self.enchantment
+
+        if ToHitBonus >= 0:
+            acc = "+" + str(ToHitBonus)
+        else:
+            acc = str(ToHitBonus)
+
+        damage = str(DiceNumber) + "d" + str(DiceValue)
+        if DamageBonus > 0:
+            damage += "+" + str(DamageBonus)
+        elif DamageBonus < 0:
+            damage += str(DamageBonus)
+
+        lines.append("Ranged:")
+        lines.append("  to hit: " + acc)
+        lines.append("  damage: " + damage + " " + DamageType.lower())
+        lines.append("  range : " + str(AttackRange) + " squares")
+        lines.append("")
+
+        if self.hasFlag('WEAPON') or self.hasFlag('SHIELD'):
+            lines.append("Scaling:")
+            lines.append("  strength : %s" % self.StrScaling)
+            lines.append("  dexterity: %s" % self.DexScaling)
+            lines.append("")
+
+        if self.getDefenseValue() != 0 or self.getProtectionValue() != 0:
+            if self.getDefenseValue() >= 0:
+                DV = "+" + str(self.getDefenseValue())
+            else:
+                DV = str(self.getDefenseValue())
+
+            if self.getProtectionValue() >= 0:
+                PV = "+" + str(self.getProtectionValue())
+            else:
+                PV = str(self.getProtectionValue())
+
+            lines.append("Defense   : %s" % DV)
+            lines.append("Protection: %s" % PV)
+
+        if len(self.intrinsics) > 0:
+            lines.append("")
+            lines.append("Intrinsics")
+            lines.append(underscore)
+
+            for i in self.intrinsics:
+                lines.append(i.getName())
+
+        # TODO
+        #lines.append("")
+        #lines.append(underscore)
+        # text
+
+        return lines
+
     def getDestroyed(self, Owner = None):
         if Owner == None:
             for i in var.Entities[var.DungeonLevel]:
@@ -2916,9 +3065,6 @@ class Item(Entity):
                 pass # Tmp item that was not appended to Owner.inventory.
 
             del self
-
-    def canStack(self):
-        return True
 
     def tryStacking(self, Owner = None):
         if Owner != None:
@@ -3141,6 +3287,51 @@ class Item(Entity):
             inflict = raw.DummyAttack['inflict']
         try:
             explode = self.attack['explode']
+        except:
+            explode = raw.DummyAttack['explode']
+
+        return (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+                AttackRange, AttackFlags, inflict, explode)
+
+    def getRanged(self):
+        try:
+            verb = self.ranged['verb']
+        except:
+            verb = raw.DummyAttack['verb']
+        try:
+            ToHitBonus = self.ranged['ToHitBonus']
+        except:
+            ToHitBonus = raw.DummyAttack['ToHitBonus']
+        try:
+            DiceNumber = self.ranged['DiceNumber']
+        except:
+            DiceNumber = raw.DummyAttack['DiceNumber']
+        try:
+            DiceValue = self.ranged['DiceValue']
+        except:
+            DiceValue = raw.DummyAttack['DiceValue']
+        try:
+            DamageBonus = self.ranged['DamageBonus']
+        except:
+            DamageBonus = raw.DummyAttack['DamageBonus']
+        try:
+            DamageType = self.ranged['DamageType']
+        except:
+            DamageType = raw.DummyAttack['DamageType']
+        try:
+            AttackRange = self.ranged['range']
+        except:
+            AttackRange = raw.DummyAttack['range']
+        try:
+            AttackFlags = self.ranged['flags']
+        except:
+            AttackFlags = raw.DummyAttack['flags']
+        try:
+            inflict = self.ranged['inflict']
+        except:
+            inflict = raw.DummyAttack['inflict']
+        try:
+            explode = self.ranged['explode']
         except:
             explode = raw.DummyAttack['explode']
 
@@ -3423,6 +3614,60 @@ class BodyPart(Entity):
                 break
 
         return slot
+
+    def getDescription(self):
+        lines = []
+        underscore = "-" * 26
+
+        lines.append("General")
+        lines.append(underscore)
+        lines.append("Material: %s" % self.material.lower())
+        lines.append("Size    : %s" % raw.Sizes[self.size])
+
+        if self.eyes > 0:
+            lines.append("Eyes    : %s" % self.eyes)
+
+        lines.append("")
+
+        lines.append("Combat")
+        lines.append(underscore)
+
+        (verb, ToHitBonus, DiceNumber, DiceValue, DamageBonus, DamageType,
+         AttackRange, AttackFlags, inflict, explode) = self.getAttack()
+
+        ToHitBonus += self.eyes
+        ToHitBonus += self.enchantment
+        DamageBonus += self.enchantment
+
+        if ToHitBonus >= 0:
+            acc = "+" + str(ToHitBonus)
+        else:
+            acc = str(ToHitBonus)
+
+        damage = str(DiceNumber) + "d" + str(DiceValue)
+        if DamageBonus > 0:
+            damage += "+" + str(DamageBonus)
+        elif DamageBonus < 0:
+            damage += str(DamageBonus)
+
+        lines.append("Melee:")
+        lines.append("  to hit: " + acc)
+        lines.append("  damage: " + damage + " " + DamageType.lower())
+        lines.append("")
+
+        lines.append("Scaling:")
+        lines.append("  strength : %s" % self.StrScaling)
+        lines.append("  dexterity: %s" % self.DexScaling)
+        lines.append("")
+
+        # TODO: Natural armor.
+
+        # TODO
+        #lines.append("")
+        lines.append(underscore)
+        lines.append("Eww! This looks like it belonged to someone!")
+
+        return lines
 
     def getAttack(self):
         try:

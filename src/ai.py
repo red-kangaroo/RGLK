@@ -479,7 +479,8 @@ def handleKeys(Player):
 
         # Inventory
         if (Key.vk == libtcod.KEY_CHAR and Key.c == ord('i')):
-            Player.actionInventory()
+            while Player.actionInventory() == True:
+                pass
             return
 
         # Jump
