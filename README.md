@@ -49,12 +49,19 @@ General:
 Wizard mode:
 
 ```
+ ;            activate wizard mode
+
  F1           toggle walking through walls
  F2           toggle seeing through walls
- F3           kill all creatures
+ *F3           alter self
  F4           gain all items
+ *F5           summon creature
  F6           possess creature
+ *F7           polymorph self
+ F8           kill all creatures
  F9           see intrinsics
  F11          level teleport
  F12          generate new level
+
+ *) TODO
 ```

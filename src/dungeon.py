@@ -1214,20 +1214,23 @@ class Terrain(object):
         self.explored = None
         self.flags = flags
 
-    def draw(self, x, y):
-        if (libtcod.map_is_in_fov(var.FOVMap, x, y) or var.WizModeTrueSight):
-            libtcod.console_set_default_foreground(var.MapConsole, self.color)
-            libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_SCREEN)
+    def draw(self, x, y, Player):
+        if Player != None:
+            if ((libtcod.map_is_in_fov(var.FOVMap, x, y) and
+                not (Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND'))) or
+                var.WizModeTrueSight):
+                libtcod.console_set_default_foreground(var.MapConsole, self.color)
+                libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_SCREEN)
 
-            self.makeExplored()
+                self.makeExplored()
 
-        elif self.isExplored():
-            libtcod.console_set_default_foreground(var.MapConsole, libtcod.darkest_grey)
-            libtcod.console_put_char(var.MapConsole, x, y, self.explored, libtcod.BKGND_SCREEN)
-
+            elif self.isExplored():
+                libtcod.console_set_default_foreground(var.MapConsole, libtcod.darkest_grey)
+                libtcod.console_put_char(var.MapConsole, x, y, self.explored, libtcod.BKGND_SCREEN)
         else:
             return
             #libtcod.console_set_default_foreground(var.Con, libtcod.black)
+            #libtcod.console_put_char(var.MapConsole, x, y, ' ', libtcod.BKGND_SCREEN)
 
     def change(self, NewTerrain):
         try:

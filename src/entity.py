@@ -1563,7 +1563,16 @@ class Mob(Entity):
                                                             self.name, toDodge)
 
         toHit += attacker.getAccuracyBonus(weapon)
+        # I am unseen.
+        #if not attacker.canSense(self):
+        #    print "Unseen defender."
+        #    toHit -= 5
+
         toDodge += self.getDodgeBonus(attacker, weapon)
+        # Unseen attacker.
+        #if not self.canSense(attacker):
+        #    print "Unseen attacker."
+        #    toDodge -= 5
 
         print "modified hit chance: %s vs %s" % (toHit, toDodge)
 
@@ -1727,7 +1736,7 @@ class Mob(Entity):
                             self.addIntrinsic(intrinsic, duration, power)
 
             # Wound the limb:
-            if not DamageType in ['BLEED', 'POISON']:
+            if not DamageType in raw.NonWoundingList:
                 if var.rand_chance(damage) or (weapon != None and 'VORPAL' in AttackFlags):
                     if limb.wounded or self.isExtraFragile():
                         # We sever the limb, but this also means we can no longer use it
@@ -2765,12 +2774,16 @@ class Mob(Entity):
            (self.hasFlag('AVATAR') and var.WizModeNoClip)):
             self.move(dx, dy)
             moved = True
+
+            if self.hasFlag('AVATAR'):
+                var.Maps[var.DungeonLevel][self.x][self.y].makeExplored()
         else:
             if self.hasFlag('AVATAR'):
                 var.Maps[var.DungeonLevel][self.x + dx][self.y + dy].makeExplored()
                 ui.message("You cannot go there.")
 
         if moved and self.hasFlag('AVATAR'):
+            # Describe what we're standing at.
             stuff = []
 
             for i in var.Entities[var.DungeonLevel]:

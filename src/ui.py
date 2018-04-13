@@ -38,22 +38,38 @@ def render_map(Player):
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             tile = var.Maps[var.DungeonLevel][x][y]
-            tile.draw(x, y)
-    # Draw first features, then items, then mobs.
-    #for i in var.Entities[var.DungeonLevel]:
-    #    if i.hasFlag('FEATURE'):
-    #        i.draw()
-    for i in var.Entities[var.DungeonLevel]:
-        if i.hasFlag('ITEM'):
-            i.draw()
-    for i in var.Entities[var.DungeonLevel]:
-        if i.hasFlag('MOB'):
-            i.draw()
+            tile.draw(x, y, Player)
+
+
+    if Player != None:
+        if ((Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')) and
+            not var.WizModeTrueSight):
+            canSee = False
+        else:
+            canSee = True
+    else:
+        canSee = True
+
+    # Draw first items, then features and then mobs.
+    if canSee:
+        for i in var.Entities[var.DungeonLevel]:
+            if i.hasFlag('ITEM'):
+                i.draw()
+        for i in var.Entities[var.DungeonLevel]:
+            if i.hasFlag('FEATURE'):
+                i.draw()
+        for i in var.Entities[var.DungeonLevel]:
+            if i.hasFlag('MOB'):
+                i.draw()
+
     # Draw player last, over everything else.
     if Player != None:
         if not Player.hasFlag('DEAD'):
             if ((Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')) and
                 not var.WizModeTrueSight):
+                libtcod.console_set_default_foreground(var.MapConsole, Player.getColor())
+                libtcod.console_put_char(var.MapConsole, Player.x, Player.y, '?', libtcod.BKGND_SCREEN)
+                '''
                 for y in range(Player.y - 1, Player.y + 2):
                     for x in range(Player.x - 1, Player.x + 2):
                         libtcod.console_set_default_foreground(var.MapConsole, libtcod.grey)
@@ -62,6 +78,10 @@ def render_map(Player):
                             libtcod.console_put_char(var.MapConsole, x, y, '?', libtcod.BKGND_SCREEN)
                         else:
                             libtcod.console_put_char(var.MapConsole, x, y, ' ', libtcod.BKGND_SCREEN)
+                '''
+                if Player.target != None:
+                    libtcod.console_set_default_foreground(var.MapConsole, Player.target.getColor())
+                    libtcod.console_put_char(var.MapConsole, Player.target.x, Player.target.y, '?', libtcod.BKGND_SCREEN)
             else:
                 Player.draw()
 
@@ -232,6 +252,13 @@ def render_UI(Player):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.dark_red)
         libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Slow')
+        y += 1
+
+    # No light:
+    if Player.hasFlag('CANNOT_SEE'):
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.grey)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Blind')
         y += 1
 
     # Intrinsics:

@@ -1926,7 +1926,7 @@ Chair = {
 'color': libtcod.darker_orange,
 'name': 'chair',
 'material': 'WOOD',
-'size': 0,
+'size': 1,
 'DV': -10,
 'flags': ['FEATURE'],
 'frequency': 0
@@ -1938,7 +1938,7 @@ Table = {
 'name': 'table',
 'BlockMove': True,
 'material': 'WOOD',
-'size': 1,
+'size': 2,
 'DV': -10,
 'flags': ['FEATURE'],
 'frequency': 0
@@ -1949,7 +1949,7 @@ Bed = {
 'color': libtcod.darker_orange,
 'name': 'bed',
 'material': 'WOOD',
-'size': 1,
+'size': 2,
 'DV': -10,
 'flags': ['FEATURE'],
 'frequency': 0
@@ -3318,6 +3318,13 @@ DamageTypeList = [
 'LIGHT',
 'DARK',
 'SOUND'
+]
+
+NonWoundingList = [
+'NECROTIC',
+'POISON',
+'BLEED',
+'DARK'
 ]
 
 ResistanceTypeList = {

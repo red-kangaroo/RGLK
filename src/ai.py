@@ -192,7 +192,7 @@ def handleKeys(Player):
 
 
     # WIZARD MODE:
-    if Key.vk == libtcod.KEY_CHAR and Key.c == ord('~'):
+    if Key.vk == libtcod.KEY_CHAR and Key.c == ord(';'):
         # TODO
         Player.givenName = "Cheater"
         var.WizModeActivated = True
@@ -268,7 +268,7 @@ def handleKeys(Player):
         if Key.vk == libtcod.KEY_F8:
             for i in var.Entities[var.DungeonLevel]:
                 if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
-                    i.receiveDamage(i.maxHP, 'NECROTIC')
+                    i.receiveDamage(i.maxHP * 3, DamageType = 'NECROTIC')
             return
 
         # See stats
@@ -283,6 +283,9 @@ def handleKeys(Player):
                 ui.message("You have no special features.")
             else:
                 ui.option_menu("Your intrinsics:", options)
+            return
+
+        if Key.vk == libtcod.KEY_F10:
             return
 
         # Level teleport
@@ -381,10 +384,10 @@ def handleKeys(Player):
         return
 
     # Take a screenshot
-    if Key.vk == libtcod.KEY_CHAR and Key.c == ord(';'):
-        libtcod.sys_save_screenshot('screenshots/screenshot.png')
-        ui.message("Screenshot saved.", color = libtcod.chartreuse)
-        return
+    #if Key.vk == libtcod.KEY_CHAR and Key.c == ord(';'):
+    #    libtcod.sys_save_screenshot('screenshots/screenshot.png')
+    #    ui.message("Screenshot saved.", color = libtcod.chartreuse)
+    #    return
 
     # Following actions can only be performed by living player:
     if Player == None:
