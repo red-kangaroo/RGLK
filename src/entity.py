@@ -2767,7 +2767,7 @@ class Mob(Entity):
             moved = True
         else:
             if self.hasFlag('AVATAR'):
-                var.Maps[var.DungeonLevel][self.x + dx][self.y + dy].explored = True
+                var.Maps[var.DungeonLevel][self.x + dx][self.y + dy].makeExplored()
                 ui.message("You cannot go there.")
 
         if moved and self.hasFlag('AVATAR'):

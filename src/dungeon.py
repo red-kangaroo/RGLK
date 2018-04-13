@@ -1211,19 +1211,23 @@ class Terrain(object):
         self.material = 'STONE'
         self.BlockMove = BlockMove
         self.BlockSight = BlockSight
-        self.explored = False
+        self.explored = None
         self.flags = flags
 
     def draw(self, x, y):
         if (libtcod.map_is_in_fov(var.FOVMap, x, y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.MapConsole, self.color)
-            self.explored = True
-        elif (self.explored == True):
+            libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_SCREEN)
+
+            self.makeExplored()
+
+        elif self.isExplored():
             libtcod.console_set_default_foreground(var.MapConsole, libtcod.darkest_grey)
+            libtcod.console_put_char(var.MapConsole, x, y, self.explored, libtcod.BKGND_SCREEN)
+
         else:
             return
             #libtcod.console_set_default_foreground(var.Con, libtcod.black)
-        libtcod.console_put_char(var.MapConsole, x, y, self.char, libtcod.BKGND_SCREEN)
 
     def change(self, NewTerrain):
         try:
@@ -1274,6 +1278,15 @@ class Terrain(object):
             return True
         else:
             return False
+
+    def isExplored(self):
+        if self.explored == None:
+            return False
+        else:
+            return True
+
+    def makeExplored(self):
+        self.explored = self.char
 
 class Room(object):
     def __init__(self, x, y, width, height):

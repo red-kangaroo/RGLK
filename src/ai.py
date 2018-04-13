@@ -752,7 +752,7 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
                                                 libtcod.BKGND_SET)
 
             # Print what's there:
-            if var.Maps[var.DungeonLevel][x][y].explored == True:
+            if var.Maps[var.DungeonLevel][x][y].isExplored():
                 square = var.Maps[var.DungeonLevel][x][y].name
             else:
                 square = None
