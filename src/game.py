@@ -47,12 +47,12 @@ def initialize():
 
     for y in range(0, var.MapHeight):
         for x in range(0, var.MapWidth):
-            if var.Maps[var.DungeonLevel][x][y].hasFlag('STAIRS_UP'):
+            if var.getMap()[x][y].hasFlag('STAIRS_UP'):
                 m = x
                 n = y
 
     Player = entity.spawn(m, n, raw.Player, 'MOB')
-    var.Entities[var.DungeonLevel].append(Player)
+    var.getEntity().append(Player)
 
     # TODO: Better welcoming message.
     ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
@@ -64,11 +64,11 @@ def main_loop():
         playerTurn = False
 
         # Heartbeat of all entities.
-        for i in var.Entities[var.DungeonLevel]:
+        for i in var.getEntity():
             i.Be()
 
         # Mob turns, including the player.
-        for i in var.Entities[var.DungeonLevel]:
+        for i in var.getEntity():
             # If player is still among entities, we can have a turn. If not and their
             # body was somehow lost by the game, we must force a turn later to allow
             # for example quitting.
@@ -131,7 +131,7 @@ def save():
     file["message"] = var.MessageHistory
     file["turn"] = var.TurnCount
     file["level"] = var.DungeonLevel
-    #file["player"] = var.Entities[var.DungeonLevel].index(Player)
+    #file["player"] = var.getEntity().index(Player)
     #    # Index of player in Entities list, to prevent doubling on load.
     file.close()
 
@@ -144,7 +144,7 @@ def load():
     var.MessageHistory = file["message"]
     var.TurnCount = file["turn"]
     var.DungeonLevel = file["level"]
-    #Player = var.Entities[var.DungeonLevel][file["player"]]
+    #Player = var.getEntity()[file["player"]]
     file.close()
 
     var.calculateFOVMap()

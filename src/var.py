@@ -89,12 +89,21 @@ def rand_weighted(choices):
 def calculateFOVMap():
     for y in range(MapHeight):
         for x in range(MapWidth):
-            libtcod.map_set_properties(FOVMap, x, y, not Maps[DungeonLevel][x][y].BlockSight,
-                                       not Maps[DungeonLevel][x][y].BlockMove)
+            libtcod.map_set_properties(FOVMap, x, y, not getMap()[x][y].BlockSight,
+                                       not getMap()[x][y].BlockMove)
 
 def changeFOVMap(x, y):
-    libtcod.map_set_properties(FOVMap, x, y, not Maps[DungeonLevel][x][y].BlockSight,
-                               not Maps[DungeonLevel][x][y].BlockMove)
+    libtcod.map_set_properties(FOVMap, x, y, not getMap()[x][y].BlockSight,
+                               not getMap()[x][y].BlockMove)
+
+# Dungeon maps and entities:
+# --------------------------
+
+def getMap():
+    return Maps[DungeonLevel]
+
+def getEntity():
+    return Entities[DungeonLevel]
 
 # Find functions:
 # ---------------

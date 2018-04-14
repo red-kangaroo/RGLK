@@ -14,7 +14,7 @@ import var
 
 def render_all(Player):
     # Remove SEEN flag from entities.
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.getEntity():
         if i.hasFlag('SEEN'):
             try:
                 i.flags.remove('SEEN')
@@ -47,17 +47,17 @@ def render_map(Player):
     # Draw map.
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
-            tile = var.Maps[var.DungeonLevel][x][y]
+            tile = var.getMap()[x][y]
             tile.draw(x, y, canSee)
 
     # Draw first items, then features and then mobs.
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.getEntity():
         if i.hasFlag('ITEM'):
             i.draw(canSee)
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.getEntity():
         if i.hasFlag('FEATURE'):
             i.draw(canSee)
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.getEntity():
         if i.hasFlag('MOB'):
             i.draw(canSee)
 

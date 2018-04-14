@@ -88,7 +88,7 @@ def getAICommand(Mob):
                     if Mob.actionPickUp(Mob.x, Mob.y, True) == False:
                         aiWander(Mob)
                     else:
-                        for i in var.Entities[var.DungeonLevel]:
+                        for i in var.getEntity():
                             if i.target == Target:
                                 i.target = None
 
@@ -240,7 +240,7 @@ def handleKeys(Player):
         if Key.vk == libtcod.KEY_F4:
             for i in raw.ItemList:
                 NewItem = entity.spawn(Player.x, Player.y, i, 'ITEM')
-                var.Entities[var.DungeonLevel].append(NewItem)
+                var.getEntity().append(NewItem)
 
         # Summon creature
         if Key.vk == libtcod.KEY_F5:
@@ -268,7 +268,7 @@ def handleKeys(Player):
 
         # Instakill all
         if Key.vk == libtcod.KEY_F8:
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
                     i.receiveDamage(i.maxHP * 3, DamageType = 'NECROTIC')
             return
@@ -315,7 +315,7 @@ def handleKeys(Player):
                     Player.y = toClimb[1]
 
                     var.Entities[var.DungeonLevel - 1].append(Player)
-                    var.Entities[var.DungeonLevel].remove(Player)
+                    var.getEntity().remove(Player)
                     var.DungeonLevel -= 1
 
                     if Player.hasFlag('AVATAR'):
@@ -344,7 +344,7 @@ def handleKeys(Player):
                     Player.y = toClimb[1]
 
                     var.Entities[var.DungeonLevel + 1].append(Player)
-                    var.Entities[var.DungeonLevel].remove(Player)
+                    var.getEntity().remove(Player)
                     var.DungeonLevel += 1
 
                     if Player.hasFlag('AVATAR'):
@@ -554,7 +554,7 @@ def handleKeys(Player):
                 x = Player.x + where[0]
                 y = Player.y + where[1]
 
-                for i in var.Entities[var.DungeonLevel]:
+                for i in var.getEntity():
                     if (i.x == x and i.y == y and (i.hasFlag('MOB') or
                        (i.BlockMove == True and i.hasFlag('ITEM'))) and
                         not i == Player):
@@ -757,15 +757,15 @@ def askForTarget(Player, prompt = "Select a target.", Range = None):
                                                 libtcod.BKGND_SET)
 
             # Print what's there:
-            if var.Maps[var.DungeonLevel][x][y].isExplored():
-                square = var.Maps[var.DungeonLevel][x][y].name
+            if var.getMap()[x][y].isExplored():
+                square = var.getMap()[x][y].name
             else:
                 square = None
 
             mob = None
             stuff = []
 
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 try:
                     if Player.canSense(i):
                         sensed = True
@@ -890,7 +890,7 @@ def aiDoFlee(Me, Target):
         Other = None
 
         while fails < 10:
-            Other = random.choice(var.Entities[var.DungeonLevel])
+            Other = random.choice(var.getEntity())
 
             if Other.hasFlag('MOB'):
                 if Me.getRelation(Other) == 1:
@@ -920,7 +920,7 @@ def aiFindTarget(Mob):
             Mob.target = None
 
         # This prevents looking for target that was picked up or something:
-        for i in var.Entities[var.DungeonLevel]:
+        for i in var.getEntity():
             if i == Mob.target:
                 Target = Mob.target
                 break
@@ -929,7 +929,7 @@ def aiFindTarget(Mob):
             Mob.target = None
 
     # Check for enemies:
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.getEntity():
         if Mob.canSense(i):
             if i.hasFlag('MOB'):
                 if Mob.getRelation(i) < 1 and not i.hasFlag('DEAD'):
@@ -964,7 +964,7 @@ def aiKite(Me, Target):
         for x in range(Me.x - 1, Me.x + 2):
             if x in range(0, var.MapWidth - 1) and y in range(0, var.MapHeight - 1):
                 if (not Me.isBlocked(x, y, var.DungeonLevel) or
-                    var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')):
+                    var.getMap()[x][y].hasFlag('CAN_BE_OPENED')):
                     if Target.distance(x, y) > distance:
                         distance = Target.distance(x, y)
                         goal = [x, y]
@@ -991,10 +991,10 @@ def aiMoveAStar(Me, Target):
     # Set non-walkable spaces:
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
-            libtcod.map_set_properties(MoveMap, x, y, not var.Maps[var.DungeonLevel][x][y].BlockSight,
-                                       (not var.Maps[var.DungeonLevel][x][y].BlockMove or
-                                       var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
-    for i in var.Entities[var.DungeonLevel]:
+            libtcod.map_set_properties(MoveMap, x, y, not var.getMap()[x][y].BlockSight,
+                                       (not var.getMap()[x][y].BlockMove or
+                                       var.getMap()[x][y].hasFlag('CAN_BE_OPENED')))
+    for i in var.getEntity():
         if i.BlockMove == True and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
 
@@ -1059,10 +1059,10 @@ def aiMoveDijkstra(Me, Target):
     # Set non-walkable spaces:
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
-            libtcod.map_set_properties(MoveMap, x, y, not var.Maps[var.DungeonLevel][x][y].BlockSight,
-                                       (not var.Maps[var.DungeonLevel][x][y].BlockMove or
-                                       var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED')))
-    for i in var.Entities[var.DungeonLevel]:
+            libtcod.map_set_properties(MoveMap, x, y, not var.getMap()[x][y].BlockSight,
+                                       (not var.getMap()[x][y].BlockMove or
+                                       var.getMap()[x][y].hasFlag('CAN_BE_OPENED')))
+    for i in var.getEntity():
         if i.BlockMove == True and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
 
@@ -1090,7 +1090,7 @@ def aiMoveDijkstra(Me, Target):
     return moved
 
 def aiCheckSquare(Me):
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.getEntity():
         if i.hasFlag('ITEM') and i.x == Me.x and i.y == Me.y:
             if aiPickEquipment(Me, i):
                 Me.target = i
@@ -1147,7 +1147,7 @@ def aiSidestep(Me, Target):
     # We want to sometimes sidestep player to allow others to join us.
     friends = False
 
-    for i in var.Entities[var.DungeonLevel]:
+    for i in var.getEntity():
         if i.hasFlag('MOB'):
             if (i != Me and i != Target and i.range(Me) < 2 and
                 i.getRelation(Target) < 1):

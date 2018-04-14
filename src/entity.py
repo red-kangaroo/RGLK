@@ -738,7 +738,7 @@ class Mob(Entity):
             for x in range(self.x - 1, self.x + 2):
                 if x in range(0, var.MapWidth) and y in range(0, var.MapHeight):
                     #if x != self.x and y != self.y:
-                    if var.Maps[var.DungeonLevel][x][y].BlockMove == True:
+                    if var.getMap()[x][y].BlockMove == True:
                         AdjacentWalls += 1
                 else:
                     AdjacentWalls += 1
@@ -1020,7 +1020,7 @@ class Mob(Entity):
         if item != None:
             item.x = self.x
             item.y = self.y
-            var.Entities[var.DungeonLevel].append(item)
+            var.getEntity().append(item)
 
         # We need to sever the hand as well when we are severing the arm.
         # TODO: Make this work better with mutliple arms.
@@ -1045,7 +1045,7 @@ class Mob(Entity):
 
         limb.x = self.x
         limb.y = self.y
-        var.Entities[var.DungeonLevel].append(limb)
+        var.getEntity().append(limb)
 
         if not silent:
             ui.message("%s %s is severed!" % (self.getName(True, possessive = True), limb.getName()),
@@ -1880,7 +1880,7 @@ class Mob(Entity):
             self.name = str(self.name + ' corpse')
             self.BlockMove = False
 
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 if i.target == self:
                     i.target = None
 
@@ -1910,7 +1910,7 @@ class Mob(Entity):
             x = self.x + dx
             y = self.y + dy
 
-            for mob in var.Entities[var.DungeonLevel]:
+            for mob in var.getEntity():
                 if mob.x == x and mob.y == y and mob.hasFlag('MOB'):
                     Target = mob
                     break
@@ -2034,7 +2034,7 @@ class Mob(Entity):
         x = self.x + dx
         y = self.y + dy
 
-        for i in var.Entities[var.DungeonLevel]:
+        for i in var.getEntity():
             if i.x == x and i.y == y and i.hasFlag('MOB'):
                 bumpee = i
                 break
@@ -2057,20 +2057,20 @@ class Mob(Entity):
 
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             # First try opening doors.
-            if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
+            if var.getMap()[x][y].hasFlag('CAN_BE_OPENED'):
                 if(self.actionOpen(x, y)):
                     return True
 
             # Dig and chop!
-            if (self.hasIntrinsic('CAN_CHOP') and var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CHOPPED') and
+            if (self.hasIntrinsic('CAN_CHOP') and var.getMap()[x][y].hasFlag('CAN_BE_CHOPPED') and
                 self.isBlocked(x, y, var.DungeonLevel)):     # Here we want fallthrough with if instead of elif,
-                name = var.Maps[var.DungeonLevel][x][y].name # because we want to chop stuck doors when actionOpen fails.
+                name = var.getMap()[x][y].name # because we want to chop stuck doors when actionOpen fails.
 
-                if (var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR') and
-                    var.Maps[var.DungeonLevel][x][y].material == 'WOOD'):
-                    var.Maps[var.DungeonLevel][x][y].change(raw.BrokenDoor)
+                if (var.getMap()[x][y].hasFlag('DOOR') and
+                    var.getMap()[x][y].material == 'WOOD'):
+                    var.getMap()[x][y].change(raw.BrokenDoor)
                 else:
-                    var.Maps[var.DungeonLevel][x][y].change(raw.DestroyedTerrainList[var.Maps[var.DungeonLevel][x][y].material])
+                    var.getMap()[x][y].change(raw.DestroyedTerrainList[var.getMap()[x][y].material])
 
                 var.changeFOVMap(x, y)
                 ui.message("%s chop&S down the %s." % (self.getName(True), name), actor = self)
@@ -2078,10 +2078,10 @@ class Mob(Entity):
                 modifier = 5 * (0.9 ** self.getIntrinsicPower('CAN_CHOP'))
                 self.AP -= self.getActionAPCost(modifier)
                 return True
-            elif (self.hasIntrinsic('CAN_DIG') and var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_DUG') and
+            elif (self.hasIntrinsic('CAN_DIG') and var.getMap()[x][y].hasFlag('CAN_BE_DUG') and
                   self.isBlocked(x, y, var.DungeonLevel)):
-                if var.Maps[var.DungeonLevel][x][y].hasFlag('WALL'):
-                    var.Maps[var.DungeonLevel][x][y].change(raw.DestroyedTerrainList[var.Maps[var.DungeonLevel][x][y].material])
+                if var.getMap()[x][y].hasFlag('WALL'):
+                    var.getMap()[x][y].change(raw.DestroyedTerrainList[var.getMap()[x][y].material])
                 else:
                     print "Unhandled diggable tile."
                     return False
@@ -2094,12 +2094,12 @@ class Mob(Entity):
                 return True
 
             # Try closing adjacent doors.
-            elif var.Maps[var.DungeonLevel][x][y].BlockMove == True:
+            elif var.getMap()[x][y].BlockMove == True:
                 for n in range(y - 1, y + 2):
                     for m in range(x - 1, x + 2):
                         if (m > 0 and m < var.MapWidth - 1 and
                             n > 0 and n < var.MapHeight - 1):
-                            if var.Maps[var.DungeonLevel][m][n].hasFlag('CAN_BE_CLOSED'):
+                            if var.getMap()[m][n].hasFlag('CAN_BE_CLOSED'):
                                 if(self.actionClose(m, n)):
                                     return True
 
@@ -2115,17 +2115,17 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             blocked = False
 
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 if i.x == x and i.y == y:
                     blocked = True
                     break
 
-            if not blocked == True and var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED'):
-                if var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR'):
-                    if var.Maps[var.DungeonLevel][x][y].hasFlag('PORTCULLIS'):
-                        var.Maps[var.DungeonLevel][x][y].change(raw.ClosedPort)
+            if not blocked == True and var.getMap()[x][y].hasFlag('CAN_BE_CLOSED'):
+                if var.getMap()[x][y].hasFlag('DOOR'):
+                    if var.getMap()[x][y].hasFlag('PORTCULLIS'):
+                        var.getMap()[x][y].change(raw.ClosedPort)
                     else:
-                        var.Maps[var.DungeonLevel][x][y].change(raw.WoodDoor)
+                        var.getMap()[x][y].change(raw.WoodDoor)
 
                     var.changeFOVMap(x, y)
                     ui.message("%s close&S the door." % self.getName(True), actor = self)
@@ -2133,7 +2133,7 @@ class Mob(Entity):
                     return True
                 else:
                     print "BUG: Unhandled closeable terrain."
-            elif var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED') and self.hasFlag('AVATAR'):
+            elif var.getMap()[x][y].hasFlag('CAN_BE_CLOSED') and self.hasFlag('AVATAR'):
                 ui.message("There is something in the way.")
             elif self.hasFlag('AVATAR'):
                 ui.message("There is nothing to close.")
@@ -2157,7 +2157,7 @@ class Mob(Entity):
             self.AP -= self.getMoveAPCost()
             return False
 
-        if dz > 0 and var.Maps[var.DungeonLevel][self.x][self.y].hasFlag('STAIRS_UP'):
+        if dz > 0 and var.getMap()[self.x][self.y].hasFlag('STAIRS_UP'):
             # Block upstairs on first level.
             if var.DungeonLevel == 1:
                 if not self.isWinner():
@@ -2181,7 +2181,7 @@ class Mob(Entity):
                 self.y = toClimb[1]
 
                 var.Entities[var.DungeonLevel - 1].append(self)
-                var.Entities[var.DungeonLevel].remove(self)
+                var.getEntity().remove(self)
                 var.DungeonLevel -= 1
 
                 if self.hasFlag('AVATAR'):
@@ -2196,7 +2196,7 @@ class Mob(Entity):
             else:
                 ui.message("The stairs lead nowhere!", actor = self)
                 return False
-        elif dz < 0 and var.Maps[var.DungeonLevel][self.x][self.y].hasFlag('STAIRS_DOWN'):
+        elif dz < 0 and var.getMap()[self.x][self.y].hasFlag('STAIRS_DOWN'):
             if var.DungeonLevel + 1 <= var.FloorMaxNumber:
                 if var.Maps[var.DungeonLevel + 1] == None:
                     dungeon.makeMap(True, var.DungeonLevel + 1)
@@ -2212,7 +2212,7 @@ class Mob(Entity):
                 self.y = toClimb[1]
 
                 var.Entities[var.DungeonLevel + 1].append(self)
-                var.Entities[var.DungeonLevel].remove(self)
+                var.getEntity().remove(self)
                 var.DungeonLevel += 1
 
                 if self.hasFlag('AVATAR'):
@@ -2235,11 +2235,11 @@ class Mob(Entity):
                 for m in range(self.x - 1, self.x + 2):
                     if (m > 0 and m < var.MapWidth - 1 and
                         n > 0 and n < var.MapHeight - 1):
-                        if var.Maps[var.DungeonLevel][m][n].hasFlag('CAN_BE_CLIMBED'):
-                            if dz > 0 and var.Maps[var.DungeonLevel][m][n].BlockMove:
+                        if var.getMap()[m][n].hasFlag('CAN_BE_CLIMBED'):
+                            if dz > 0 and var.getMap()[m][n].BlockMove:
                                 # This is mostly for climbing adjacent trees.
                                 climb = False
-                                tree = var.Maps[var.DungeonLevel][m][n].name
+                                tree = var.getMap()[m][n].name
 
                                 if self.hasFlag('AVATAR'):
                                     climb = ai.askForConfirmation(self, "Do you want to climb the %s?" % tree)
@@ -2280,7 +2280,7 @@ class Mob(Entity):
 
                 item.x = self.x
                 item.y = self.y
-                var.Entities[var.DungeonLevel].append(item)
+                var.getEntity().append(item)
                 item.tryStacking()
                 # Used only on death, so no AP nor drop messages.
         else:
@@ -2300,7 +2300,7 @@ class Mob(Entity):
 
                 item.x = self.x
                 item.y = self.y
-                var.Entities[var.DungeonLevel].append(item)
+                var.getEntity().append(item)
                 item.tryStacking()
 
                 ui.message("%s drop&S %s." % (self.getName(True), item.getName()),
@@ -2335,7 +2335,7 @@ class Mob(Entity):
             self.AP -= self.getMoveAPCost()
             return False
 
-        for i in var.Entities[var.DungeonLevel]:
+        for i in var.getEntity():
             if i.x == x and i.y == y:
                 if i.hasFlag('ITEM'):
                     # TODO: actionLoot
@@ -2353,16 +2353,16 @@ class Mob(Entity):
                     self.AP -= self.getActionAPCost()
                     return True
 
-        if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
+        if var.getMap()[x][y].hasFlag('CAN_BE_OPENED'):
             if self.actionOpen(x, y):
                 return True
             return False
-        elif var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLOSED'):
+        elif var.getMap()[x][y].hasFlag('CAN_BE_CLOSED'):
             if self.actionClose(x, y):
                 return True
             return False
-        elif var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_CLIMBED'):
-            tree = var.Maps[var.DungeonLevel][x][y].name
+        elif var.getMap()[x][y].hasFlag('CAN_BE_CLIMBED'):
+            tree = var.getMap()[x][y].name
 
             if self.SP < 5:
                 ui.message("%s &ISARE too tired to climb the %s." % (self.getName(True), tree), actor = self)
@@ -2592,23 +2592,23 @@ class Mob(Entity):
             return False
 
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
-            if var.Maps[var.DungeonLevel][x][y].hasFlag('CAN_BE_OPENED'):
-                if var.Maps[var.DungeonLevel][x][y].hasFlag('DOOR'):
+            if var.getMap()[x][y].hasFlag('CAN_BE_OPENED'):
+                if var.getMap()[x][y].hasFlag('DOOR'):
                     # Blocked door will only appear in vault where we want to keep
                     # monsters inside.
-                    if (var.Maps[var.DungeonLevel][x][y].hasFlag('BLOCKED') and
+                    if (var.getMap()[x][y].hasFlag('BLOCKED') and
                         not self.hasFlag('AVATAR')):
                         return False
 
                     # TODO: LOCKED flag.
-                    if var.Maps[var.DungeonLevel][x][y].hasFlag('SECRET'):
+                    if var.getMap()[x][y].hasFlag('SECRET'):
                         ui.message("%s discover&S a secret door!" % self.getName(True),
                                    libtcod.azure, actor = self)
 
-                    if var.Maps[var.DungeonLevel][x][y].hasFlag('PORTCULLIS'):
-                        var.Maps[var.DungeonLevel][x][y].change(raw.OpenPort)
+                    if var.getMap()[x][y].hasFlag('PORTCULLIS'):
+                        var.getMap()[x][y].change(raw.OpenPort)
                     else:
-                        var.Maps[var.DungeonLevel][x][y].change(raw.OpenDoor)
+                        var.getMap()[x][y].change(raw.OpenDoor)
 
                     var.changeFOVMap(x, y)
                     ui.message("%s open&S the door." % self.getName(True), actor = self)
@@ -2633,7 +2633,7 @@ class Mob(Entity):
 
         options = []
 
-        for i in var.Entities[var.DungeonLevel]:
+        for i in var.getEntity():
             if i.hasFlag('ITEM') and i.x == x and i.y == y:
                 options.append(i)
 
@@ -2659,7 +2659,7 @@ class Mob(Entity):
 
                 self.inventory.append(i)
                 i.tryStacking(self)
-                var.Entities[var.DungeonLevel].remove(i)
+                var.getEntity().remove(i)
                 ui.message("%s pick&S up %s." % (self.getName(True), i.getName()), actor = self)
                 self.AP -= self.getActionAPCost()
 
@@ -2675,7 +2675,7 @@ class Mob(Entity):
             else:
                 self.inventory.append(options[toPick])
                 options[toPick].tryStacking(self)
-                var.Entities[var.DungeonLevel].remove(options[toPick])
+                var.getEntity().remove(options[toPick])
                 ui.message("%s pick&S up %s." % (self.getName(True), options[toPick].getName()),
                            actor = self)
                 self.AP -= self.getActionAPCost()
@@ -2687,7 +2687,7 @@ class Mob(Entity):
 
     def actionPossess(self, x, y):
         if self.hasFlag('AVATAR'):
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 if i.x == x and i.y == y and i.hasFlag('MOB'):
                     self.flags.remove('AVATAR')
                     i.flags.append('AVATAR')
@@ -2803,17 +2803,17 @@ class Mob(Entity):
             moved = True
 
             if self.hasFlag('AVATAR'):
-                var.Maps[var.DungeonLevel][self.x][self.y].makeExplored()
+                var.getMap()[self.x][self.y].makeExplored()
         else:
             if self.hasFlag('AVATAR'):
-                var.Maps[var.DungeonLevel][self.x + dx][self.y + dy].makeExplored()
+                var.getMap()[self.x + dx][self.y + dy].makeExplored()
                 ui.message("You cannot go there.")
 
         if moved and self.hasFlag('AVATAR'):
             # Describe what we're standing at.
             stuff = []
 
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 if i.hasFlag('ITEM') and i.x == self.x and i.y == self.y:
                     stuff.append(i.getName())
 
@@ -3123,9 +3123,9 @@ class Item(Entity):
 
     def getDestroyed(self, Owner = None):
         if Owner == None:
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 if i == self: # We should make sure we are actually lying on the floor.
-                    var.Entities[var.DungeonLevel].remove(self)
+                    var.getEntity().remove(self)
                     del self
         else:
             try:
@@ -3141,7 +3141,7 @@ class Item(Entity):
                 if self.addToStack(i, Owner):
                     return True
         else:
-            for i in var.Entities[var.DungeonLevel]:
+            for i in var.getEntity():
                 if i.hasFlag('ITEM') and i.x == self.x and i.y == self.y:
                     if self.addToStack(i, Owner):
                         return True
