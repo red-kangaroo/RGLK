@@ -692,6 +692,9 @@ class Mob(Entity):
         if weapon != None:
             bonus += weapon.enchantment
 
+            if weapon.hasFlag('ENCHANT_DOUBLE'):
+                bonus += weapon.enchantment
+
         bonus = var.rand_int_from_float(bonus)
 
         if bonus > 0:
@@ -1205,6 +1208,9 @@ class Mob(Entity):
                 except:
                     pass
 
+        if self.hasIntrinsic('AFLAME'):
+            light += 2
+
         if light <= 0: # Sadly, libtcod requires at least radius 1, because 0 or less
             light = 1  # means unlimited sight radius.
 
@@ -1569,16 +1575,12 @@ class Mob(Entity):
                                                             self.name, toDodge)
 
         toHit += attacker.getAccuracyBonus(weapon)
-        # I am unseen.
-        #if not attacker.canSense(self):
-        #    print "Unseen defender."
-        #    toHit -= 5
-
         toDodge += self.getDodgeBonus(attacker, weapon)
-        # Unseen attacker.
-        #if not self.canSense(attacker):
-        #    print "Unseen attacker."
-        #    toDodge -= 5
+
+        # Unseen penalty.
+        if not attacker.canSense(self):
+            print "Unseen defender."
+            toHit -= 4
 
         print "modified hit chance: %s vs %s" % (toHit, toDodge)
 
@@ -1780,6 +1782,25 @@ class Mob(Entity):
                 ui.message("%s burn&S %s%s" % (attacker.getName(True), self.getName(), fullStop), color, attacker)
             else:
                 ui.message("%s &ISARE burned%s" % (self.getName(True), fullStop), color, self)
+
+        if 'ICE' in AttackFlags: # Ice adds 1d3 cold damage.
+            print "Adding cold damage."
+
+            damage += self.resistDamage(libtcod.random_get_int(0, 1, 3), 'COLD')
+            color = var.TextColor
+            fullStop = "."
+
+            # TODO: Freeze them solid.
+            #if weapon != None:
+            #    if var.rand_chance(weapon.enchantment):
+            #        self.addIntrinsic('AFLAME', var.rand_dice(1, 4, 1), 1)
+            #        color = libtcod.light_red
+            #        fullStop = "!"
+
+            if attacker != None:
+                ui.message("%s freeze&S %s%s" % (attacker.getName(True), self.getName(), fullStop), color, attacker)
+            else:
+                ui.message("%s &ISARE chilled%s" % (self.getName(True), fullStop), color, self)
 
         if damage > 0:
             # We get instakilled by enough damage.
@@ -2387,7 +2408,7 @@ class Mob(Entity):
 
                     itemCool = item.getCoolness()
 
-                    if item.size < part.size and slot != 'GRASP':
+                    if item.size != part.size and slot != 'GRASP':
                         if forced:
                             item.size = part.size
                         else:
@@ -2823,6 +2844,7 @@ class Item(Entity):
         self.ProtectionValue = PV
         self.StrScaling = StrScaling
         self.DexScaling = DexScaling
+        self.coolness = cool
 
         self.flags.append('ITEM')
         for i in addFlags:
@@ -2833,7 +2855,9 @@ class Item(Entity):
             self.intrinsics.append(NewInt)
 
         # Generate some blessed and cursed items:
-        if self.hasFlag('ALWAYS_BLESSED'):
+        if self.hasFlag('ALWAYS_MUNDANE'):
+            self.beautitude = 0
+        elif self.hasFlag('ALWAYS_BLESSED'):
             self.beautitude += 1
         elif self.hasFlag('ALWAYS_CURSED'):
             self.beautitude -= 1
@@ -2844,22 +2868,34 @@ class Item(Entity):
                 self.beautitude -= 1
 
         # And some items are enchanted:
-        mod = random.choice([-1, 1, 1])
+        if not self.hasFlag('ALWAYS_MUNDANE'):
+            mod = random.choice([-1, 1, 1])
 
-        while var.rand_chance(10 + var.DungeonLevel): # We can find more and more highly
-            self.enchantment += mod                   # enchanted gear deeper into the dungeon.
+            while var.rand_chance(10 + var.DungeonLevel): # We can find more and more highly
+                self.enchantment += mod                   # enchanted gear deeper into the dungeon.
 
-        if var.rand_chance(var.DungeonLevel):         # Deep enough in the dungeon, gear has much
-            self.enchantment = abs(self.enchantment)  # higher chance of positive enchantment.
+            if var.rand_chance(var.DungeonLevel):         # Deep enough in the dungeon, gear has much
+                self.enchantment = abs(self.enchantment)  # higher chance of positive enchantment.
 
+        # Some armors are of different size:
+        if self.hasFlag('ARMOR'):
+            mod = random.choice([-1, 1])
+
+            while var.rand_chance(1, 1000):
+                self.size += mod
+
+            self.size = min(2, max(-2, self.size)) # We need our size in range -2 to 2.
+
+        # Special bonuses:
         self.acc = 0 # This is not same as ToHitBonus from self.attack, this is used
                      # for general accuracy bonus for all attacks, eg. from armor.
         self.light = 0
-        self.coolness = cool
 
         # Item stacks:
         if self.hasFlag('PAIRED'):
             self.stack = 2
+        elif self.hasFlag('PILE'):
+            self.stack = libtcod.random_get_int(0, 1, 20)
         else:
             self.stack = 1
 
@@ -2867,7 +2903,10 @@ class Item(Entity):
         name = self.prefix + self.name + self.suffix
 
         if self.stack > 1:
-            name = name + "s" # TODO: Plurals
+            try:
+                name = self.type['plural']
+            except:
+                name = name + "s"
 
         # TODO:
         # if full == False, show only base name
@@ -2967,23 +3006,6 @@ class Item(Entity):
         lines.append(underscore)
         lines.append("Material: %s" % self.material.lower())
         lines.append("Size    : %s" % raw.Sizes[self.size])
-
-        if self.light != 0:
-            lit = "Light   : " + str(self.getLightValue())
-
-            if self.hasFlag('CARRY_LIGHT'):
-                lit = lit + " (carry)"
-
-            lines.append(lit)
-
-        if self.acc != 0 and not self.hasFlag('WEAPON'):
-            toHit = self.acc
-
-            if self.hasFlag('ENCHANT_ACCURACY'):
-                toHit += self.enchantment
-
-            lines.append("Accuracy: %s" % toHit)
-
         lines.append("")
 
         lines.append("Combat")
@@ -3056,10 +3078,38 @@ class Item(Entity):
             lines.append("Defense   : %s" % DV)
             lines.append("Protection: %s" % PV)
 
-        if len(self.intrinsics) > 0:
+        if len(self.intrinsics) > 0 or self.hasSpecialBonuses():
             lines.append("")
             lines.append("Intrinsics")
             lines.append(underscore)
+
+            if self.light != 0:
+                if self.light >= 0:
+                    lit = "+" + str(self.getLightValue())
+                else:
+                    lit = str(self.getLightValue())
+
+                lit = "light   : " + lit
+
+                if self.hasFlag('CARRY_LIGHT'):
+                    lit = lit + " (carry)"
+
+                lines.append(lit)
+
+            if self.acc != 0 and not self.hasFlag('WEAPON'):
+                toHit = self.acc
+
+                if self.hasFlag('ENCHANT_ACCURACY'):
+                    toHit += self.enchantment
+
+                if toHit >= 0:
+                    toHit = "+" + str(toHit)
+                else:
+                    toHit = str(toHit)
+
+                toHit = "accuracy: " + toHit
+
+                lines.append(toHit)
 
             for i in self.intrinsics:
                 lines.append(i.getName())
@@ -3239,6 +3289,10 @@ class Item(Entity):
 
         return light
 
+    def getAttributeValue(self, stat):
+        # TODO: Returns attribute bonus from item.
+        pass
+
     def getSPCost(self):
         base = 5
         # Stamina cost of attacks is based on their scaling, as StrScaling attacks
@@ -3259,9 +3313,9 @@ class Item(Entity):
         # as you are using them in both hands and thus each hand is less tired
         # by the attacks.
         if self.size > 0 or self.hasFlag('TWO_AND_HALF'):
-            return max(1, int(math.floor(base)))
+            return max(2, int(math.floor(base)))
         else:
-            return max(1, int(math.ceil(base)))
+            return max(2, int(math.ceil(base)))
 
     def getMPCost(self):
         # TODO: For magical weapons and shields blocking magic.
@@ -3405,6 +3459,15 @@ class Item(Entity):
                 slot = 'GRASP'
 
         return slot
+
+    def hasSpecialBonuses(self):
+        if self.acc != 0 and not self.hasFlag('WEAPON'):
+            return True
+
+        if self.light != 0:
+            return True
+
+        return False
 
     # Various use methods:
     def beApplied(self, User, victim = None):
@@ -3734,8 +3797,6 @@ class BodyPart(Entity):
                 AttackRange, AttackFlags, inflict, explode)
 
     def doEquip(self, item, actor = None):
-        # TODO: Two-handers.
-
         if len(self.inventory) > 0:
             return False
 
@@ -3747,11 +3808,17 @@ class BodyPart(Entity):
         else:
             return False
 
-        if not slot == 'GRASP' and item.size < self.size:
-            if actor != None:
-                if actor.hasFlag('AVATAR'):
-                    ui.message("%s is too small to fit." % item.getName(True))
-            return False
+        if not slot == 'GRASP':
+            if item.size < self.size:
+                if actor != None:
+                    if actor.hasFlag('AVATAR'):
+                        ui.message("%s is too small to fit." % item.getName(True))
+                return False
+            elif item.size > self.size:
+                if actor != None:
+                    if actor.hasFlag('AVATAR'):
+                        ui.message("%s is too large to fit properly." % item.getName(True))
+                return False
 
         self.inventory.append(item)
         return True

@@ -71,8 +71,10 @@ Items
 
 Generation:
   These flags are removed at item generation, setting object properties.
+ALWAYS_MUNDANE     Never generated blessed, cursed or enchanted.
 ALWAYS_BLESSED
 ALWAYS_CURSED
+PILE               Generated as a small pile.
 PAIRED             Generated as a pair.
 
 Item types:

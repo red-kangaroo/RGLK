@@ -559,7 +559,12 @@ def main_menu(Player = None):
     libtcod.console_set_alignment(var.MainMenu, libtcod.CENTER)
     libtcod.console_clear(var.MainMenu)
 
+    # Name of the game.
+    libtcod.console_set_default_foreground(var.MainMenu, libtcod.dark_violet)
     libtcod.console_print(var.MainMenu, (var.MainWidth / 2), 1, var.GameName)
+
+    # Restore text color.
+    libtcod.console_set_default_foreground(var.MainMenu, var.TextColor)
 
     index = ord('a')
     options = []
@@ -589,9 +594,11 @@ def main_menu(Player = None):
         y += 1
 
     # Add version number and my name, or course. :P
+    libtcod.console_set_default_foreground(var.MainMenu, libtcod.grey)
     libtcod.console_print_ex(var.MainMenu, 1, var.MainHeight - 1,
                              libtcod.BKGND_NONE, libtcod.LEFT, var.VersionNumber)
-    libtcod.console_print_ex(var.MainMenu, var.MainWidth - 1, var.MainHeight - 2,
+    libtcod.console_set_default_foreground(var.MainMenu, var.TextColor)
+    libtcod.console_print_ex(var.MainMenu, var.MainWidth - 2, var.MainHeight - 1,
                              libtcod.BKGND_NONE, libtcod.RIGHT, "by red_kangaroo")
 
     libtcod.console_blit(var.MainMenu, 0, 0, var.MainWidth, var.MainHeight, 0,
@@ -610,6 +617,9 @@ def main_menu(Player = None):
             return None
 
 def item_description(item):
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+    libtcod.console_clear(var.MenuPanel)
+
     if item.beautitude > 0:
         libtcod.console_set_default_foreground(var.MenuPanel, libtcod.chartreuse)
     elif item.beautitude < 0:
@@ -617,12 +627,13 @@ def item_description(item):
     else:
         libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
 
-    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
-    libtcod.console_clear(var.MenuPanel)
-
-    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+    libtcod.console_print_rect_ex(var.MenuPanel, 3, 1, var.MenuWidth, var.MenuHeight,
                                   libtcod.BKGND_SET, libtcod.LEFT,
                                   item.getName(full = True))
+    if not item.hasFlag('DEAD'): # Corpses are crashing the game here, for some reason.
+        libtcod.console_set_default_foreground(var.MenuPanel, item.color)
+        libtcod.console_print_ex(var.MenuPanel, 1, 1, libtcod.BKGND_SET, libtcod.LEFT,
+                                 item.char)
 
     libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
     libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
@@ -650,6 +661,29 @@ def item_description(item):
                     return None
 
                 if Key.vk == libtcod.KEY_SPACE:
+                    # This unfortunately must be repeated here:
+                    libtcod.console_clear(var.MenuPanel)
+
+                    if item.beautitude > 0:
+                        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.chartreuse)
+                    elif item.beautitude < 0:
+                        libtcod.console_set_default_foreground(var.MenuPanel, libtcod.red)
+                    else:
+                        libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
+                    libtcod.console_print_rect_ex(var.MenuPanel, 3, 1, var.MenuWidth, var.MenuHeight,
+                                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                                  item.getName(full = True))
+
+                    if not item.hasFlag('DEAD'):
+                        libtcod.console_set_default_foreground(var.MenuPanel, item.color)
+                        libtcod.console_print_ex(var.MenuPanel, 1, 1, libtcod.BKGND_SET, libtcod.LEFT,
+                                                 item.char)
+
+                    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+                    libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
+                                             "[Space for next; Esc to exit]")
+
                     y = 3
                     break
 

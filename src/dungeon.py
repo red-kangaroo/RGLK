@@ -380,8 +380,9 @@ def create_prefab(Prefab, room, map, DungeonLevel):
                     connected = False
 
                     for m in range(x - 1, x + 2):
-                        if map[m][n].isWalkable():
-                            connected = True
+                        if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                            if map[m][n].isWalkable():
+                                connected = True
 
                     if connected:
                         break
@@ -410,8 +411,9 @@ def create_prefab(Prefab, room, map, DungeonLevel):
                     connected = False
 
                     for n in range(y - 1, y + 2):
-                        if map[m][n].isWalkable():
-                            connected = True
+                        if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                            if map[m][n].isWalkable():
+                                connected = True
 
                     if connected:
                         break
@@ -440,8 +442,9 @@ def create_prefab(Prefab, room, map, DungeonLevel):
                     connected = False
 
                     for n in range(y - 1, y + 2):
-                        if map[m][n].isWalkable():
-                            connected = True
+                        if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                            if map[m][n].isWalkable():
+                                connected = True
 
                     if connected:
                         break
@@ -470,8 +473,9 @@ def create_prefab(Prefab, room, map, DungeonLevel):
                     connected = False
 
                     for m in range(x - 1, x + 2):
-                        if map[m][n].isWalkable():
-                            connected = True
+                        if m in range(0, var.MapWidth) and n in range(0, var.MapHeight):
+                            if map[m][n].isWalkable():
+                                connected = True
 
                     if connected:
                         break

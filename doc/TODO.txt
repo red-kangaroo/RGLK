@@ -1,5 +1,7 @@
 List of things to do and include:
+* release with pyinstaller?
 * pain
+* kill list
 * intrinsics:
    VULN_material
    IMMUNE_GAS
