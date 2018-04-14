@@ -1476,6 +1476,8 @@ class Mob(Entity):
 
     def canBreakCurse(self, power = 0):
         # Through undeath of some skills, you may automatically break curses binding you.
+        if self.hasFlag('AVATAR') and var.WizModeActivated:
+            return True
         if self.hasFlag('UNDEAD'):
             return True
         # TODO: Barbarians can tear cursed items off, taking damage based on power.
@@ -1801,6 +1803,28 @@ class Mob(Entity):
                 ui.message("%s freeze&S %s%s" % (attacker.getName(True), self.getName(), fullStop), color, attacker)
             else:
                 ui.message("%s &ISARE chilled%s" % (self.getName(True), fullStop), color, self)
+
+        if 'STEAL_LIFE' in AttackFlags: # Vampiric weapon.
+            print "Vampiric."
+
+            if damage > 0 and attacker != None and not self.hasIntrinsic('BLOODLESS') and not self.hasFlag('UNDEAD'):
+                drain = libtcod.random_get_int(0, 0, damage)
+
+                if drain > 0:
+                    attacker.receiveHeal(drain)
+                    ui.message("%s drain&S %s lifeblood." % (attacker.getName(True), self.getName(possessive = True)),
+                               libtcod.light_red, attacker)
+
+        if 'STEAL_MANA' in AttackFlags: # Blood magic weapon.
+            print "Blood magic."
+
+            if damage > 0 and attacker != None and not self.hasIntrinsic('BLOODLESS') and not self.hasFlag('UNDEAD'):
+                drain = libtcod.random_get_int(0, 0, damage)
+
+                if drain > 0:
+                    attacker.receiveMana(drain)
+                    ui.message("%s drain&S %s lifeforce." % (attacker.getName(True), self.getName(possessive = True)),
+                               libtcod.light_red, attacker)
 
         if damage > 0:
             # We get instakilled by enough damage.

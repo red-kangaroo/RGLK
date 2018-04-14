@@ -177,6 +177,24 @@ KnifeAttack = {
 'DamageType': 'SLASH'
 }
 
+VampKnifeAttack = {
+'verb': 'jab&S',
+'DiceNumber': 1,
+'DiceValue': 3,
+'DamageBonus': 1,
+'DamageType': 'SLASH',
+'flags': ['STEAL_LIFE']
+}
+
+ManaKnifeAttack = {
+'verb': 'jab&S',
+'DiceNumber': 1,
+'DiceValue': 3,
+'DamageBonus': 1,
+'DamageType': 'SLASH',
+'flags': ['STEAL_MANA']
+}
+
 DaggerAttack = {
 'verb': 'stab&S',
 'DiceNumber': 1,
@@ -1027,6 +1045,7 @@ QuarterStaff = {
 'char': '|',
 'color': libtcod.darkest_orange,
 'name': 'quarterstaff',
+'plural': 'quarterstaves',
 'material': 'WOOD',
 'size': 1,
 'DV': 1,
@@ -1041,6 +1060,7 @@ IronShodStaff = {
 'char': '|',
 'color': libtcod.silver,
 'name': 'iron-shod staff',
+'plural': 'iron-shod staves',
 'material': 'IRON',
 'size': 1,
 'StrScaling': 'C', # TODO: ???
@@ -1054,6 +1074,7 @@ SilverTipStaff = {
 'char': '|',
 'color': libtcod.white,
 'name': 'silver-tipped staff',
+'plural': 'silver-tipped staves',
 'material': 'SILVER',
 'size': 1,
 'StrScaling': 'C',
@@ -1067,6 +1088,7 @@ LeadFillStaff = {
 'char': '|',
 'color': libtcod.dark_grey,
 'name': 'lead-filled staff',
+'plural': 'lead-filled staves',
 'material': 'WOOD',
 'size': 1,
 'StrScaling': 'C',
@@ -1087,6 +1109,34 @@ Knife = {
 'attack': KnifeAttack,
 'ranged': KnifeThrown,
 'flags': ['MELEE', 'WEAPON']
+}
+
+VampireKnife = {
+'char': ')',
+'color': libtcod.dark_red,
+'name': 'vampire knife',
+'material': 'BONE',
+'size': -2,
+'StrScaling': 'C',
+'DexScaling': 'A',
+'attack': VampKnifeAttack,
+'ranged': KnifeThrown, # TODO? Probably not at range.
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 100
+}
+
+RitualKnife = {
+'char': ')',
+'color': libtcod.dark_blue,
+'name': 'ritual knife',
+'material': 'STONE', # Obsidian.
+'size': -2,
+'StrScaling': 'C',
+'DexScaling': 'A',
+'attack': ManaKnifeAttack,
+'ranged': KnifeThrown,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 100
 }
 
 Dagger = {
@@ -2145,7 +2195,7 @@ DummyMonster = {
 'mutations': [],
 'flags': ['HUMANOID'],
 'frequency': 1000,
-'DL': 0
+'DL': 0 # TODO
 }
 
 Player = {
@@ -2162,7 +2212,7 @@ Player = {
 'sex': 'MOF',
 'intrinsics': [],
 'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, Bandage, SunStone],
-'flags': ['HUMANOID', 'AVATAR', 'UNDEAD'], # TODO
+'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
 }
 
@@ -3563,6 +3613,8 @@ IronShodStaff,
 SilverTipStaff,
 LeadFillStaff,
 Knife,
+VampireKnife,
+RitualKnife,
 Dagger,
 SilverDagger,
 ParryDagger,

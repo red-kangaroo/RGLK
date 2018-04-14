@@ -4,6 +4,21 @@ Simple roguelike in python + libtcod.
 
 
 
+### How to play
+
+If you don't know you way with terminal at least a bit, you might want to wait
+for me to make executables. The game's in pre-alpha, anyway. :)
+
+Otherwise, open terminal from the RGLK directory and type the following:
+
+```
+$ cd src
+$ python main.py
+```
+
+You might need to install SDL2 unless you have it already.
+
+
 ### Controls
 
 Movement:
@@ -65,3 +80,28 @@ Wizard mode:
 
  *) TODO
 ```
+
+
+### Screenshots
+
+![Screenshot](doc/screenshots/dungeon.png)
+
+![Screenshot](doc/screenshots/dungeon2.png)
+
+![Screenshot](doc/screenshots/BSP.png)
+
+![Screenshot](doc/screenshots/BSP2.png)
+
+![Screenshot](doc/screenshots/cave.png)
+
+![Screenshot](doc/screenshots/cave2.png)
+
+![Screenshot](doc/screenshots/city.png)
+
+![Screenshot](doc/screenshots/city2.png)
+
+![Screenshot](doc/screenshots/sewer.png)
+
+![Screenshot](doc/screenshots/sewer2.png)
+
+![Screenshot](doc/screenshots/maze.png)
