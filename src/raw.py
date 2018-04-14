@@ -2072,7 +2072,7 @@ KoboldMiner = {
 'inventory': [PickAxe],
 'flags': ['HUMANOID'],
 'mutations': ['MUTATION_CLAWS'],
-'frequency': 50
+'frequency': 5
 }
 
 KoboldWarrior = {
@@ -2091,7 +2091,7 @@ KoboldWarrior = {
 'inventory': [Cudgel, RoundShield],
 'flags': ['HUMANOID'],
 'mutations': ['MUTATION_CLAWS'],
-'frequency': 500
+'frequency': 300
 }
 
 KoboldWhelp = {
@@ -2108,7 +2108,7 @@ KoboldWhelp = {
 'size': -2,
 'sex': 'MOF',
 'flags': ['HUMANOID', 'AI_KITE', 'AI_SCAVENGER'],
-'frequency': 500
+'frequency': 300
 }
 
 Orc = {
@@ -2139,7 +2139,7 @@ Ogre = {
 'inventory': [GiantSpikedClub],
 'intrinsics': [('REGEN_STAM', 3)],
 'flags': ['HUMANOID'],
-'frequency': 250
+'frequency': 200
 }
 
 Troll = {
@@ -2156,7 +2156,7 @@ Troll = {
 'intrinsics': [('REGEN_LIFE', 3)], # TODO: Revival.
 'flags': ['HUMANOID', 'USE_HEAD'],
 'mutations': ['MUTATION_CLAWS_LARGE'],
-'frequency': 250
+'frequency': 200
 }
 
 Alien = {
@@ -2171,7 +2171,7 @@ Alien = {
 'sight': 5,
 'sex': 'UNDEFINED',
 'flags': ['ALIEN', 'USE_LEGS', 'AI_DIJKSTRA'],
-'frequency': 50
+'frequency': 5
 }
 
 BlackKnight = {

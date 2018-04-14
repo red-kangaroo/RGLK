@@ -233,13 +233,19 @@ class Entity(object):
         self.x += dx
         self.y += dy
 
-    def draw(self):
+    def draw(self, canSee):
         # Set color and draw character on screen.
         if (libtcod.map_is_in_fov(var.FOVMap, self.x, self.y) or var.WizModeTrueSight):
             libtcod.console_set_default_foreground(var.MapConsole, self.getColor())
-            libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_SCREEN)
+                       # This canSee refers to the Player, whether he's blind or not.
+            if canSee: # We'll draw "seen" monster anyway, but as a question mark.
+                libtcod.console_put_char(var.MapConsole, self.x, self.y, self.char, libtcod.BKGND_SCREEN)
+            elif self.hasFlag('MOB'):
+                libtcod.console_put_char(var.MapConsole, self.x, self.y, '?', libtcod.BKGND_SCREEN)
+
             # Add a SEEN flag. This is necessary for messages, as FOV can be recalculated for other
-            # creatures, but player will still only see the monsters with SEEN flag.
+            # creatures, but player will still only see the monsters with SEEN flag. We append it
+            # even when canSee == False, because we still want to be able to recognize adjacent stuff.
             self.flags.append('SEEN')
 
     def range(self, Other): # Range between two entities.

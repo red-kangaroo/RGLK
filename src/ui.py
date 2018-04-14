@@ -34,13 +34,7 @@ def render_map(Player):
     #libtcod.console_clear(var.MapConsole) # I originally forgot to add this and
                                            # it looked quite weird on level transitions. :D
 
-    # Draw map.
-    for y in range(var.MapHeight):
-        for x in range(var.MapWidth):
-            tile = var.Maps[var.DungeonLevel][x][y]
-            tile.draw(x, y, Player)
-
-
+    # Let's see if the Player can see:
     if Player != None:
         if ((Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')) and
             not var.WizModeTrueSight):
@@ -50,40 +44,43 @@ def render_map(Player):
     else:
         canSee = True
 
+    # Draw map.
+    for y in range(var.MapHeight):
+        for x in range(var.MapWidth):
+            tile = var.Maps[var.DungeonLevel][x][y]
+            tile.draw(x, y, canSee)
+
     # Draw first items, then features and then mobs.
-    if canSee:
-        for i in var.Entities[var.DungeonLevel]:
-            if i.hasFlag('ITEM'):
-                i.draw()
-        for i in var.Entities[var.DungeonLevel]:
-            if i.hasFlag('FEATURE'):
-                i.draw()
-        for i in var.Entities[var.DungeonLevel]:
-            if i.hasFlag('MOB'):
-                i.draw()
+    for i in var.Entities[var.DungeonLevel]:
+        if i.hasFlag('ITEM'):
+            i.draw(canSee)
+    for i in var.Entities[var.DungeonLevel]:
+        if i.hasFlag('FEATURE'):
+            i.draw(canSee)
+    for i in var.Entities[var.DungeonLevel]:
+        if i.hasFlag('MOB'):
+            i.draw(canSee)
 
     # Draw player last, over everything else.
-    if Player != None:
-        if not Player.hasFlag('DEAD'):
-            if ((Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')) and
-                not var.WizModeTrueSight):
-                libtcod.console_set_default_foreground(var.MapConsole, Player.getColor())
-                libtcod.console_put_char(var.MapConsole, Player.x, Player.y, '?', libtcod.BKGND_SCREEN)
-                '''
-                for y in range(Player.y - 1, Player.y + 2):
-                    for x in range(Player.x - 1, Player.x + 2):
-                        libtcod.console_set_default_foreground(var.MapConsole, libtcod.grey)
+    if Player != None:                 # Player == None happens when we're dead and picked up by something.
+        if not Player.hasFlag('DEAD'): # We don't want to draw our corpse over other mobs.
+            Player.draw(canSee)
 
-                        if x == Player.x and y == Player.y:
-                            libtcod.console_put_char(var.MapConsole, x, y, '?', libtcod.BKGND_SCREEN)
-                        else:
-                            libtcod.console_put_char(var.MapConsole, x, y, ' ', libtcod.BKGND_SCREEN)
-                '''
-                if Player.target != None:
-                    libtcod.console_set_default_foreground(var.MapConsole, Player.target.getColor())
-                    libtcod.console_put_char(var.MapConsole, Player.target.x, Player.target.y, '?', libtcod.BKGND_SCREEN)
+    # This was way too complicated:
+    '''
+    for y in range(Player.y - 1, Player.y + 2):
+        for x in range(Player.x - 1, Player.x + 2):
+            libtcod.console_set_default_foreground(var.MapConsole, libtcod.grey)
+
+            if x == Player.x and y == Player.y:
+                libtcod.console_put_char(var.MapConsole, x, y, '?', libtcod.BKGND_SCREEN)
             else:
-                Player.draw()
+                libtcod.console_put_char(var.MapConsole, x, y, ' ', libtcod.BKGND_SCREEN)
+
+    if Player.target != None:
+        libtcod.console_set_default_foreground(var.MapConsole, Player.target.getColor())
+        libtcod.console_put_char(var.MapConsole, Player.target.x, Player.target.y, '?', libtcod.BKGND_SCREEN)
+    '''
 
     # Render map:
     libtcod.console_blit(var.MapConsole, 0, 0, var.MapWidth, var.MapHeight, 0, 0, 0)
@@ -591,7 +588,10 @@ def main_menu(Player = None):
         index += 1
         y += 1
 
-    libtcod.console_print_ex(var.MainMenu, var.MainWidth - 1, var.MainHeight - 1,
+    # Add version number and my name, or course. :P
+    libtcod.console_print_ex(var.MainMenu, 1, var.MainHeight - 1,
+                             libtcod.BKGND_NONE, libtcod.LEFT, var.VersionNumber)
+    libtcod.console_print_ex(var.MainMenu, var.MainWidth - 1, var.MainHeight - 2,
                              libtcod.BKGND_NONE, libtcod.RIGHT, "by red_kangaroo")
 
     libtcod.console_blit(var.MainMenu, 0, 0, var.MainWidth, var.MainHeight, 0,

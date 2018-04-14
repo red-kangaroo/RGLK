@@ -81,9 +81,16 @@ http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
 Hallways:
 https://www.reddit.com/r/roguelikedev/comments/552hd5/method_for_randomly_generating_a_map_with_rooms/d870l0v/
 https://imgur.com/a/AnB4T#14
+https://crawl.develz.org/wiki/doku.php?id=dcss:brainstorm:dungeon:layout_types
 
 Noise forest:
 http://roguecentral.org/doryen/data/libtcod/doc/1.5.1/html2/noise_get.html?c=false&cpp=false&cs=false&py=true&lua=false
+
+World map:
+https://gillesleblanc.wordpress.com/2012/10/16/creating-a-random-2d-game-world-map/
+https://github.com/Dozed12/df-style-worldgen/blob/master/dist/pyWorld.py
+ ^ This one might be used for inspiration.
+
 
 More vaults:
 https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/crawl-ref/source/dat/des/builder
@@ -96,6 +103,26 @@ https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/cra
    "The foo dies screaming."
    "You kill the foo."
 * AFLAME equipment burns self and if used as weapon, victim
+* magical items:
+    white robe - white magic (light and life spells cost leff)
+    black robe - black magic (dark and death spells cost less)
+    staff of life - powered by life (receiving heal also resotre MP)
+    staff of light - powered by light
+    staff of dakness - powered by darkness
+    staff of death - powered by death (killing restores MP)
+
+    powered by pain - high pain greatly increases SP regen
+    powered by hate - low HP greatly increases SP regen
+* item prefixes:
+    warrior's  +1 Str
+    thief's    +1 Dex
+    healer's   +1 End
+    sage's     +1 Wit
+    wizard's   +1 Ego
+    pocketed   +3 carry
+    balanced   +2 acc
+* climbing out of pit without tools had (Dex mod + Agi mod)= chance of success, with
+  failure randomly doing nothing, making you stunned or taking damage from fall
 
 MOB
 ===

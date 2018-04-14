@@ -151,7 +151,7 @@ TurnCount = 0
 DungeonLevel = 1 # Starting level of the player.
 
 # Wizard mode:
-WizModeActivated = True # For now.
+WizModeActivated = False # For now.
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
@@ -161,6 +161,7 @@ Entities = []
 MessageHistory = []
 
 TextColor = libtcod.white
+VersionNumber = "pre-alpha-test"
 GameName = "Recondite Gaol of the Lachrymose Knights" # Aka "Forlorn Jail of the Weeping Knights",
                                                       # alias "The Overly Long and Flowery Title".
                                                       # Once this was "Realm of the Glorious Lich King",

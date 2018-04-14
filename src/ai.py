@@ -193,8 +193,10 @@ def handleKeys(Player):
 
     # WIZARD MODE:
     if Key.vk == libtcod.KEY_CHAR and Key.c == ord(';'):
+        #if askForConfirmation(Player, "Do you want to activate wizard mode, cheater?"):
         # TODO
         Player.givenName = "Cheater"
+        ui.message("Wizard mode activated.", libtcod.azure)
         var.WizModeActivated = True
         return
 
