@@ -8,6 +8,7 @@ import sys
 
 import entity
 import raw
+import ui
 import var
 
 ###############################################################################
@@ -616,6 +617,7 @@ def buildTraditionalDungeon(map, DungeonLevel):
 
     map = postProcess(map, type)
     Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
+    map = makeBetterDoor(map)
     map = makeBetterRoom(Rooms, map)
     map = makeStairs(map, DungeonLevel, Rooms)
 
@@ -643,6 +645,7 @@ def buildBSPDungeon(map, DungeonLevel):
 
     BSPmap = postProcess(BSPmap, 'BSP')
     BSPRooms, BSPmap = makePrefabRoom(BSPmap, DungeonLevel, BSPRooms)
+    BSPmap = makeBetterDoor(BSPmap)
     BSPmap = makeBetterRoom(BSPRooms, BSPmap)
     BSPmap = makeStairs(BSPmap, DungeonLevel, BSPRooms)
 
@@ -718,6 +721,7 @@ def buildDrunkenCave(map, DungeonLevel):
     while var.rand_chance(50):
         map = makePrefabRoom(map, DungeonLevel)
 
+    map = makeBetterDoor(map)
     map = makeStairs(map, DungeonLevel)
 
     return map
@@ -750,6 +754,7 @@ def buildSewers(map, DungeonLevel):
             RoomNo += 1
 
     map = postProcess(map, 'SEWERS')
+    map = makeBetterDoor(map)
     map = makeStairs(map, DungeonLevel, Rooms)
 
     return map
@@ -830,6 +835,7 @@ def buildMaze(map, DungeonLevel):
 
     map = postProcess(map, 'MAZE')
     Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
+    map = makeBetterDoor(map)
     map = makeBetterRoom(Rooms, map)
     map = makeStairs(map, DungeonLevel)
 
@@ -971,6 +977,7 @@ def buildCity(map, DungeonLevel):
 
     map = postProcess(map, 'CITY')
     Rooms, map = makePrefabRoom(map, DungeonLevel, Rooms)
+    map = makeBetterDoor(map)
     map = makeBetterRoom(Rooms, map)
     map = makeStairs(map, DungeonLevel, Rooms)
 
@@ -1067,9 +1074,12 @@ def postProcess(map, type = None):
         print "Making a lake."
         map = makeLake(liquid, map)
 
-    # Clean door generation must be after lake handling, or lakes will break our
-    # door placement. This unfortunately means we cannot run through the tiles
-    # only once with the above code.
+    return map
+
+def makeBetterDoor(map):
+    # Clean door generation must be after handling everything else, or lakes and
+    # prefabs may break our door placement. This unfortunately means we cannot run
+    # through the tiles only once with postProcess().
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             if map[x][y].hasFlag('DOOR'):
@@ -1088,7 +1098,7 @@ def postProcess(map, type = None):
                         map[x][y + 1].hasFlag('WALL')):
                         DoorFrame = True
                     elif (map[x][y - 1].isWalkable() and
-                          map[x][y - 1].isWalkable()):
+                          map[x][y + 1].isWalkable()):
                           Path = True
                 if (x - 1 > 0 and x + 1 < var.MapWidth and
                     y - 1 > 0 and y + 1 < var.MapHeight):
@@ -1125,9 +1135,9 @@ def populate(DungeonLevel):
 
         NewMob = None
 
+    # Item generation.
     ItemNo = 0
     NewItem = None
-    # TODO: Item generation.
 
     while ItemNo < var.ItemMaxNumber:
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
@@ -1212,11 +1222,13 @@ class Terrain(object):
         self.char = char
         self.color = color
         self.name = name
-        self.material = 'STONE'
         self.BlockMove = BlockMove
         self.BlockSight = BlockSight
-        self.explored = None
         self.flags = flags
+
+        self.material = 'STONE'
+        self.explored = None
+        self.inventory = []
 
     def draw(self, x, y, canSee): # This canSee refers to the Player, whether he's blind or not.
         if (libtcod.map_is_in_fov(var.FOVMap, x, y) and canSee) or var.WizModeTrueSight:
@@ -1259,6 +1271,7 @@ class Terrain(object):
             self.BlockSight = NewTerrain['BlockSight']
         except:
             self.BlockSight = raw.DummyTerrain['BlockSight']
+
         # Clear all flags. This way works, otherwise strange errors in dungeon
         # generation crop up from time to time.
         try:
@@ -1269,6 +1282,24 @@ class Terrain(object):
             self.flags = NewTerrain['flags']
         except:
             self.flags = raw.DummyTerrain['flags']
+
+        # TODO: Chopped down shelves, buried items in newly dug pits.
+        '''
+        if len(self.inventory) > 0:
+            for item in self.inventory:
+                self.inventory.remove(item)
+                # TODO: item.x, item.y
+                var.getEntity().append(item)
+                item.tryStacking()
+        '''
+
+    def getName(self, capitalize = False, full = False):
+        name = self.name
+
+        if capitalize == True:
+            name = name.capitalize()
+
+        return name
 
     def hasFlag(self, flag):
         if flag in self.flags:
@@ -1292,6 +1323,104 @@ class Terrain(object):
 
     def makeExplored(self):
         self.explored = self.char
+
+    def beDug(self, Digger):
+        # Dig and chop!
+        if Digger.hasIntrinsic('CAN_CHOP') and self.hasFlag('CAN_BE_CHOPPED'):
+            ui.message("%s chop&S down the %s." % (Digger.getName(True), self.name), actor = Digger)
+
+            if self.hasFlag('DOOR') and self.material == 'WOOD':
+                self.change(raw.BrokenDoor)
+            else:
+                self.change(raw.DestroyedTerrainList[self.material])
+
+            modifier = 5 * (0.9 ** Digger.getIntrinsicPower('CAN_CHOP'))
+            Digger.AP -= Digger.getActionAPCost(modifier)
+            return True
+        elif Digger.hasIntrinsic('CAN_DIG') and self.hasFlag('CAN_BE_DUG'):
+            ui.message("%s dig&S the %s." % (Digger.getName(True), self.name), actor = Digger)
+
+            if self.hasFlag('WALL'):
+                self.change(raw.DestroyedTerrainList[self.material])
+            else:
+                print "Unhandled diggable tile."
+                return False
+
+            modifier = 5 * (0.9 ** Digger.getIntrinsicPower('CAN_DIG'))
+            Digger.AP -= Digger.getActionAPCost(modifier)
+            return True
+
+        return False
+
+    def beLooted(self, Looter):
+        if not self.hasFlag('CONTAINER'):
+            if Looter.hasFlag('AVATAR'):
+                ui.message("You cannot loot the %s." % self.getName())
+            return False
+
+        if len(self.inventory) == 0:
+            if Looter.hasFlag('AVATAR'):
+                ui.message("%s is empty." % self.getName(True))
+            return False
+
+        if Looter.getBurdenState() == 3:
+            if Looter.hasFlag('AVATAR'):
+                ui.message("Your inventory is already full.")
+            return False
+
+        if Looter.hasFlag('AVATAR'):
+            toLoot = ui.option_menu("Take what?", self.inventory)
+        else:
+            toLoot = libtcod.random_get_int(0, 0, len(self.inventory))
+
+        if toLoot == None:
+            return False
+        else:
+            try:
+                item = self.inventory[toLoot]
+
+                Looter.inventory.append(item)
+                item.tryStacking(Looter)
+                self.inventory.remove(item)
+                Looter.AP -= Looter.getActionAPCost()
+            except:
+                pass # Out-of-bounds letter was pressed.
+
+        if len(self.inventory) >= 1:
+            return True
+        else:
+            return False
+
+    def beStored(self, Looter):
+        if not self.hasFlag('CONTAINER'):
+            if Looter.hasFlag('AVATAR'):
+                ui.message("You cannot loot the %s." % self.getName())
+            return False
+
+        if len(self.inventory) >= 30:
+            if Looter.hasFlag('AVATAR'):
+                ui.message("%s is full." % self.getName(True))
+            return False
+
+        toLoot = ui.option_menu("Put in what?", Looter.inventory)
+
+        if toLoot == None:
+            return False
+        else:
+            try:
+                item = Looter.inventory[toLoot]
+
+                self.inventory.append(item)
+                item.tryStacking(self)
+                Looter.inventory.remove(item)
+                Looter.AP -= Looter.getActionAPCost()
+            except:
+                pass # Out-of-bounds letter was pressed.
+
+        if len(Looter.inventory) >= 1:
+            return True
+        else:
+            return False
 
 class Room(object):
     def __init__(self, x, y, width, height):

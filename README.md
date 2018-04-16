@@ -37,9 +37,10 @@ Movement:
 General:
 
 ```
- Esc          main menu
  Alt + Enter  toggle full screen
+ Esc          main menu
  Space        interact
+ Tab          switch tactics
 
  a            apply item
  c            close
@@ -56,6 +57,7 @@ General:
  q            quaff a potion
  Ctrl + q     quit and abandon
  Ctrl + s     save and quit
+ T            dig a tunnel or chop wood
  X            exchange places
  <            climb up
  >            climb down

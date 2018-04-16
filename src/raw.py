@@ -1301,6 +1301,19 @@ LongSword = {
 'flags': ['MELEE', 'WEAPON', 'TWO_AND_HALF']
 }
 
+Katana = {
+'char': ')',
+'color': libtcod.silver,
+'name': 'katana',
+'material': 'IRON',
+'size': 0,
+'StrScaling': 'B',
+'DexScaling': 'B',
+'attack': MediumSword,
+'flags': ['MELEE', 'WEAPON', 'TWO_AND_HALF'],
+'frequency': 100
+}
+
 FlamingSword = {
 'char': ')',
 'color': libtcod.red,
@@ -1471,6 +1484,10 @@ TowerShield = {
 'frequency': 600
 }
 
+# turtle shield
+# mirror shield
+# spiked shield
+
 # Headgear:
 Bandana = {
 'char': '-',
@@ -1601,7 +1618,7 @@ Halo = {
 Mask = {
 'char': '-',
 'color': libtcod.darkest_orange,
-'name': 'mask',
+'name': 'tribal mask',
 'material': 'WOOD',
 'PV': 0,
 'DV': 0,
@@ -1610,12 +1627,27 @@ Mask = {
 'frequency': 300
 }
 
+Blindfold = {
+'char': '-',
+'color': libtcod.darker_grey,
+'name': 'blindfold',
+'material': 'CLOTH',
+'PV': 0,
+'DV': 0,
+'size': -2,
+'intrinsics': [('BLIND', 1)],
+'flags': ['HEAD', 'ARMOR'],
+'coolness': -5,
+'frequency': 50
+}
+
 # horned helmet
 # gladiator helmet
 # plumed helmet
 # fedora
 # witch hat
 # wizard hat
+# gas mask
 
 # Handwear:
 LeatherGlove = {
@@ -1694,6 +1726,7 @@ LeatherArmor = {
 'char': ']',
 'color': libtcod.darker_orange,
 'name': 'boiled leather cuirass',
+'plural': 'boiled leather cuirasses',
 'material': 'LEATHER',
 'size': 0,
 'DV': -1,
@@ -1705,6 +1738,7 @@ StuddedArmor = {
 'char': ']',
 'color': libtcod.darker_orange,
 'name': 'studded leather cuirass',
+'plural': 'studded leather cuirasses',
 'material': 'IRON',
 'size': 0,
 'DV': -2,
@@ -1743,6 +1777,18 @@ PlateArmor = {
 'DV': -5,
 'PV': 9,
 'flags': ['TORSO', 'ARMOR']
+}
+
+GoldPlateArmor = {
+'char': ']',
+'color': libtcod.yellow,
+'name': 'golden plate mail',
+'material': 'GOLD',
+'size': 0,
+'DV': -5,
+'PV': 8,
+'flags': ['TORSO', 'ARMOR', 'ENCHANT_DOUBLE'],
+'frequency': 100
 }
 
 CrystalShard = {
@@ -1877,6 +1923,8 @@ BlueDress = {
 'frequency': 50
 }
 
+# spiked leather cuirass
+# bark breastplate
 # zombie hide armor
 # troll hide armor
 # mithril chain mail
@@ -2113,7 +2161,50 @@ MacGuffin = {
 'frequency': 0
 }
 
-# Furniture, containers and similar:
+# Containers:
+Pouch = {
+'char': chr(11),
+'color': libtcod.blue,
+'name': 'pouch',
+'material': 'CLOTH',
+'size': -2,
+'flags': ['CONTAINER'],
+'frequency': 100
+}
+
+Sack = {
+'char': chr(11),
+'color': libtcod.darker_orange,
+'name': 'satchel',
+'material': 'LEATHER',
+'size': 0,
+'flags': ['CONTAINER'],
+'frequency': 100
+}
+
+HoldingBag = {
+'char': chr(11),
+'color': libtcod.fuchsia,
+'name': 'bag of holding',
+'plural': 'bags of holding',
+'material': 'LEATHER',
+'size': 0,
+'flags': ['CONTAINER', 'HOLDING'],
+'frequency': 10
+}
+
+Chest = {
+'char': chr(127),
+'color': libtcod.darker_orange,
+'name': 'chest',
+'material': 'WOOD',
+'size': 2,
+'DV': -10,
+'flags': ['FEATURE', 'CONTAINER'],
+'frequency': 100
+}
+
+# Furniture and similar:
 Boulder = {
 'char': '0',
 'color': libtcod.dark_grey,
@@ -2124,17 +2215,6 @@ Boulder = {
 'attack': BoulderRoll,
 'flags': ['FEATURE'], # TODO: Block sight.
 'frequency': 50
-}
-
-Chest = {
-'char': chr(127),
-'color': libtcod.darker_orange,
-'name': 'chest',
-'material': 'WOOD',
-'size': 1,
-'DV': -10,
-'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED'],
-'frequency': 100
 }
 
 Chair = {
@@ -2337,7 +2417,7 @@ Orc = {
 'Wit': 0,
 'Ego': 0,
 'sex': 'MOF',
-'inventory': [LongSword, KiteShield, LeatherArmor, LowBoot],
+'inventory': [LongSword, KiteShield, ChainArmor, LowBoot],
 'flags': ['HUMANOID']
 }
 
@@ -2405,7 +2485,7 @@ BlackKnight = {
 'sex': 'MOF',
 'intrinsics': [('REGEN_LIFE', 1), ('REGEN_MANA', 1), ('REGEN_STAM', 1),
                ('BLOODLESS', 1), ('CAN_DIG', 2), ('IMMUNE_POISON', 1)],
-'inventory': [FlamingSword, IceShield, FullHelm, Gauntlet, Greave, PlateArmor,
+'inventory': [FlamingSword, TowerShield, FullHelm, Gauntlet, Greave, PlateArmor,
               PlateSkirt, MacGuffin],
 'mutations': ['RANDOM_ANY'],
 'flags': ['HUMANOID', 'USE_LEGS'],
@@ -2523,6 +2603,15 @@ Hand = {
 'size': -2,
 'attack': Punch,
 'flags': ['HAND', 'GRASP']
+}
+
+HookHand = {
+'name': 'hook hand',
+'cover': 40,
+'size': -2,
+'attack': DaggerAttack,
+'material': 'IRON',
+'flags': ['HAND']
 }
 
 Leg = {
@@ -3627,6 +3716,7 @@ ShortSword,
 VorpalSword,
 QuickSword,
 LongSword,
+Katana,
 FlamingSword,
 GreatSword,
 FierySword,
@@ -3654,6 +3744,7 @@ Crown,
 Circlet,
 Halo,
 Mask,
+Blindfold,
 # Handwear:
 LeatherGlove,
 BlackGlove,
@@ -3667,6 +3758,7 @@ StuddedArmor,
 ChainArmor,
 ScaleArmor,
 PlateArmor,
+GoldPlateArmor,
 CrystalShard,
 CrystalPlate,
 GreenTunic,
@@ -3701,13 +3793,17 @@ MutationPotion,
 Bandage,
 # Gems:
 SunStone,
-# Other:
 GoldPiece,
-Boulder,
+# Containers:
+Pouch,
+Sack,
+HoldingBag,
 Chest,
-Chair,
-Table,
-Bed
+# Furniture:
+Boulder,
+#Chair,
+#Table,
+#Bed
 ]
 
 # Intrinsics:

@@ -119,7 +119,7 @@ def getAICommand(Mob):
                 # Close doors, chat with friends...
                 for y in range(Mob.y - 1, Mob.y + 2):
                     for x in range(Mob.x - 1, Mob.x + 2):
-                        where = [Mob.x - x, Mob.y - y]
+                        where = [Mob.x - x, Mob.y - y, 0]
 
                         if Mob.actionInteract(where) == True:
                             return
@@ -275,7 +275,10 @@ def handleKeys(Player):
 
         # See stats
         if Key.vk == libtcod.KEY_F9:
-            options = Player.intrinsics
+            options = []
+
+            for i in Player.intrinsics:
+                options.append(i)
 
             for i in Player.getEquipment():
                 for n in i.intrinsics:
@@ -293,11 +296,16 @@ def handleKeys(Player):
         # Level teleport
         if Key.vk == libtcod.KEY_F11:
             where = askForDirection(Player)
-            dz = where[2]
 
-            if where == None or where == 'self' or dz == 0:
+            if where == None or where == 'self':
                 ui.message("Never mind.")
                 return
+            else:
+                dz = where[2]
+
+                if dz == 0:
+                    ui.message("Never mind.")
+                    return
 
             if dz > 0:
                 if var.DungeonLevel - 1 >= 0:
@@ -383,6 +391,11 @@ def handleKeys(Player):
         if examined != None:
             # TODO: Descriptions.
             pass
+        return
+
+    # Message history
+    if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('m'))):
+        ui.text_menu("Message history:", var.MessageHistory)
         return
 
     # Take a screenshot
@@ -500,22 +513,19 @@ def handleKeys(Player):
                 ui.message("You decide not to jump.")
             return # We need to return here, or we fall through to vi keys...
 
-        # Jump
-        if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('m'))):
-            ui.text_menu("Message history:", var.MessageHistory)
-            return
-
         # Open
         if Key.vk == libtcod.KEY_CHAR and Key.c == ord('o'):
             where = askForDirection(Player)
             if where == 'self':
-                # TODO: Opening containers.
-                ui.message("Containers not yet working, sorry.")
+                Player.actionLoot(where)
             elif where != None:
-                x = Player.x + where[0]
-                y = Player.y + where[1]
+                if Player.actionLoot(where, True):
+                    return
+                else:
+                    x = Player.x + where[0]
+                    y = Player.y + where[1]
 
-                Player.actionOpen(x, y)
+                    Player.actionOpen(x, y)
             else:
                 ui.message("Never mind.")
             return
@@ -545,6 +555,29 @@ def handleKeys(Player):
             waitForMore(Player)
             game.save()
             sys.exit("Game saved.")
+            return
+
+        # Tunnel
+        if (Key.shift and (Key.vk == libtcod.KEY_CHAR and Key.c == ord('t'))):
+            if Player.hasIntrinsic('CAN_DIG') or Player.hasIntrinsic('CAN_CHOP'):
+                where = askForDirection(Player)
+
+                if where == None or where == 'self':
+                    # This should not take a turn.
+                    ui.message("Never mind.")
+                    return
+                else:
+                    dx = where[0]
+                    dy = where[1]
+
+                    if dx != 0 or dy != 0:
+                        Player.actionDig(dx, dy)
+                        return
+                    else:
+                        ui.message("Never mind.")
+                        return
+            else:
+                ui.message("You need the right tools to do that.")
             return
 
         # Swap places

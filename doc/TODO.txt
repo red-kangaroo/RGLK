@@ -1,4 +1,5 @@
-List of things to do and include:
+To do list:
+===========
 * release with pyinstaller?
 * pain
 * kill list
@@ -15,8 +16,6 @@ List of things to do and include:
    RESIST_FEAR
    CONTROL_POLY
    CONTROL_TELE
-   DRAIN_LIFE unhealing
-   DRAIN_MANA
    REFLECT
    ESP
    SEARCH
@@ -26,7 +25,6 @@ List of things to do and include:
    INFRA_VISION infravision
    CAN_JUMP
    CHOKE
-   POISON
    FREEDOM
    INVISIBLE
    DISPLACED
@@ -34,13 +32,10 @@ List of things to do and include:
    WATER_WALK
    LEVITATION
    PARALYSED
-   FRAGILE
-   BLIND
    DEAF
    STONING
    TELEPORT
    POLYMORPH
-   AFLAME
    STUN
    DAZE
    CONF
@@ -60,7 +55,7 @@ List of things to do and include:
    diseases
    skills
    spells
-* multiple FOVMaps (forestry, clairvoyance)
+* multiple FOVMaps (forestry, clairvoyance, ESP)
 * Skills:
    Two-handers vs Dual wielding
 * checkDeath for WizMode
@@ -76,6 +71,7 @@ List of things to do and include:
    chest
    magic chest
    strongbox
+* hotkeys
 
 Rivers:
 http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
@@ -97,6 +93,12 @@ https://github.com/Dozed12/df-style-worldgen/blob/master/dist/pyWorld.py
 More vaults:
 https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/crawl-ref/source/dat/des/builder
 
+Artifacts:
+* Royal Aegis
+   gold tower shield
+
+* floating wyrd-light
+* wyrd-wand, -staff and -lance
 
 * add description optional attribute to tiles, which would be printed when player
   steps on them (eg. "You enter an unused sewer node.")
@@ -106,9 +108,9 @@ https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/cra
    "You kill the foo."
 * AFLAME equipment burns self and if used as weapon, victim
 * magical items:
-    white robe - white magic (light and life spells cost leff)
+    white robe - white magic (light and life spells cost less)
     black robe - black magic (dark and death spells cost less)
-    staff of life - powered by life (receiving heal also resotre MP)
+    staff of life - powered by life (receiving heal also restore MP)
     staff of light - powered by light
     staff of dakness - powered by darkness
     staff of death - powered by death (killing restores MP)

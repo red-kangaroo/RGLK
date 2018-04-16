@@ -739,73 +739,91 @@ def grammar(text, actor = None):
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&SUBJ', 'you')
     else:
-        if actor.sex == 'MALE':
-            text = text.replace('&SUBJ', 'he')
-        elif actor.sex == 'FEMALE':
-            text = text.replace('&SUBJ', 'she')
-        elif actor.sex == 'UNDEFINED':
-            text = text.replace('&SUBJ', 'xe')
-        else:
+        try:
+            if actor.sex == 'MALE':
+                text = text.replace('&SUBJ', 'he')
+            elif actor.sex == 'FEMALE':
+                text = text.replace('&SUBJ', 'she')
+            elif actor.sex == 'UNDEFINED':
+                text = text.replace('&SUBJ', 'xe')
+            else:
+                text = text.replace('&SUBJ', 'it')
+        except:
             text = text.replace('&SUBJ', 'it')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&SUBC', 'You')
     else:
-        if actor.sex == 'MALE':
-            text = text.replace('&SUBC', 'He')
-        elif actor.sex == 'FEMALE':
-            text = text.replace('&SUBC', 'She')
-        elif actor.sex == 'UNDEFINED':
-            text = text.replace('&SUBC', 'Xe')
-        else:
+        try:
+            if actor.sex == 'MALE':
+                text = text.replace('&SUBC', 'He')
+            elif actor.sex == 'FEMALE':
+                text = text.replace('&SUBC', 'She')
+            elif actor.sex == 'UNDEFINED':
+                text = text.replace('&SUBC', 'Xe')
+            else:
+                text = text.replace('&SUBC', 'It')
+        except:
             text = text.replace('&SUBC', 'It')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&OBJ', 'you')
     else:
-        if actor.sex == 'MALE':
-            text = text.replace('&OBJ', 'him')
-        elif actor.sex == 'FEMALE':
-            text = text.replace('&OBJ', 'her')
-        elif actor.sex == 'UNDEFINED':
-            text = text.replace('&OBJ', 'xem')
-        else:
+        try:
+            if actor.sex == 'MALE':
+                text = text.replace('&OBJ', 'him')
+            elif actor.sex == 'FEMALE':
+                text = text.replace('&OBJ', 'her')
+            elif actor.sex == 'UNDEFINED':
+                text = text.replace('&OBJ', 'xem')
+            else:
+                text = text.replace('&OBJ', 'it')
+        except:
             text = text.replace('&OBJ', 'it')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&OBJC', 'You')
     else:
-        if actor.sex == 'MALE':
-            text = text.replace('&OBJC', 'Him')
-        elif actor.sex == 'FEMALE':
-            text = text.replace('&OBJC', 'Her')
-        elif actor.sex == 'UNDEFINED':
-            text = text.replace('&OBJC', 'Xem')
-        else:
+        try:
+            if actor.sex == 'MALE':
+                text = text.replace('&OBJC', 'Him')
+            elif actor.sex == 'FEMALE':
+                text = text.replace('&OBJC', 'Her')
+            elif actor.sex == 'UNDEFINED':
+                text = text.replace('&OBJC', 'Xem')
+            else:
+                text = text.replace('&OBJC', 'It')
+        except:
             text = text.replace('&OBJC', 'It')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&POSS', 'your')
     else:
-        if actor.sex == 'MALE':
-            text = text.replace('&POSS', 'his')
-        elif actor.sex == 'FEMALE':
-            text = text.replace('&POSS', 'her')
-        elif actor.sex == 'UNDEFINED':
-            text = text.replace('&POSS', 'xyr')
-        else:
+        try:
+            if actor.sex == 'MALE':
+                text = text.replace('&POSS', 'his')
+            elif actor.sex == 'FEMALE':
+                text = text.replace('&POSS', 'her')
+            elif actor.sex == 'UNDEFINED':
+                text = text.replace('&POSS', 'xyr')
+            else:
+                text = text.replace('&POSS', 'its')
+        except:
             text = text.replace('&POSS', 'its')
 
     if actor == None or actor.hasFlag('AVATAR'):
         text = text.replace('&SELF', 'yourself')
     else:
-        if actor.sex == 'MALE':
-            text = text.replace('&SELF', 'himself')
-        elif actor.sex == 'FEMALE':
-            text = text.replace('&SELF', 'herself')
-        elif actor.sex == 'UNDEFINED':
-            text = text.replace('&SELF', 'xemself')
-        else:
+        try:
+            if actor.sex == 'MALE':
+                text = text.replace('&SELF', 'himself')
+            elif actor.sex == 'FEMALE':
+                text = text.replace('&SELF', 'herself')
+            elif actor.sex == 'UNDEFINED':
+                text = text.replace('&SELF', 'xemself')
+            else:
+                text = text.replace('&SELF', 'itself')
+        except:
             text = text.replace('&SELF', 'itself')
 
     if actor == None or actor.hasFlag('AVATAR'):

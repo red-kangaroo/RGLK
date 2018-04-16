@@ -337,6 +337,9 @@ class Entity(object):
             if i.getHandled(self) == None:
                 self.intrinsics.remove(i)
 
+    def handleTerrain(self):
+        pass
+
     def getName(self, capitalize = False, full = False):
         name = self.name
 
@@ -385,6 +388,14 @@ class Entity(object):
             self.AP += 1
 
         # TODO: Check terrain for special effects.
+        self.handleTerrain()
+
+        if self.hasFlag('ITEM') and var.getMap()[self.x][self.y].hasFlag('LIQUID'):
+            if self.willSink():
+                ui.message("%s sinks into the %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
+                           actor = self)
+                var.getMap()[self.x][self.y].inventory.append(self)
+                var.getEntity().remove(self)
 
         # Intrinsics and status effects.
         self.handleIntrinsics()
@@ -996,7 +1007,7 @@ class Mob(Entity):
 
         # Check for immunity.
         if self.hasIntrinsic(raw.ImmunityTypeList[DamageType]):
-                resisted = 0
+            resisted = 0
 
         resisted = var.rand_int_from_float(max(0, resisted))
 
@@ -1004,7 +1015,7 @@ class Mob(Entity):
 
         return resisted
 
-    def severLimb(self, limb = None, attacker = None, silent = False):
+    def severLimb(self, limb = None, attacker = None, DamageType = None, silent = False):
         if limb == None:
             limb = self.getLimbToHit()
 
@@ -1013,6 +1024,9 @@ class Mob(Entity):
             self.flags.append('AI_FLEE')
 
         if limb.hasFlag('CANNOT_SEVER'):
+            return False
+
+        if DamageType in raw.NonWoundingList:
             return False
 
         # De-equip items from the limb to be severed, then drop it on ground.
@@ -1029,7 +1043,7 @@ class Mob(Entity):
             part = self.bodyparts[index + 1]
 
             if part.hasFlag('HAND'):
-                self.severLimb(part, attacker, True)
+                self.severLimb(part, attacker, silent = True)
 
         # TODO:
         #  Some damage types destroy limbs.
@@ -1474,6 +1488,10 @@ class Mob(Entity):
 
         return False
 
+    def willSink(self):
+        # TODO
+        return False
+
     def canBreakCurse(self, power = 0):
         # Through undeath of some skills, you may automatically break curses binding you.
         if self.hasFlag('AVATAR') and var.WizModeActivated:
@@ -1751,7 +1769,7 @@ class Mob(Entity):
                     if limb.wounded or self.isExtraFragile():
                         # We sever the limb, but this also means we can no longer use it
                         # for further methods, as it's not attached.
-                        if not self.severLimb(limb, attacker):
+                        if not self.severLimb(limb, attacker, DamageType):
                             self.addIntrinsic('BLEED', max(5, damage), libtcod.random_get_int(0, 1, damage))
                         else:
                             limb = None
@@ -1835,11 +1853,11 @@ class Mob(Entity):
                 return
 
             # Some damage types cannot sever limbs:
-            if not DamageType in ['BLEED', 'POISON']:
+            if not DamageType in raw.NonWoundingList:
                 if self.HP < damage:
                     # We can loose a limb instead of dying. We still take some damage
                     # if enough is dealt.
-                    if self.severLimb(limb, attacker):
+                    if self.severLimb(limb, attacker, DamageType):
                         if damage > self.maxHP:
                             damage /= 2
                         else:
@@ -2085,40 +2103,16 @@ class Mob(Entity):
                 if(self.actionOpen(x, y)):
                     return True
 
-            # Dig and chop!
-            if (self.hasIntrinsic('CAN_CHOP') and var.getMap()[x][y].hasFlag('CAN_BE_CHOPPED') and
-                self.isBlocked(x, y, var.DungeonLevel)):     # Here we want fallthrough with if instead of elif,
-                name = var.getMap()[x][y].name # because we want to chop stuck doors when actionOpen fails.
+            # Here we want fallthrough with if instead of elif,
+            # because we want to chop stuck doors when actionOpen fails.
+            # We cannot do that, or we'll be automatically chopping down bookshelves
+            # any time we try to loot them. :/
+            elif self.isBlocked(x, y, var.DungeonLevel):
+                if var.getMap()[x][y].beDug(self):
+                    var.changeFOVMap(x, y)
+                    return True
 
-                if (var.getMap()[x][y].hasFlag('DOOR') and
-                    var.getMap()[x][y].material == 'WOOD'):
-                    var.getMap()[x][y].change(raw.BrokenDoor)
-                else:
-                    var.getMap()[x][y].change(raw.DestroyedTerrainList[var.getMap()[x][y].material])
-
-                var.changeFOVMap(x, y)
-                ui.message("%s chop&S down the %s." % (self.getName(True), name), actor = self)
-
-                modifier = 5 * (0.9 ** self.getIntrinsicPower('CAN_CHOP'))
-                self.AP -= self.getActionAPCost(modifier)
-                return True
-            elif (self.hasIntrinsic('CAN_DIG') and var.getMap()[x][y].hasFlag('CAN_BE_DUG') and
-                  self.isBlocked(x, y, var.DungeonLevel)):
-                if var.getMap()[x][y].hasFlag('WALL'):
-                    var.getMap()[x][y].change(raw.DestroyedTerrainList[var.getMap()[x][y].material])
-                else:
-                    print "Unhandled diggable tile."
-                    return False
-
-                var.changeFOVMap(x, y)
-                ui.message("%s dig&S." % self.getName(True), actor = self)
-
-                modifier = 5 * (0.9 ** self.getIntrinsicPower('CAN_DIG'))
-                self.AP -= self.getActionAPCost(modifier)
-                return True
-
-            # Try closing adjacent doors.
-            elif var.getMap()[x][y].BlockMove == True:
+                # Try closing adjacent doors.
                 for n in range(y - 1, y + 2):
                     for m in range(x - 1, x + 2):
                         if (m > 0 and m < var.MapWidth - 1 and
@@ -2287,6 +2281,15 @@ class Mob(Entity):
             self.AP -= self.getMoveAPCost()
             return True
 
+    def actionDig(self, dx, dy):
+        if var.getMap()[self.x + dx][self.y + dy].beDug(self):
+            var.changeFOVMap(self.x + dx, self.y + dy)
+            return True
+        else:
+            ui.message("%s fail&S in &POSS labour." % self.getName(True), actor = self)
+
+        return False
+
     def actionDrop(self, dropAll = False, what = None):
         #if self.AP < 1:
         #    return False
@@ -2362,8 +2365,9 @@ class Mob(Entity):
         for i in var.getEntity():
             if i.x == x and i.y == y:
                 if i.hasFlag('ITEM'):
-                    # TODO: actionLoot
-                    if self.actionPickUp(x, y):
+                    if self.actionLoot(where):
+                        return True
+                    elif self.actionPickUp(x, y):
                         return True
                     else:
                         return False
@@ -2377,7 +2381,11 @@ class Mob(Entity):
                     self.AP -= self.getActionAPCost()
                     return True
 
-        if var.getMap()[x][y].hasFlag('CAN_BE_OPENED'):
+        if var.getMap()[x][y].hasFlag('CONTAINER'):
+            if self.actionLoot(where):
+                return True
+            return False
+        elif var.getMap()[x][y].hasFlag('CAN_BE_OPENED'):
             if self.actionOpen(x, y):
                 return True
             return False
@@ -2400,7 +2408,6 @@ class Mob(Entity):
             return True
 
         # TODO: More actions.
-        #   actionOpen for containers, both ITEM and FEATURE
         return False
 
     def actionInventory(self):
@@ -2413,7 +2420,10 @@ class Mob(Entity):
             if describe == None:
                 return False
             else:
-                ui.item_description(self.inventory[describe])
+                try:
+                    ui.item_description(self.inventory[describe])
+                except:
+                    pass # Out-of-bounds.
             return True
 
     def actionAutoEquip(self, forced = False):
@@ -2611,6 +2621,84 @@ class Mob(Entity):
         # self.NP -= 10
         return moved
 
+    def actionLoot(self, where, silent = False):
+        #if self.getBurdenState() == 3:
+        #    if self.hasFlag('AVATAR') and not silent:
+        #        ui.message("Your inventory is already full.")
+        #    return False
+        #if not self.hasFlag('AVATAR'):
+        #    pickAll = True
+
+        options = []
+
+        if where == 'self':
+            for i in self.inventory:
+                if i.hasFlag('CONTAINER'):
+                    options.append(i)
+        else:
+            dx = where[0]
+            dy = where[1]
+            dz = where[2]
+
+            if dx != 0 or dy != 0:
+                x = self.x + dx
+                y = self.y + dy
+
+                for i in var.getEntity():
+                    if i.hasFlag('CONTAINER') and i.x == x and i.y == y:
+                        options.append(i)
+
+                if var.getMap()[x][y].hasFlag('CONTAINER'):
+                    options.append(var.getMap()[x][y])
+            elif dz < 0:
+                x = self.x
+                y = self.y
+
+                for i in var.getEntity():
+                    if i.hasFlag('CONTAINER') and i.x == x and i.y == y:
+                        options.append(i)
+
+                if var.getMap()[x][y].hasFlag('CONTAINER'):
+                    options.append(var.getMap()[x][y])
+            else:
+                if self.hasFlag('AVATAR') and not silent:
+                    ui.message("There is nothing to loot there.")
+                return False
+
+        if len(options) == 0:
+            if self.hasFlag('AVATAR') and not silent:
+                ui.message("You find nothing to loot.")
+            return False
+        else:
+            if self.hasFlag('AVATAR'):
+                toLoot = ui.option_menu("Loot what?", options)
+            else:
+                toLoot = libtcod.random_get_int(0, 0, len(options))
+
+            if toLoot == None:
+                return False
+            else:
+                try:
+                    container = options[toLoot]
+                except: # Out-of-bounds option.
+                    ui.message("%s fail&S in looting." % self.getName(True), actor = self)
+                    return False
+
+                if container != None:
+                    if self.hasFlag('AVATAR') and len(self.inventory) > 0:
+                        if ai.askForConfirmation(self, "Do you want to put something in the %s?" % container.getName()):
+                            while container.beStored(self):
+                                pass
+
+                            return True
+
+                    while container.beLooted(self):
+                        pass # Continue looting.
+
+                    if not self.hasFlag('AVATAR'):
+                        ui.message("%s loot&S the %s." % (self.getName(True), options[toLoot].getName()), actor = self)
+                    return True
+
     def actionOpen(self, x, y):
         if self.AP < 1:
             return False
@@ -2638,6 +2726,10 @@ class Mob(Entity):
                     ui.message("%s open&S the door." % self.getName(True), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
+                elif var.getMap()[x][y].hasFlag('CONTAINER'):
+                    if self.actionLoot([x - self.x, y - self.y, 0]):
+                        return True
+                    return False
                 else:
                     print "BUG: Unhandled openable terrain."
             elif self.hasFlag('AVATAR'):
@@ -2697,12 +2789,16 @@ class Mob(Entity):
             if toPick == None:
                 return False
             else:
-                self.inventory.append(options[toPick])
-                options[toPick].tryStacking(self)
-                var.getEntity().remove(options[toPick])
-                ui.message("%s pick&S up %s." % (self.getName(True), options[toPick].getName()),
-                           actor = self)
-                self.AP -= self.getActionAPCost()
+                try:
+                    self.inventory.append(options[toPick])
+                    options[toPick].tryStacking(self)
+                    var.getEntity().remove(options[toPick])
+                    ui.message("%s pick&S up %s." % (self.getName(True), options[toPick].getName()),
+                               actor = self)
+                    self.AP -= self.getActionAPCost()
+                except:
+                    # Out-of-range letter was pressed.
+                    return True
 
         if len(options) > 1:
             return True
@@ -2909,6 +3005,26 @@ class Item(Entity):
                 self.size += mod
 
             self.size = min(2, max(-2, self.size)) # We need our size in range -2 to 2.
+
+        # Items in containers.
+        if self.hasFlag('CONTAINER'):
+            ItemNo = 0
+
+            while ItemNo < self.getCarryingCapacity():
+                if var.rand_chance(50): # TODO
+                    break
+
+                which = var.rand_weighted(dungeon.getRandomEntity('ITEM', var.DungeonLevel))
+                NewItem = spawn(self.x, self.y, which, 'ITEM')
+
+                if NewItem.size > self.size:
+                    del NewItem
+                    NewItem = None
+
+                if NewItem != None:
+                    self.inventory.append(NewItem)
+
+                ItemNo += 1
 
         # Special bonuses:
         self.acc = 0 # This is not same as ToHitBonus from self.attack, this is used
@@ -3144,6 +3260,24 @@ class Item(Entity):
         # text
 
         return lines
+
+    def getCarryingCapacity(self):
+        if self.hasFlag('CONTAINER'):
+            if self.hasFlag('HOLDING'):
+                return 999
+
+            carry = abs(-3 - self.size)
+
+            if self.size < 0:
+                carry *= 5
+            else:
+                carry *= 10
+
+            carry += self.enchantment
+
+            return max(1, carry)
+        else:
+            return 0
 
     def getDestroyed(self, Owner = None):
         if Owner == None:
@@ -3493,6 +3627,12 @@ class Item(Entity):
 
         return False
 
+    def willSink(self):
+        if self.material in ['AETHER', 'WATER', 'WOOD']:
+            return False
+        else:
+            return True
+
     # Various use methods:
     def beApplied(self, User, victim = None):
         if victim == None:
@@ -3594,6 +3734,84 @@ class Item(Entity):
             return True
 
         return False
+
+    def beLooted(self, Looter):
+        if not self.hasFlag('CONTAINER'):
+            if Looter.hasFlag('AVATAR'):
+                ui.message("You cannot loot the %s." % self.getName())
+            return False
+
+        if len(self.inventory) == 0:
+            if Looter.hasFlag('AVATAR'):
+                ui.message("%s is empty." % self.getName(True))
+            return False
+
+        if Looter.getBurdenState() == 3:
+            if Looter.hasFlag('AVATAR'):
+                ui.message("Your inventory is already full.")
+            return False
+
+        if Looter.hasFlag('AVATAR'):
+            toLoot = ui.option_menu("Take what?", self.inventory)
+        else:
+            toLoot = libtcod.random_get_int(0, 0, len(self.inventory))
+
+        if toLoot == None:
+            return False
+        else:
+            try:
+                item = self.inventory[toLoot]
+
+                Looter.inventory.append(item)
+                item.tryStacking(Looter)
+                self.inventory.remove(item)
+                Looter.AP -= Looter.getActionAPCost()
+            except:
+                pass # Out-of-bounds letter was pressed.
+
+        if len(self.inventory) >= 1:
+            return True
+        else:
+            return False
+
+    def beStored(self, Looter):
+        if not self.hasFlag('CONTAINER'):
+            if Looter.hasFlag('AVATAR'):
+                ui.message("You cannot loot the %s." % self.getName())
+            return False
+
+        if len(self.inventory) >= self.getCarryingCapacity():
+            if Looter.hasFlag('AVATAR'):
+                ui.message("%s is full." % self.getName(True))
+            return False
+
+        toLoot = ui.option_menu("Put in what?", Looter.inventory)
+
+        if toLoot == None:
+            return False
+        else:
+            try:
+                item = Looter.inventory[toLoot]
+
+                if item == self:
+                    ui.message("That would be an interesting topological exercise.")
+                    return False
+
+                if item.size > self.size and not self.hasFlag('HOLDING'):
+                    ui.message("%s is too large to put into %s." % (item.getName(True), self.getName()))
+                    return False
+
+                self.inventory.append(item)
+                item.tryStacking(self)
+                Looter.inventory.remove(item)
+                Looter.AP -= Looter.getActionAPCost()
+            except:
+                pass # Out-of-bounds letter was pressed.
+
+        if len(Looter.inventory) >= 1:
+            return True
+        else:
+            return False
 
     def beZapped(self, Zapper):
         pass

@@ -50,8 +50,8 @@ class Intrinsic(object):
         else:
             return False
 
-    def getName(self, capitalize = False, tmpOption = False): # tmpOption to be compatible with getName() of Entities.
-        name = self.name                                      # Maybe to use later?
+    def getName(self, capitalize = False, full = False):
+        name = self.name
 
         if self.type == 'BLEED' and self.power >= 5:
             name = 'hemorrhage'
@@ -65,6 +65,9 @@ class Intrinsic(object):
                 name = 'harshly ' + name
             elif self.power >= 5:
                 name = 'deadly ' + name + '!'
+
+        if full:
+            name = name + ", duration: " + str(self.duration) + ", power: " + str(self.power)
 
         if capitalize == True:
             name = name.capitalize()
