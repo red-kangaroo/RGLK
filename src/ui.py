@@ -355,7 +355,7 @@ def option_menu(header, options):
                 else:
                     what = Key.c - ord('a') + (26 * page)
 
-                    if what in range(0, len(options) + 1):
+                    if what in range(0, len(options)):
                         return what
 
 def inventory_menu(Player):
@@ -440,9 +440,9 @@ def inventory_menu(Player):
                     break
 
                 else:
-                    what = Key.c - ord('a') + (26 * page)
+                    what = Key.c - ord('a') + (24 * page)
 
-                    if what in range(0, len(Player.inventory) + 1):
+                    if what in range(0, len(Player.inventory)):
                         return what
 
 def equip_menu(bodyparts):
@@ -502,7 +502,7 @@ def equip_menu(bodyparts):
         else:
             what = Key.c - ord('a')
 
-            if what in range(0, len(bodyparts) + 1):
+            if what in range(0, len(bodyparts)):
                 return what
 
 def text_menu(header, text):

@@ -27,48 +27,65 @@ def makeMap(Populate, DungeonLevel):
         for x in range(var.MapWidth):
             map[x][y].change(raw.RockWall)
 
-    # TODO: Dungeon levels.
+    # TODO: Dungeon levels:
     #  0 the Surface
-    #  1 \
-    #  2 | traditional
-    #  3 |  dungeon
-    #  4 /
-    #  5 Minetown
+    #  1 traditional dungeon
+    #  2 traditional / cave
+    #  3 traditional / cave
+    #  4 traditional / cave
+    #  5 the Minetown (city?)
     #  6 sewers
     #  7 sewers
-    #  8 cave
-    #  9 cave
-    # 10 Big room
-    # 11 BSP dungeon
-    # 12 BSP dungeon
-    # 13 maze
-    # 14 maze
-    # 15 city
-    # 16 deep cave
-    # 17 deep cave
-    # 18 deep cave
-    # 19 ???
-    # 20 the Goal?
+    #  8 BSP / maze
+    #  9 BSP / maze
+    # 10 the Big room
+    # 11 traditional / cave / BSP / city
+    # 12 traditional / cave / BSP / city
+    # 13 traditional / cave / BSP / city
+    # 14 traditional / cave / BSP / city
+    # 15 the Goal
 
-    which = libtcod.random_get_int(0, 1, 8)
-    if which in range(1, 4):
+    which = libtcod.random_get_int(0, 1, 4)
+
+    if DungeonLevel in [0, 10, 15]:
+        print "Building a special map."
+        map = buildBigRoom(map, DungeonLevel)
+    elif DungeonLevel == 1:
         print "Building traditional dungeon."
         map = buildTraditionalDungeon(map, DungeonLevel)
-    elif which == 4:
-        print "Building sewers."
-        map = buildSewers(map, DungeonLevel)
-    elif which == 5:
-        print "Building a cave."
-        map = buildDrunkenCave(map, DungeonLevel)
-    elif which == 6:
-        print "Building a maze."
-        map = buildMaze(map, DungeonLevel)
-    elif which == 7:
+    elif DungeonLevel < 5:
+        if which < 3:
+            print "Building a cave."
+            map = buildDrunkenCave(map, DungeonLevel)
+        else:
+            print "Building traditional dungeon."
+            map = buildTraditionalDungeon(map, DungeonLevel)
+    elif DungeonLevel == 5:
         print "Building a city."
         map = buildCity(map, DungeonLevel)
+    elif DungeonLevel < 8:
+        print "Building sewers."
+        map = buildSewers(map, DungeonLevel)
+    elif DungeonLevel < 10:
+        if which < 3:
+            print "Building BSP dungeon."
+            map = buildBSPDungeon(map, DungeonLevel)
+        else:
+            print "Building a maze."
+            map = buildMaze(map, DungeonLevel)
     else:
-        print "Building BSP dungeon."
-        map = buildBSPDungeon(map, DungeonLevel)
+        if which == 1:
+            print "Building traditional dungeon."
+            map = buildTraditionalDungeon(map, DungeonLevel)
+        elif which == 2:
+            print "Building BSP dungeon."
+            map = buildBSPDungeon(map, DungeonLevel)
+        elif which == 3:
+            print "Building a city."
+            map = buildCity(map, DungeonLevel)
+        else:
+            print "Building a cave."
+            map = buildDrunkenCave(map, DungeonLevel)
 
     # Set map to the correct dungeon level.
     var.Maps[DungeonLevel] = map
@@ -253,6 +270,7 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
                         frequency = Prefab['frequency']
                     except:
                         frequency = raw.DummyRoom['frequency']
+
                     if not var.rand_chance(frequency):
                         continue # Not break, or some rooms will never get generated,
                                  # because they have same size as others.
@@ -487,6 +505,10 @@ def create_prefab(Prefab, room, map, DungeonLevel):
     return map
 
 def makeClosets(map):
+    pass
+
+def makeVaults(map, Rooms):
+    # TODO: After stairs creation, try adding secret rooms.
     pass
 
 def makeStairs(map, DungeonLevel, Rooms = None):
@@ -945,6 +967,45 @@ def buildPerlinForest(map, DungeonLevel):
     libtcod.noise_delete(noise)
     return map
 
+def buildBigRoom(map, DungeonLevel):
+    if DungeonLevel == 0:
+        type = 'SURFACE'
+        which = random.choice(raw.SurfaceList)
+    elif DungeonLevel == 10:
+        type = 'BIG'
+        which = random.choice(raw.BigRoomList)
+    elif DungeonLevel == 15:
+        type = 'GOAL'
+        which = random.choice(raw.GoalList)
+    else:
+        # Should not happen.
+        type = None
+        which = random.choice(raw.BigRoomList)
+
+
+    width = which['width'] - 1
+    height = which['height'] - 1
+
+    x = (var.MapWidth - width) / 2
+    y = (var.MapHeight - height) / 2
+
+    NewRoom = Room(x, y, width, height)
+    map = create_prefab(which, NewRoom, map, DungeonLevel)
+
+    # Surface and goal levels are set, so no postProcess() and similar in here,
+    # but otherwise add something nice.
+    if type in ['BIG', None]:
+        map = postProcess(map, type)
+
+    if type != 'SURFACE':
+        while var.rand_chance(50):
+            map = makePrefabRoom(map, DungeonLevel)
+
+    map = makeBetterDoor(map)
+    map = makeStairs(map, DungeonLevel, [NewRoom])
+
+    return map
+
 def buildCity(map, DungeonLevel):
     # Make open arena.
     for y in range(1, var.MapHeight - 1):
@@ -996,7 +1057,7 @@ def postProcess(map, type = None):
                 raw.BonePile,
                 raw.Grave
                 ])
-            elif type == 'CAVE':
+            elif type in ['CAVE', 'BIG']:
                 which = random.choice([
                 raw.Vines,
                 raw.Vines,
@@ -1162,21 +1223,6 @@ def populate(DungeonLevel):
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
         NewMob = entity.spawn(x, y, raw.KoboldMiner, 'MOB')
-        var.Entities[DungeonLevel].append(NewMob)
-
-        if NewMob.isBlocked(x, y, DungeonLevel):
-            while NewMob.isBlocked(x, y, DungeonLevel):
-                x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
-                y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
-
-            NewMob.x = x
-            NewMob.y = y
-
-    if DungeonLevel in [0, 15]: # The black knight.
-        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
-        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
-
-        NewMob = entity.spawn(x, y, raw.BlackKnight, 'MOB')
         var.Entities[DungeonLevel].append(NewMob)
 
         if NewMob.isBlocked(x, y, DungeonLevel):

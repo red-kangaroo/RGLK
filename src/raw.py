@@ -3105,6 +3105,16 @@ DownStairs = {
 'flags': ['FEATURE', 'STAIRS_DOWN']
 }
 
+Throne = {
+'char': chr(20),
+'color': libtcod.yellow,
+'name': 'golden throne',
+'material': 'GOLD',
+'BlockMove': False,
+'BlockSight': True,
+'flags': ['FEATURE']
+}
+
 BookShelf = {
 'char': chr(252),
 'color': libtcod.darker_orange,
@@ -3141,7 +3151,7 @@ RockWall: RockPile
 ##############################################################################
 
 DummyRoom = {
-'frequency': 15,
+'frequency': 10,
 ' ': (RockWall, None, None, None),
 '#': (RockWall, None, None, None),
 '.': (RockFloor, None, None, None),
@@ -3563,6 +3573,150 @@ Diamond8 = {
 'file': 'rooms/diamond8',
 'width': 7,
 'height': 7
+}
+
+# the Surface:
+
+Entrance1 = {
+'file': 'rooms/entrance1',
+'width': 35,
+'height': 19,
+'>': (DownStairs, None, None, None),
+'X': (BrickWall, None, None, None)
+}
+
+# the Big room:
+BigRoom1 = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18
+}
+
+BigRoom2 = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18
+}
+
+BigRoom3 = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19
+}
+
+BigRoom4 = {
+'file': 'rooms/bigroom4',
+'width': 73,
+'height': 19,
+'>': (DownStairs, None, None, None),
+'<': (UpStairs, None, None, None),
+'T': (ConifTree, None, None, None)
+}
+
+BigRoom5 = {
+'file': 'rooms/bigroom5',
+'width': 75,
+'height': 19,
+'G': (Grave, None, None, None)
+}
+
+BigRoom6a = {
+'file': 'rooms/bigroom6',
+'width': 75,
+'height': 18,
+'-': (DeepWater, None, None, None)
+}
+
+BigRoom6b = {
+'file': 'rooms/bigroom6',
+'width': 75,
+'height': 18,
+'-': (Lava, None, None, None)
+}
+
+BigRoom6c = {
+'file': 'rooms/bigroom6',
+'width': 75,
+'height': 18,
+'-': (AcidPool, None, None, None)
+}
+
+BigRoom6d = {
+'file': 'rooms/bigroom6',
+'width': 75,
+'height': 18,
+'-': (TallGrass, None, None, None)
+}
+
+BigRoom6e = {
+'file': 'rooms/bigroom6',
+'width': 75,
+'height': 18,
+'-': (IronBars, None, None, None)
+}
+
+BigRoom7a = {
+'file': 'rooms/bigroom7',
+'width': 76,
+'height': 21,
+'-': (DeepWater, None, None, None),
+'X': (RockWall, None, None, None)
+}
+
+BigRoom7b = {
+'file': 'rooms/bigroom7',
+'width': 76,
+'height': 21,
+'-': (RockWall, None, None, None),
+'X': (Lava, None, None, None)
+}
+
+BigRoom7c = {
+'file': 'rooms/bigroom7',
+'width': 76,
+'height': 21,
+'-': (TallGrass, None, None, None),
+'.': (GrassFloor, None, None, None),
+'X': (LeafyTree, None, None, None)
+}
+
+BigRoom7d = {
+'file': 'rooms/bigroom7',
+'width': 76,
+'height': 21,
+'-': (IceWall, None, None, None),
+'.': (IceFloor, None, None, None),
+'X': (ShallowWater, None, None, None)
+}
+
+BigRoom7e = {
+'file': 'rooms/bigroom7',
+'width': 76,
+'height': 21,
+'-': (RockWall, None, None, None),
+'.': (Sand, None, None, None),
+'X': (RockWall, None, None, None)
+}
+
+BigRoom8 = {
+'file': 'rooms/bigroom8',
+'width': 73,
+'height': 21,
+'-': (GrassFloor, None, None, None),
+'.': (TallGrass, None, None, None),
+'X': (LeafyTree, None, None, None)
+}
+
+# the Goal:
+Goal1 = {
+'file': 'rooms/goal1',
+'width': 70,
+'height': 29,
+'<': (UpStairs, None, None, None),
+'#': (GoldWall, None, None, None),
+'.': (GoldFloor, None, None, None),
+'_': (Carpet, None, None, None),
+'X': (Throne, None, None, BlackKnight)
 }
 
 ###############################################################################
@@ -4028,4 +4182,31 @@ TJunction,
 Whirl,
 Why1,
 Why2
+]
+
+SurfaceList = [
+Entrance1
+]
+
+GoalList = [
+Goal1
+]
+
+BigRoomList = [
+BigRoom1,
+BigRoom2,
+BigRoom3,
+BigRoom4,
+BigRoom5,
+BigRoom6a,
+BigRoom6b,
+BigRoom6c,
+BigRoom6d,
+BigRoom6e,
+BigRoom7a,
+BigRoom7b,
+BigRoom7c,
+BigRoom7d,
+BigRoom7e,
+BigRoom8
 ]

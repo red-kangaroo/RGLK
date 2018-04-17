@@ -140,6 +140,9 @@ CAVE
 CITY
 MAZE
 
+SURFACE
+BIG
+GOAL
 
 Terrain
 =======
