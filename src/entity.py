@@ -1222,8 +1222,15 @@ class Mob(Entity):
                 except:
                     pass
 
+        # Modifiers:
         if self.hasIntrinsic('AFLAME'):
             light += 2
+
+        if var.DungeonLevel == 0:
+            light += 6
+
+        if var.getMap()[self.x][self.y].hasFlag('CAN_BE_CLIMBED'):
+            light += 4
 
         if light <= 0: # Sadly, libtcod requires at least radius 1, because 0 or less
             light = 1  # means unlimited sight radius.

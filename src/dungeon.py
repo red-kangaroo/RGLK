@@ -47,12 +47,15 @@ def makeMap(Populate, DungeonLevel):
 
     which = libtcod.random_get_int(0, 1, 4)
 
-    if DungeonLevel in [0, 10, 15]:
-        print "Building a special map."
-        map = buildBigRoom(map, DungeonLevel)
+    if DungeonLevel == 0:
+        print "Building the world."
+        map = buildWorld(map, DungeonLevel)
     elif DungeonLevel == 1:
         print "Building traditional dungeon."
         map = buildTraditionalDungeon(map, DungeonLevel)
+    elif DungeonLevel in [10, 15]:
+        print "Building a special map."
+        map = buildBigRoom(map, DungeonLevel)
     elif DungeonLevel < 5:
         if which < 3:
             print "Building a cave."
@@ -260,8 +263,11 @@ def makeBetterRoom(Rooms, map):
 
 def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
     if Prefab == None and Rooms != None:
+        List = list(raw.RoomList)
+        random.shuffle(List)
+
         for room in Rooms:
-            for Prefab in raw.RoomList:
+            for Prefab in List:
 
                 # Select a file and change terrain based on its map.
                 if (room.width + 1 == Prefab['width'] and
@@ -282,12 +288,15 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
                     break
 
         # Replace damaged outer walls.
-        for y in range(var.MapHeight):
+        for x in [0, var.MapWidth - 1]:
+            for y in range(var.MapHeight):
+                if not map[x][y].hasFlag('WALL'):
+                    map[x][y].change(raw.RockWall)
+
+        for y in [0, var.MapHeight - 1]:
             for x in range(var.MapWidth):
-                if (x == 0 or x == var.MapWidth - 1 or
-                    y == 0 or y == var.MapHeight - 1):
-                    if not map[x][y].hasFlag('WALL'):
-                        map[x][y].change(raw.RockWall)
+                if not map[x][y].hasFlag('WALL'):
+                    map[x][y].change(raw.RockWall)
 
         return Rooms, map
     elif Rooms == None:
@@ -297,8 +306,8 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
         fails = 0
         # Be careful, Room.width and Prefab['width'] are different by 1. (Yeah,
         # I will hate myself for this.)
-        width = Prefab['width'] - 1
-        height = Prefab['height'] - 1
+        width = Prefab['width']
+        height = Prefab['height']
 
         while fails < 100:
             Fail = False
@@ -320,12 +329,15 @@ def makePrefabRoom(map, DungeonLevel, Rooms = None, Prefab = None):
             map = create_prefab(Prefab, NewRoom, map, DungeonLevel)
 
         # Replace damaged outer walls once again.
-        for y in range(var.MapHeight):
+        for x in [0, var.MapWidth - 1]:
+            for y in range(var.MapHeight):
+                if not map[x][y].hasFlag('WALL'):
+                    map[x][y].change(raw.RockWall)
+
+        for y in [0, var.MapHeight - 1]:
             for x in range(var.MapWidth):
-                if (x == 0 or x == var.MapWidth - 1 or
-                    y == 0 or y == var.MapHeight - 1):
-                    if not map[x][y].hasFlag('WALL'):
-                        map[x][y].change(raw.RockWall)
+                if not map[x][y].hasFlag('WALL'):
+                    map[x][y].change(raw.RockWall)
 
         return map
     else:
@@ -953,25 +965,96 @@ def checkMaze(x, y, map):
         return True
     return False
 
-def buildPerlinForest(map, DungeonLevel):
-    # TODO: Not working!!!
+def buildWorld(map, DungeonLevel):
+    # TODO
 
+    HeightMap = libtcod.heightmap_new(var.MapWidth, var.MapHeight)
+
+    # Main hills:
+    if var.rand_chance(90):
+        islands = False
+
+        for i in range(25):
+            libtcod.heightmap_add_hill(HeightMap,
+                                       libtcod.random_get_int(0, var.MapWidth / 10, var.MapWidth - var.MapWidth / 10),
+                                       libtcod.random_get_int(0, var.MapHeight / 10, var.MapHeight - var.MapHeight / 10),
+                                       libtcod.random_get_int(0, 8, 12),
+                                       libtcod.random_get_int(0, 6, 10))
+    else:
+        islands = True
+
+    # Small hills:
+    if islands:
+        hills = 100
+    else:
+        hills = 200
+
+    for i in range(hills):
+        libtcod.heightmap_add_hill(HeightMap,
+                                   libtcod.random_get_int(0, var.MapWidth / 10, var.MapWidth - var.MapWidth / 10),
+                                   libtcod.random_get_int(0, var.MapHeight / 10, var.MapHeight - var.MapHeight / 10),
+                                   libtcod.random_get_int(0, 2, 4),
+                                   libtcod.random_get_int(0, 6, 10))
+
+    libtcod.heightmap_normalize(HeightMap, 0.0, 1.0)
+
+    # Apply simplex:
+    '''
+    NoiseMap = libtcod.heightmap_new(var.MapWidth, var.MapHeight)
     noise = libtcod.noise_new(2)
+    libtcod.heightmap_add_fbm(NoiseMap, noise, 6, 6, 0, 0, 32, 1, 1)
+    libtcod.heightmap_normalize(NoiseMap, 0.0, 1.0)
+    libtcod.heightmap_multiply_hm(HeightMap, NoiseMap, HeightMap)
+    '''
+
+    # Erosion:
+    '''
+    erosion = abs(random.random())
+    sedimentation = abs(random.random())
+
+    if sedimentation > erosion:
+        sedimentation = erosion
+    '''
+
+    libtcod.heightmap_rain_erosion(HeightMap, var.MapWidth * var.MapHeight, 0.07, 0, 0)
+    libtcod.heightmap_clamp(HeightMap, 0.0, 1.0)
 
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
-            tile = libtcod.noise_get_fbm(noise, [x, y], 32.0)
+            tile = libtcod.heightmap_get_value(HeightMap, x, y)
 
-            # TODO
+            if tile < 0.1:
+                map[x][y].change(raw.DeepWater)
+            elif tile < 0.2:
+                map[x][y].change(raw.ShallowWater)
+            elif tile < 0.3:
+                map[x][y].change(raw.Sand)
+            elif tile > 0.8:
+                map[x][y].change(raw.Mountain)
+            elif tile > 0.6:
+                if var.rand_chance(15):
+                    map[x][y].change(raw.ConifTree)
+                elif var.rand_chance(15):
+                    map[x][y].change(raw.LeafyTree)
+                else:
+                    map[x][y].change(raw.TallGrass)
+            else:
+                map[x][y].change(raw.GrassFloor)
 
-    libtcod.noise_delete(noise)
+    libtcod.heightmap_delete(HeightMap)
+    #libtcod.heightmap_delete(NoiseMap)
+    #libtcod.noise_delete(noise)
+
+    map = postProcess(map, 'FOREST')
+    map = makeStairs(map, DungeonLevel)
+
     return map
 
 def buildBigRoom(map, DungeonLevel):
-    if DungeonLevel == 0:
-        type = 'SURFACE'
-        which = random.choice(raw.SurfaceList)
-    elif DungeonLevel == 10:
+    #if DungeonLevel == 0:
+    #    type = 'SURFACE'
+    #    which = random.choice(raw.SurfaceList)
+    if DungeonLevel == 10:
         type = 'BIG'
         which = random.choice(raw.BigRoomList)
     elif DungeonLevel == 15:
@@ -996,13 +1079,41 @@ def buildBigRoom(map, DungeonLevel):
     # but otherwise add something nice.
     if type in ['BIG', None]:
         map = postProcess(map, type)
+        map = makeBetterDoor(map) # Must be here because of postProcess().
 
-    if type != 'SURFACE':
-        while var.rand_chance(50):
-            map = makePrefabRoom(map, DungeonLevel)
+    map = makeStairs(map, DungeonLevel, [NewRoom])
+
+    return map
+
+def buildPrefabLevel(map, DungeonLevel):
+    # Let's see how this works out.
+    Rooms = []
+
+    for i in range(var.RoomMaxNumber):
+        Prefab = random.choice(raw.RoomList)
+
+        width = Prefab['width']
+        height = Prefab['height']
+
+        x = libtcod.random_get_int(0, 0, var.MapWidth - width - 1)
+        y = libtcod.random_get_int(0, 0, var.MapHeight - height - 1)
+
+        NewRoom = Room(x, y, width, height)
+        Fail = False
+
+        for OtherRoom in Rooms:
+            if NewRoom.intersect(OtherRoom):
+                Fail = True
+                break
+
+        if not Fail:
+            map = create_prefab(Prefab, NewRoom, map, DungeonLevel)
+
+            Rooms.append(NewRoom)
 
     map = makeBetterDoor(map)
-    map = makeStairs(map, DungeonLevel, [NewRoom])
+    # TODO: Check connectivity of stairs.
+    map = makeStairs(map, DungeonLevel)
 
     return map
 
@@ -1057,6 +1168,16 @@ def postProcess(map, type = None):
                 raw.BonePile,
                 raw.Grave
                 ])
+            elif type == 'FOREST':
+                which = random.choice([
+                raw.Vines,
+                raw.TallGrass,
+                raw.TallGrass,
+                raw.RockPile,
+                raw.EarthFloor,
+                raw.LeafyTree,
+                raw.ConifTree
+                ])
             elif type in ['CAVE', 'BIG']:
                 which = random.choice([
                 raw.Vines,
@@ -1095,12 +1216,13 @@ def postProcess(map, type = None):
                 map[x][y].change(which)
 
             # Replace damaged outer walls.
-            if (x == 0 or x == var.MapWidth - 1 or
-                y == 0 or y == var.MapHeight - 1):
-                if not map[x][y].hasFlag('WALL'):
-                    map[x][y].change(raw.RockWall)
+            if type != 'FOREST':
+                if (x == 0 or x == var.MapWidth - 1 or
+                    y == 0 or y == var.MapHeight - 1):
+                    if not map[x][y].hasFlag('WALL'):
+                        map[x][y].change(raw.RockWall)
 
-    while var.rand_chance(15):
+    while var.rand_chance(15) and type != 'FOREST':
         if type == 'DUNGEON':
             liquid = raw.ShallowWater
         elif type == 'CATACOMB':
@@ -1176,46 +1298,49 @@ def makeBetterDoor(map):
     return map
 
 def populate(DungeonLevel):
-    MonsterNo = 0
-    MonsterMax = var.MonsterMaxNumber + (2 * DungeonLevel)
-    NewMob = None
-
-    while MonsterNo < MonsterMax: # TODO: Danger level.
-        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
-        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
-
-        which = var.rand_weighted(getRandomEntity('MOB', DungeonLevel))
-        NewMob = entity.spawn(x, y, which, 'MOB')
-
-        if NewMob.isBlocked(x, y, DungeonLevel):
-            NewMob = None
-
-        if NewMob != None:
-            var.Entities[DungeonLevel].append(NewMob)
-            MonsterNo += 1
-
+    # Monster generation:
+    if DungeonLevel != 0:
+        MonsterNo = 0
+        MonsterMax = var.MonsterMaxNumber + (2 * DungeonLevel)
         NewMob = None
 
+        while MonsterNo < MonsterMax: # TODO: Danger level.
+            x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+            y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            which = var.rand_weighted(getRandomEntity('MOB', DungeonLevel))
+            NewMob = entity.spawn(x, y, which, 'MOB')
+
+            if NewMob.isBlocked(x, y, DungeonLevel):
+                NewMob = None
+
+            if NewMob != None:
+                var.Entities[DungeonLevel].append(NewMob)
+                MonsterNo += 1
+
+            NewMob = None
+
     # Item generation.
-    ItemNo = 0
-    NewItem = None
-
-    while ItemNo < var.ItemMaxNumber:
-        x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
-        y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
-
-        which = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
-        NewItem = entity.spawn(x, y, which, 'ITEM')
-
-        if NewItem.isBlocked(x, y, DungeonLevel):
-            NewItem = None
-
-        if NewItem != None:
-            var.Entities[DungeonLevel].append(NewItem)
-
-            ItemNo += 1
-
+    if DungeonLevel != 0 and DungeonLevel != 15:
+        ItemNo = 0
         NewItem = None
+
+        while ItemNo < var.ItemMaxNumber:
+            x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
+            y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
+
+            which = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
+            NewItem = entity.spawn(x, y, which, 'ITEM')
+
+            if NewItem.isBlocked(x, y, DungeonLevel):
+                NewItem = None
+
+            if NewItem != None:
+                var.Entities[DungeonLevel].append(NewItem)
+
+                ItemNo += 1
+
+            NewItem = None
 
     # Special bosses:
     if DungeonLevel == 2: # A guaranteed kobold miner.
@@ -1753,3 +1878,15 @@ class Room(object):
             doorNo += 1
 
         return map
+
+def isOnMap(x, y):
+    if x in range(0, var.MapWidth) and y in range(0, var.MapHeight):
+        return True
+    else:
+        return False
+
+def isOnMapEdge(x, y):
+    if x == 0 or y == 0 or x == var.MapWidth - 1 or y == var.MapHeight - 1:
+        return True
+    else:
+        return False

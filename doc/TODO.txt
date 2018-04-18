@@ -1,13 +1,17 @@
 To do list:
 ===========
 * release with pyinstaller?
+* AI
+* terrain effects
 * pain
 * kill list
 * intrinsics:
    VULN_material
+   RESIST_METAL
+   BUFF_attribute, damage, light
+   DEBUFF_attribute, damage, light
    IMMUNE_GAS
    IMMUNE_DISEASE
-   RESIST_METAL
    RESIST_SLEEP insomnia
    RESIST_CHOKE unbreathing
    RESIST_POLY unchanging
@@ -52,14 +56,16 @@ To do list:
    RAGE
 
    noisy?
-   diseases
+   diseases - no time-out
    skills
    spells
 * multiple FOVMaps (forestry, clairvoyance, ESP)
 * Skills:
    Two-handers vs Dual wielding
+   isTwoHanding(item) - 1.5 * Str
 * checkDeath for WizMode
 * better canSense()
+   lines only for stealth
 * builders for QIX and noise forest
 * splitting item stacks, requires being able to write how much
 * containers
@@ -81,9 +87,6 @@ https://www.reddit.com/r/roguelikedev/comments/552hd5/method_for_randomly_genera
 https://imgur.com/a/AnB4T#14
 https://crawl.develz.org/wiki/doku.php?id=dcss:brainstorm:dungeon:layout_types
 
-Noise forest:
-http://roguecentral.org/doryen/data/libtcod/doc/1.5.1/html2/noise_get.html?c=false&cpp=false&cs=false&py=true&lua=false
-
 World map:
 https://gillesleblanc.wordpress.com/2012/10/16/creating-a-random-2d-game-world-map/
 https://github.com/Dozed12/df-style-worldgen/blob/master/dist/pyWorld.py
@@ -91,7 +94,7 @@ https://github.com/Dozed12/df-style-worldgen/blob/master/dist/pyWorld.py
 
 
 More vaults:
-https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/crawl-ref/source/dat/des/builder
+https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/crawl-ref/source/dat/des
 
 Artifacts:
 * Royal Aegis

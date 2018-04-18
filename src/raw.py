@@ -2291,7 +2291,7 @@ Player = {
 'sight': 0,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, Bandage, SunStone],
+'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, SunStone],
 'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
 }
@@ -2777,6 +2777,15 @@ IronBars = {
 'flags': ['WALL', 'CAN_BE_CORRODED']
 }
 
+Mountain = {
+'char': '^',
+'color': libtcod.dark_grey,
+'name': 'mountain',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['WALL', 'CAN_BE_CLIMBED']
+}
+
 # Floors:
 RockFloor = {
 'char': '.',
@@ -3152,13 +3161,18 @@ RockWall: RockPile
 
 DummyRoom = {
 'frequency': 10,
-' ': (RockWall, None, None, None),
+#' ': (RockWall, None, None, None), # Space should be skipped, leaving original terrain.
 '#': (RockWall, None, None, None),
 '.': (RockFloor, None, None, None),
 '+': (WoodDoor, None, None, None),
 'S': (SecretDoor, None, None, None),
 'x': (WoodDoor, ['BLOCKED'], None, None),
-'$': (RockFloor, None, GoldPiece, None)
+'$': (RockFloor, None, GoldPiece, None),
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (DeepWater, None, None, None),
+'=': (IronBars, None, None, None),
+'_': (Carpet, None, None, None)
 }
 
 # Several small cages.
@@ -3580,9 +3594,16 @@ Diamond8 = {
 Entrance1 = {
 'file': 'rooms/entrance1',
 'width': 35,
-'height': 19,
-'>': (DownStairs, None, None, None),
+'height': 23,
 'X': (BrickWall, None, None, None)
+}
+
+Entrance2 = {
+'file': 'rooms/entrance2',
+'width': 33,
+'height': 17,
+'#': (BrickWall, None, None, None),
+',': (GrassFloor, None, None, None),
 }
 
 # the Big room:
@@ -3655,6 +3676,13 @@ BigRoom6e = {
 '-': (IronBars, None, None, None)
 }
 
+BigRoom6f = {
+'file': 'rooms/bigroom6',
+'width': 75,
+'height': 18,
+'-': (IceWall, None, None, None)
+}
+
 BigRoom7a = {
 'file': 'rooms/bigroom7',
 'width': 76,
@@ -3707,6 +3735,272 @@ BigRoom8 = {
 'X': (LeafyTree, None, None, None)
 }
 
+BigRoom9 = {
+'file': 'rooms/bigroom9',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None)
+}
+
+BigRoom10a = {
+'file': 'rooms/bigroom10',
+'width': 19,
+'height': 19,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (IceFloor, None, None, None),
+'~': (DeepWater, None, None, None)
+}
+
+BigRoom10b = {
+'file': 'rooms/bigroom10',
+'width': 19,
+'height': 19,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (Sand, None, None, None),
+'~': (Lava, None, None, None)
+}
+
+BigRoom10c = {
+'file': 'rooms/bigroom10',
+'width': 19,
+'height': 19,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (IronFloor, None, None, None),
+'~': (AcidPool, None, None, None)
+}
+
+BigRoom10d = {
+'file': 'rooms/bigroom10',
+'width': 19,
+'height': 19,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (GrassFloor, None, None, None),
+'~': (TallGrass, None, None, None)
+}
+
+BigRoom11a = {
+'file': 'rooms/bigroom11',
+'width': 17,
+'height': 21,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (IceFloor, None, None, None),
+'~': (DeepWater, None, None, None)
+}
+
+BigRoom11b = {
+'file': 'rooms/bigroom11',
+'width': 17,
+'height': 21,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (Sand, None, None, None),
+'~': (Lava, None, None, None)
+}
+
+BigRoom11c = {
+'file': 'rooms/bigroom11',
+'width': 17,
+'height': 21,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (IronFloor, None, None, None),
+'~': (AcidPool, None, None, None)
+}
+
+BigRoom11d = {
+'file': 'rooms/bigroom11',
+'width': 17,
+'height': 21,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'.': (GrassFloor, None, None, None),
+'~': (TallGrass, None, None, None)
+}
+
+BigRoom12a = {
+'file': 'rooms/bigroom12',
+'width': 17,
+'height': 17,
+'X': (RockWall, None, None, None)
+}
+
+BigRoom12b = {
+'file': 'rooms/bigroom12',
+'width': 17,
+'height': 17,
+'X': (ConifTree, None, None, None)
+}
+
+BigRoom12c = {
+'file': 'rooms/bigroom12',
+'width': 17,
+'height': 17,
+'#': (EarthWall, None, None, None),
+'X': (LeafyTree, None, None, None),
+'.': (GrassFloor, None, None, None)
+}
+
+BigRoom13a = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (ShallowWater, None, None, None),
+'~': (DeepWater, None, None, None)
+}
+
+BigRoom13b = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (LeafyTree, None, None, None),
+'~': (TallGrass, None, None, None)
+}
+
+BigRoom13c = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (GrassFloor, None, None, None),
+'~': (ConifTree, None, None, None)
+}
+
+BigRoom13d = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (RockFloor, None, None, None),
+'~': (Lava, None, None, None)
+}
+
+BigRoom13e = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (RockFloor, None, None, None),
+'~': (AcidPool, None, None, None)
+}
+
+BigRoom13f = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (ClosedPort, None, None, None),
+'~': (IronBars, None, None, None)
+}
+
+BigRoom13g = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (Mud, None, None, None),
+'~': (EarthWall, None, None, None)
+}
+
+BigRoom13h = {
+'file': 'rooms/bigroom13',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'x': (GoldFloor, None, None, None),
+'~': (GoldWall, None, None, None)
+}
+
+BigRoom14a = {
+'file': 'rooms/bigroom14',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (DeepWater, None, None, None)
+}
+
+BigRoom14b = {
+'file': 'rooms/bigroom14',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (Lava, None, None, None)
+}
+
+BigRoom14c = {
+'file': 'rooms/bigroom14',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (AcidPool, None, None, None)
+}
+
+BigRoom14d = {
+'file': 'rooms/bigroom14',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (LeafyTree, None, None, None)
+}
+
+BigRoom14e = {
+'file': 'rooms/bigroom14',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (ConifTree, None, None, None)
+}
+
+BigRoom14f = {
+'file': 'rooms/bigroom14',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (IceWall, None, None, None)
+}
+
+BigRoom14g = {
+'file': 'rooms/bigroom14',
+'width': 17,
+'height': 17,
+'<': (UpStairs, None, None, None),
+'>': (DownStairs, None, None, None),
+'~': (IronBars, None, None, None)
+}
+
+BigRoom15 = {
+'file': 'rooms/bigroom15',
+'width': 17,
+'height': 17
+}
+
+BigRoom16 = {
+'file': 'rooms/bigroom16',
+'width': 17,
+'height': 17
+}
+
 # the Goal:
 Goal1 = {
 'file': 'rooms/goal1',
@@ -3717,6 +4011,41 @@ Goal1 = {
 '.': (GoldFloor, None, None, None),
 '_': (Carpet, None, None, None),
 'X': (Throne, None, None, BlackKnight)
+}
+
+Goal2 = {
+'file': 'rooms/goal2',
+'width': 21,
+'height': 32,
+'<': (UpStairs, None, None, None),
+'#': (GoldWall, None, None, None),
+'.': (GoldFloor, None, None, None),
+'+': (WoodDoor, ['BLOCKED'], None, None),
+'X': (RockWall, None, None, None),
+',': (RockFloor, None, None, None),
+'x': (IronWall, None, None, None),
+':': (IronFloor, None, None, None),
+'-': (ClosedPort, None, None, None),
+'=': (IronBars, None, None, None),
+'_': (Carpet, None, None, None),
+'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY'),
+'T': (Throne, None, None, BlackKnight)
+}
+
+Goal3 = {
+'file': 'rooms/goal3',
+'width': 25,
+'height': 43,
+'<': (UpStairs, None, None, None),
+'X': (GoldWall, None, None, None),
+'.': (GoldFloor, None, None, None),
+'+': (ClosedPort, ['BLOCKED'], None, None),
+',': (RockFloor, None, None, None),
+'-': (DeepWater, None, None, None),
+'=': (IronBars, None, None, None),
+'*': (Carpet, None, None, None),
+'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY'),
+'_': (Throne, None, None, BlackKnight)
 }
 
 ###############################################################################
@@ -4185,11 +4514,14 @@ Why2
 ]
 
 SurfaceList = [
-Entrance1
+Entrance1,
+Entrance2
 ]
 
 GoalList = [
-Goal1
+Goal1,
+Goal2,
+Goal3
 ]
 
 BigRoomList = [
@@ -4203,10 +4535,40 @@ BigRoom6b,
 BigRoom6c,
 BigRoom6d,
 BigRoom6e,
+BigRoom6f,
 BigRoom7a,
 BigRoom7b,
 BigRoom7c,
 BigRoom7d,
 BigRoom7e,
-BigRoom8
+BigRoom8,
+BigRoom9,
+BigRoom10a,
+BigRoom10b,
+BigRoom10c,
+BigRoom10d,
+BigRoom11a,
+BigRoom11b,
+BigRoom11c,
+BigRoom11d,
+BigRoom12a,
+BigRoom12b,
+BigRoom12c,
+BigRoom13a,
+BigRoom13b,
+BigRoom13c,
+BigRoom13d,
+BigRoom13e,
+BigRoom13f,
+BigRoom13g,
+BigRoom13h,
+BigRoom14a,
+BigRoom14b,
+BigRoom14c,
+BigRoom14d,
+BigRoom14e,
+BigRoom14f,
+BigRoom14g,
+BigRoom15,
+BigRoom16
 ]
