@@ -1025,8 +1025,7 @@ def aiMoveAStar(Me, Target):
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             libtcod.map_set_properties(MoveMap, x, y, not var.getMap()[x][y].BlockSight,
-                                       (not var.getMap()[x][y].BlockMove or
-                                       var.getMap()[x][y].hasFlag('CAN_BE_OPENED')))
+                                       Me.isPassable(x, y))
     for i in var.getEntity():
         if i.BlockMove == True and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)
@@ -1093,8 +1092,7 @@ def aiMoveDijkstra(Me, Target):
     for y in range(var.MapHeight):
         for x in range(var.MapWidth):
             libtcod.map_set_properties(MoveMap, x, y, not var.getMap()[x][y].BlockSight,
-                                       (not var.getMap()[x][y].BlockMove or
-                                       var.getMap()[x][y].hasFlag('CAN_BE_OPENED')))
+                                       Me.isPassable(x, y))
     for i in var.getEntity():
         if i.BlockMove == True and i != Me and i != Target:
             libtcod.map_set_properties(MoveMap, i.x, i.y, True, not i.BlockMove)

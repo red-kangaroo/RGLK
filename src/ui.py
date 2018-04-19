@@ -258,6 +258,13 @@ def render_UI(Player):
                                  'Blind')
         y += 1
 
+    # Flight:
+    if Player.isFlying():
+        libtcod.console_set_default_foreground(var.UIPanel, libtcod.azure)
+        libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
+                                 'Flying')
+        y += 1
+
     # Intrinsics:
     for i in Player.getIntrinsicsToDisplay():
         libtcod.console_set_default_foreground(var.UIPanel, i.getColor())
@@ -403,7 +410,7 @@ def inventory_menu(Player):
             # Add instructions:
             libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
             libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
-                                     "[press letter; Space for next; Esc to exit]")
+                                     "[press letter; Enter to sort; Space for next; Esc to exit]")
             libtcod.console_print_ex(var.MenuPanel, 68, 28, libtcod.BKGND_SET, libtcod.RIGHT,
                                      "page: %s" % str(page + 1))
 
@@ -414,8 +421,22 @@ def inventory_menu(Player):
             while True:
                 Key = libtcod.console_wait_for_keypress(True)
 
+                if Key.vk == libtcod.KEY_CHAR:
+                    what = Key.c - ord('a') + (24 * page)
+
+                    if what in range(0, len(Player.inventory)):
+                        return what
+                    else:
+                        continue
+
                 if Key.vk == libtcod.KEY_ESCAPE:
                     return None
+
+                if Key.vk == libtcod.KEY_ENTER:
+                    for i in Player.inventory:
+                        i.tryStacking(Player)
+                    Player.inventory.sort(key = lambda i: i.name)
+                    return True
 
                 if Key.vk == libtcod.KEY_SPACE:
                     libtcod.console_clear(var.MenuPanel)
@@ -438,12 +459,6 @@ def inventory_menu(Player):
                     y = 3
                     page += 1
                     break
-
-                else:
-                    what = Key.c - ord('a') + (24 * page)
-
-                    if what in range(0, len(Player.inventory)):
-                        return what
 
 def equip_menu(bodyparts):
     libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)

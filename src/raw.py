@@ -533,6 +533,14 @@ ResistSound = {
 'secret': True
 }
 
+ResistChoke = {
+'name': 'unbreathing',
+'type': 'RESIST_CHOKE',
+'beginMsg': " &ISARE breathing lightly.",
+'endMsg': " take&S a deep breath.",
+'secret': True
+}
+
 VulnBlunt = {
 'name': 'blunt attack vulnerability',
 'type': 'VULN_BLUNT',
@@ -782,6 +790,30 @@ Slow = {
 'beginMsg': " &ISARE moving slowly.",
 'endMsg': " speed&S up.",
 'secret': False
+}
+
+Levitation = {
+'name': 'levitation',
+'type': 'LEVITATION',
+'beginMsg': " rise&S above the ground.",
+'endMsg': " descend&S gently upon the ground.",
+'secret': False
+}
+
+WaterWalking = {
+'name': 'water walking',
+'type': 'WATER_WALK',
+'beginMsg': " feel&S very holy.",
+'endMsg': " feel&S sea-sick.",
+'secret': True
+}
+
+Swimming = {
+'name': 'swimming',
+'type': 'SWIM',
+'beginMsg': " fondly remember&S the ocean waves.",
+'endMsg': " feel&S hydrophobic.",
+'secret': True
 }
 
 Blindness = {
@@ -1102,6 +1134,7 @@ Knife = {
 'char': ')',
 'color': libtcod.dark_grey,
 'name': 'knife',
+'plural': 'knives',
 'material': 'IRON',
 'size': -2,
 'StrScaling': 'C',
@@ -1115,6 +1148,7 @@ VampireKnife = {
 'char': ')',
 'color': libtcod.dark_red,
 'name': 'vampire knife',
+'plural': 'vampire knives',
 'material': 'BONE',
 'size': -2,
 'StrScaling': 'C',
@@ -1129,6 +1163,7 @@ RitualKnife = {
 'char': ')',
 'color': libtcod.dark_blue,
 'name': 'ritual knife',
+'plural': 'ritual knives',
 'material': 'STONE', # Obsidian.
 'size': -2,
 'StrScaling': 'C',
@@ -1993,7 +2028,17 @@ Baldric = {
 'frequency': 700
 }
 
-# belt of levitation
+LevitationBelt = {
+'char': '-',
+'color': libtcod.azure,
+'name': 'belt of levitation',
+'plural': 'belts of levitation',
+'material': 'LEATHER',
+'size': -1,
+'intrinsics': [('LEVITATION', 1)],
+'flags': ['GROIN', 'ARMOR'],
+'frequency': 50
+}
 
 # Legwear:
 Sandal = {
@@ -2017,6 +2062,18 @@ SnakeSandal = {
 'PV': 0,
 'flags': ['LEG', 'ARMOR', 'PAIRED', 'ENCHANT_DODGE'],
 'frequency': 100
+}
+
+SaintSandal = {
+'char': '(',
+'color': libtcod.yellow,
+'name': 'water flower sandal',
+'material': 'LEATHER',
+'size': -1,
+'DV': 1,
+'PV': 0,
+'intrinsics': [('WATER_WALK', 1)],
+'flags': ['LEG', 'ARMOR', 'PAIRED']
 }
 
 LowBoot = {
@@ -2110,7 +2167,7 @@ Bandage = {
 'name': 'bandage',
 'material': 'CLOTH',
 'size': -2,
-'flags': ['APPLY', 'BANDAGE'],
+'flags': ['APPLY', 'BANDAGE', 'SMALL_PILE'],
 'coolness': 10,
 'frequency': 500
 }
@@ -2122,20 +2179,30 @@ GoldPiece = {
 'name': 'gold nugget',
 'material': 'GOLD',
 'size': -2,
-'flags': ['PILE', 'ALWAYS_MUNDANE'],
+'flags': ['BIG_PILE', 'ALWAYS_MUNDANE'],
 'frequency': 50
 }
 
 SunStone = {
 'char': '*',
-'color': libtcod.yellow,
+'color': libtcod.amber,
 'name': 'sunstone',
 'material': 'STONE',
-'light': 3,
+'light': 10,
 'size': -2,
 'ranged': RockThrown,
+'frequency': 10
+}
+
+WyrdLight = {
+'char': '*',
+'color': libtcod.cyan,
+'name': 'floating wyrd-light',
+'material': 'GLASS',
+'light': 3,
+'size': -2,
 'flags': ['ENCHANT_LIGHT', 'CARRY_LIGHT'],
-'frequency': 50
+'frequency': 5
 }
 
 Berry = {
@@ -2213,8 +2280,20 @@ Boulder = {
 'size': 2,
 'DV': -10,
 'attack': BoulderRoll,
-'flags': ['FEATURE'], # TODO: Block sight.
+'flags': ['FEATURE', 'PLUG'], # TODO: Block sight.
 'frequency': 50
+}
+
+Statue = {
+'char': '&',
+'color': libtcod.dark_grey,
+'name': 'statue',
+'BlockMove': True,
+'size': 2,
+'DV': -10,
+'attack': BoulderRoll,
+'flags': ['FEATURE'],
+'frequency': 5
 }
 
 Chair = {
@@ -2291,7 +2370,7 @@ Player = {
 'sight': 0,
 'sex': 'MOF',
 'intrinsics': [],
-'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, SunStone],
+'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, WyrdLight],
 'flags': ['HUMANOID', 'AVATAR'],
 'frequency': 0
 }
@@ -2942,7 +3021,7 @@ BrokenDoor = {
 'material': 'WOOD',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['DOOR']
+'flags': ['DOOR', 'ROUGH']
 }
 
 ClosedPort = {
@@ -2963,6 +3042,26 @@ OpenPort = {
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['DOOR', 'PORTCULLIS', 'CAN_BE_CLOSED']
+}
+
+ClosedGoldDoor = {
+'char': '+',
+'color': libtcod.gold,
+'name': 'gold-plated door',
+'material': 'GOLD',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['DOOR', 'CAN_BE_OPENED', 'BLOCKED']
+}
+
+OpenGoldDoor = {
+'char': '\'',
+'color': libtcod.gold,
+'name': 'open gold-plated door',
+'material': 'GOLD',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['DOOR', 'CAN_BE_CLOSED', 'BLOCKED']
 }
 
 Curtain = {
@@ -3003,7 +3102,7 @@ Vines = {
 'material': 'PLANT',
 'BlockMove': False,
 'BlockSight': True,
-'flags': ['GROUND', 'CAN_BE_BURNED', 'PLANT']
+'flags': ['GROUND', 'ROUGH', 'CAN_BE_BURNED', 'PLANT']
 }
 
 TallGrass = {
@@ -3017,13 +3116,14 @@ TallGrass = {
 }
 
 # Decorations:
-RockPile = {
+AshPile = {
 'char': '*',
-'color': libtcod.darker_grey,
-'name': 'rock pile',
+'color': libtcod.light_grey,
+'name': 'pile of ash',
+'material': 'WOOD',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['GROUND', 'CAN_BE_KICKED']
+'flags': ['GROUND', 'ROUGH', 'CAN_BE_KICKED']
 }
 
 BonePile = {
@@ -3033,16 +3133,26 @@ BonePile = {
 'material': 'BONE',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['GROUND', 'CAN_BE_KICKED']
+'flags': ['GROUND', 'ROUGH', 'CAN_BE_KICKED']
 }
 
-Grave = {
-'char': chr(241), # Ie. ±
-'color': libtcod.white,
-'name': 'gravestone',
+GoldPile = {
+'char': '*',
+'color': libtcod.yellow,
+'name': 'pile of gold',
+'material': 'GOLD',
 'BlockMove': False,
 'BlockSight': False,
-'flags': ['CAN_BE_KICKED']
+'flags': ['GROUND', 'ROUGH', 'CAN_BE_KICKED']
+}
+
+RockPile = {
+'char': '*',
+'color': libtcod.darker_grey,
+'name': 'rock pile',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND', 'ROUGH', 'CAN_BE_KICKED']
 }
 
 # Liquids:
@@ -3121,7 +3231,16 @@ Throne = {
 'material': 'GOLD',
 'BlockMove': False,
 'BlockSight': True,
-'flags': ['FEATURE']
+'flags': ['FEATURE', 'CAN_BE_KICKED']
+}
+
+Grave = {
+'char': chr(241), # Ie. ±
+'color': libtcod.white,
+'name': 'gravestone',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['FEATURE', 'CAN_BE_KICKED']
 }
 
 BookShelf = {
@@ -4093,11 +4212,13 @@ MaterialsList = [
 ]
 
 DamageTypeList = [
+'ASPHYX',
 'BLUNT',
 'SLASH',
 'PIERCE',
 'ACID',
 'FIRE',
+'FORCE',
 'COLD',
 'ELECTRIC',
 'NECROTIC',
@@ -4109,19 +4230,40 @@ DamageTypeList = [
 ]
 
 NonWoundingList = [
+'ASPHYX',
 'NECROTIC',
 'POISON',
 'BLEED',
 'DARK'
 ]
 
+MaterialDamageList = {
+'ASPHYX': [],
+'BLUNT': ['BONE', 'CLAY', 'GLASS', 'WATER', 'WOOD'],
+'SLASH': ['BONE', 'CLOTH', 'FLESH', 'LEATHER', 'PAPER', 'PLANT', 'WATER', 'WOOD'],
+'PIERCE': ['CLOTH', 'FLESH', 'LEATHER', 'PAPER', 'PLANT'],
+'ACID': ['BONE', 'CLOTH', 'FLESH', 'IRON', 'LEATHER', 'PAPER', 'PLANT', 'SILVER', 'WOOD'],
+'FIRE': ['BONE', 'CLOTH', 'FLESH', 'LEATHER', 'PAPER', 'PLANT', 'WOOD'],
+'FORCE': ['AETHER'],
+'COLD': ['WATER'],
+'ELECTRIC': ['GOLD', 'IRON', 'SILVER'],
+'NECROTIC': ['FLESH', 'PLANT', 'WOOD'],
+'POISON': ['FLESH'],
+'BLEED': [],
+'LIGHT': [],
+'DARK': [],
+'SOUND': ['GLASS']
+}
+
 ResistanceTypeList = {
+'ASPHYX': 'RESIST_CHOKE',
 'BLEED': None,
 'BLUNT': 'RESIST_BLUNT',
 'SLASH': 'RESIST_SLASH',
 'PIERCE': 'RESIST_PIERCE',
 'ACID': 'RESIST_ACID',
 'FIRE': 'RESIST_FIRE',
+'FORCE': None,
 'COLD': 'RESIST_COLD',
 'ELECTRIC': 'RESIST_SHOCK',
 'NECROTIC': 'RESIST_NECRO',
@@ -4132,12 +4274,14 @@ ResistanceTypeList = {
 }
 
 VulnerabilityTypeList = {
+'ASPHYX': None,
 'BLEED': None,
 'BLUNT': 'VULN_BLUNT',
 'SLASH': 'VULN_SLASH',
 'PIERCE': 'VULN_PIERCE',
 'ACID': 'VULN_ACID',
 'FIRE': 'VULN_FIRE',
+'FORCE': None,
 'COLD': 'VULN_COLD',
 'ELECTRIC': 'VULN_SHOCK',
 'NECROTIC': 'VULN_NECRO',
@@ -4148,12 +4292,14 @@ VulnerabilityTypeList = {
 }
 
 ImmunityTypeList = {
+'ASPHYX': None,
 'BLEED': 'BLOODLESS',
 'BLUNT': 'IMMUNE_PHYSICAL',
 'SLASH': 'IMMUNE_PHYSICAL',
 'PIERCE': 'IMMUNE_PHYSICAL',
 'ACID': 'IMMUNE_ACID',
 'FIRE': 'IMMUNE_FIRE',
+'FORCE': None,
 'COLD': 'IMMUNE_COLD',
 'ELECTRIC': 'IMMUNE_SHOCK',
 'NECROTIC': 'IMMUNE_NECRO',
@@ -4259,9 +4405,11 @@ BlackBelt,
 Girdle,
 PlateSkirt,
 Baldric,
+LevitationBelt,
 # Legwear:
 Sandal,
 SnakeSandal,
+SaintSandal,
 LowBoot,
 HighBoot,
 Clog,
@@ -4276,6 +4424,7 @@ MutationPotion,
 Bandage,
 # Gems:
 SunStone,
+WyrdLight,
 GoldPiece,
 # Containers:
 Pouch,
@@ -4284,6 +4433,7 @@ HoldingBag,
 Chest,
 # Furniture:
 Boulder,
+Statue,
 #Chair,
 #Table,
 #Bed
@@ -4295,6 +4445,7 @@ IntrinsicList = [
 # Resistances, vulnerabilities and immunities:
 ResistLight,
 ResistDark,
+ResistChoke,
 ResistSound,
 ResistCold,
 ResistFire,
@@ -4334,6 +4485,9 @@ Regeneration,
 Starpower,
 Vigor,
 Haste,
+Levitation,
+WaterWalking,
+Swimming,
 CanDig,
 CanChop,
 # Debuffs:

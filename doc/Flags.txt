@@ -158,23 +158,25 @@ STAIRS_UP
 STAIRS_DOWN
 
 Special:
-*BURN
+BURN               Causes fire damage.
 CAN_BE_OPENED      Can have actionOpen applied to self.
 CAN_BE_CLOSED      Can have actionClose applied to self.
 CAN_BE_DUG
 *CAN_BE_BURNED      Fire damage may transform them into ash pile.
-CAN_BE_CLIMBED
+CAN_BE_CLIMBED     You can climb on it and it increases light radius.
 CAN_BE_CHOPPED
 *CAN_BE_MELTED      Fire damage may transform them into water square.
 *CAN_BE_KICKED      Destroy with actionKick.
-*DISSOLVE
+DISSOLVE
+HARM               Causes physical damage.
 *LOCKED
   KEY_SQUARE, KEY_FOO
 PLANT
+ROUGH              Walking requires more AP.
 SECRET
 *SLIDE              Walking may cause you to fumble. More knockback.
-*STICKY             Walking may fail.
-*SWIM               Requires stamina to move. Drowns with no stamina.
-*WADE               Drains stamina as you move, but no negative effect at 0 SP.
+STICKY             Walking may fail.
+SWIM               Requires stamina to move. Drowns with no stamina.
+WADE               Drains stamina as you move, but no negative effect at 0 SP.
 
 (*) TODO

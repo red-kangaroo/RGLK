@@ -113,7 +113,9 @@ class Intrinsic(object):
                 owner.receiveDamage(damage, limb = limb, DamageType = 'FIRE')
 
             elif owner.hasFlag('ITEM'):
-                pass # TODO: item destruction
+                if var.rand_chance(self.power * 10):
+                    ui.message("%s burn&S up!" % owner.getName(True), libtcod.light_red, owner)
+                    owner.getDestroyed()
 
         # Bleeding:
         if self.type == 'BLEED':

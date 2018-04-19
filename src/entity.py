@@ -260,7 +260,7 @@ class Entity(object):
 
         return math.sqrt(dx ** 2 + dy ** 2)
 
-    def isBlocked(self, x, y, DL):
+    def isBlocked(self, x, y, DL, safewalk = True):
         if (x < 0 or x > var.MapWidth - 1 or
             y < 0 or y > var.MapHeight - 1):
             return True
@@ -268,11 +268,42 @@ class Entity(object):
         if var.Maps[DL][x][y].BlockMove:
             return True
 
+        if safewalk:
+            if var.Maps[DL][x][y].hasFlag('BURN') and not (self.hasIntrinsic('RESIST_FIRE') or self.hasIntrinsic('IMMUNE_FIRE')):
+                return True
+
+            if var.Maps[DL][x][y].hasFlag('DISSOLVE') and not (self.hasIntrinsic('RESIST_ACID') or self.hasIntrinsic('IMMUNE_ACID')):
+                return True
+
+            if var.Maps[DL][x][y].hasFlag('SWIM') and not (self.hasIntrinsic('SWIM') or self.hasIntrinsic('WATER_WALK')):
+                return True
+
         for i in var.Entities[DL]:
             if i != self and i.BlockMove and i.x == x and i.y == y:
                 return True
 
         return False
+
+    def isPassable(self, x, y):
+        if not dungeon.isOnMap(x, y):
+            return False
+
+        if var.getMap()[x][y].BlockMove:
+            return False
+
+        if var.getMap()[x][y].hasFlag('BURN') and not (self.hasIntrinsic('RESIST_FIRE') or self.hasIntrinsic('IMMUNE_FIRE')):
+            return False
+
+        if var.getMap()[x][y].hasFlag('DISSOLVE') and not (self.hasIntrinsic('RESIST_ACID') or self.hasIntrinsic('IMMUNE_ACID')):
+            return False
+
+        if var.getMap()[x][y].hasFlag('SWIM') and not (self.hasIntrinsic('SWIM') or self.hasIntrinsic('WATER_WALK')):
+            return False
+
+        if var.getMap()[x][y].hasFlag('CAN_BE_OPENED') and self.hasFlag('CANNOT_OPEN'):
+            return False
+
+        return True
 
     def hasFlag(self, flag):
         if flag in self.flags:
@@ -338,7 +369,97 @@ class Entity(object):
                 self.intrinsics.remove(i)
 
     def handleTerrain(self):
-        pass
+        if var.getMap()[self.x][self.y].hasFlag('BURN'):
+            if self.hasFlag('MOB'):
+                if self.isFlying():
+                    if self.hasFlag('AVATAR') and var.rand_chance(30):
+                        quips = [
+                        "very",
+                        "extremely",
+                        "sweating",
+                        "searing"
+                        ]
+                        ui.message("It is %s hot here!" % random.choice(quips), libtcod.light_red)
+                    if var.rand_chance(20):
+                        self.addIntrinsic('AFLAME', libtcod.random_get_int(0, 1, 6), 2)
+                else:
+                    damage = var.rand_dice(3, 4, 6)
+
+                    limb = None
+                    for part in self.bodyparts:
+                        if part.hasFlag('LEG'):
+                            limb = part
+
+                            if var.rand_chance(50):
+                                break
+
+                    self.receiveDamage(damage, limb, 'FIRE')
+                    self.addIntrinsic('AFLAME', damage / 2, 2)
+            elif self.hasFlag('ITEM'):
+                if self.material in raw.MaterialDamageList['FIRE']:
+                    ui.message("%s burns up!" % self.getName(True), actor = self)
+                    self.getDestroyed()
+
+        if var.getMap()[self.x][self.y].hasFlag('DISSOLVE'):
+            if self.hasFlag('MOB'):
+                if self.isFlying():
+                    pass # Acid does no damage when we can fly over it.
+                else:
+                    ui.message("%s &ISARE dissolved." % self.getName(True), libtcod.light_red, actor = self)
+
+                    damage = var.rand_dice(3, 9)
+
+                    self.receiveDamage(damage, DamageType = 'ACID')
+            elif self.hasFlag('ITEM'):
+                if self.material in raw.MaterialDamageList['ACID']:
+                    ui.message("%s is dissolved." % self.getName(True), libtcod.light_red, actor = self)
+                    self.getDestroyed()
+
+        if var.getMap()[self.x][self.y].hasFlag('HARM'):
+            if self.hasFlag('MOB'):
+                if not self.isFlying():
+                    if self.hasFlag('AVATAR'):
+                        ui.message("Ouch! You step on something sharp.", libtcod.light_red)
+                    else:
+                        ui.message("%s look&S pained." % self.getName(True), actor = self)
+
+                    damage = var.rand_dice(1, 4)
+
+                    limb = None
+                    for part in self.bodyparts:
+                        if part.hasFlag('LEG'):
+                            limb = part
+
+                            if var.rand_chance(50):
+                                break
+
+                    self.receiveDamage(damage, limb, 'PIERCE')
+
+        if var.getMap()[self.x][self.y].hasFlag('SWIM'):
+            if self.hasFlag('MOB'):
+                if not self.isFlying() and not self.hasIntrinsic('WATER_WALK') and self.SP <= 0:
+                    ui.message("%s drown&S." % self.getName(True), libtcod.light_red, actor = self)
+                    damage = var.rand_dice(1, 10)
+                    self.receiveDamage(damage, DamageType = 'ASPHYX')
+                elif not self.isFlying() and not self.hasIntrinsic('WATER_WALK') and not self.hasIntrinsic('SWIM'):
+                    self.SP -= 4
+
+        if var.getMap()[self.x][self.y].hasFlag('LIQUID'):
+            # TODO: wetting
+            if self.hasFlag('ITEM'):
+                if self.hasFlag('PLUG'):
+                    ui.message("%s fill&S the %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
+                               actor = self)
+                    self.getDestroyed()
+                    var.getMap()[self.x][self.y].change(raw.RockFloor)
+                elif self.willSink() and var.rand_chance(10):
+                    try:
+                        ui.message("%s sink&S into the %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
+                                   actor = self)
+                        var.getMap()[self.x][self.y].inventory.append(self)
+                        var.getEntity().remove(self)
+                    except:
+                        print "Failed to sink an item."
 
     def getName(self, capitalize = False, full = False):
         name = self.name
@@ -347,6 +468,15 @@ class Entity(object):
             name = name.capitalize()
 
         return name
+
+    def getDestroyed(self):
+        for i in var.getEntity():
+            if i == self: # We should make sure we are actually lying on the floor.
+                var.getEntity().remove(self)
+                del self
+                return True
+
+        return False
 
     def getColor(self):
         return self.color
@@ -375,6 +505,12 @@ class Entity(object):
     def removeFromStack(self, number = None):
         return None
 
+    def willSink(self):
+        if self.material in ['AETHER', 'PAPER', 'WOOD']:
+            return False
+        else:
+            return True
+
     # Heartbeat of all entities.
     def Be(self):
         # How else to check if entity has a speed variable?
@@ -389,13 +525,6 @@ class Entity(object):
 
         # TODO: Check terrain for special effects.
         self.handleTerrain()
-
-        if self.hasFlag('ITEM') and var.getMap()[self.x][self.y].hasFlag('LIQUID'):
-            if self.willSink():
-                ui.message("%s sinks into the %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
-                           actor = self)
-                var.getMap()[self.x][self.y].inventory.append(self)
-                var.getEntity().remove(self)
 
         # Intrinsics and status effects.
         self.handleIntrinsics()
@@ -1142,6 +1271,9 @@ class Mob(Entity):
 
         cost *= 1.3 ** (self.getBurdenState())
 
+        if var.getMap()[self.x][self.y].hasFlag('ROUGH'):
+            cost += 0.2
+
         return max(0.1, cost)
 
     def getName(self, capitalize = False, full = False, possessive = False):
@@ -1218,7 +1350,8 @@ class Mob(Entity):
         for i in self.inventory:
             if i.hasFlag('CARRY_LIGHT'):
                 try:
-                    light += i.getLightValue()
+                    lit = i.getLightValue() * i.stack
+                    light += lit
                 except:
                     pass
 
@@ -1473,7 +1606,7 @@ class Mob(Entity):
             return False
 
     def isFlying(self):
-        if self.hasFlag('FLY') and self.hasWings(True):
+        if self.hasFlag('FLY') and self.hasWings(True) and self.SP > 0:
             return True
 
         if self.hasIntrinsic('LEVITATION'):
@@ -1949,10 +2082,17 @@ class Mob(Entity):
             return False
 
         if dx == 0 and dy == 0:
-            if item.beApplied(self):
+            toApply = item.removeFromStack()
+
+            if toApply == None:
+                toApply = item
+
+            if toApply.beApplied(self):
                 self.AP -= self.getActionAPCost()
                 return True
             else:
+                if toApply != item:
+                    toApply.tryStacking(self)
                 return False
         else:
             Target = None
@@ -2114,7 +2254,7 @@ class Mob(Entity):
             # because we want to chop stuck doors when actionOpen fails.
             # We cannot do that, or we'll be automatically chopping down bookshelves
             # any time we try to loot them. :/
-            elif self.isBlocked(x, y, var.DungeonLevel):
+        elif self.isBlocked(x, y, var.DungeonLevel, False):
                 if var.getMap()[x][y].beDug(self):
                     var.changeFOVMap(x, y)
                     return True
@@ -2147,13 +2287,25 @@ class Mob(Entity):
 
             if not blocked == True and var.getMap()[x][y].hasFlag('CAN_BE_CLOSED'):
                 if var.getMap()[x][y].hasFlag('DOOR'):
-                    if var.getMap()[x][y].hasFlag('PORTCULLIS'):
+                    # Fail to close door sometimes.
+                    if var.rand_chance(20 - self.getStr()) or self.SP < 0:
+                        ui.message("%s fail&S to close the %s." % (self.getName(True), var.getMap()[x][y].getName()),
+                                   libtcod.light_red, actor = self)
+                        self.AP -= self.getActionAPCost()
+                        return True
+
+                    if var.getMap()[x][y].material == 'IRON':
                         var.getMap()[x][y].change(raw.ClosedPort)
+                        self.SP -= 2
+                    elif var.getMap()[x][y].material == 'GOLD':
+                        var.getMap()[x][y].change(raw.ClosedGoldDoor)
+                        self.SP -= 4
                     else:
                         var.getMap()[x][y].change(raw.WoodDoor)
+                        self.SP -= 1
 
                     var.changeFOVMap(x, y)
-                    ui.message("%s close&S the door." % self.getName(True), actor = self)
+                    ui.message("%s close&S the %s." % (self.getName(True), var.getMap()[x][y].getName()), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 else:
@@ -2426,6 +2578,8 @@ class Mob(Entity):
 
             if describe == None:
                 return False
+            elif describe == True:
+                return True
             else:
                 try:
                     ui.item_description(self.inventory[describe])
@@ -2583,6 +2737,15 @@ class Mob(Entity):
             if self.hasFlag('AVATAR'):
                 ui.message("You cannot jump with so much load.", color = libtcod.light_red)
             return False
+        if self.SP <= 5:
+            if self.hasFlag('AVATAR'):
+                ui.message("You are too exhausted to jump.")
+            return False
+        if (var.getMap()[self.x][self.y].hasFlag('STICKY') or ((var.getMap()[self.x][self.y].hasFlag('SWIM') or
+            var.getMap()[self.x][self.y].hasFlag('WADE')) and not self.hasIntrinsic('WATER_WALK'))):
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot jump in %s." % var.getMap()[self.x][self.y].getName(), color = libtcod.light_red)
+            return False
 
         dx = where[0]
         dy = where[1]
@@ -2608,11 +2771,6 @@ class Mob(Entity):
         moved = False
 
         # TODO: Leap attack, stamina cost, jumping out of pits.
-        if self.SP <= 5:
-            if self.hasFlag('AVATAR'):
-                ui.message("You are too exhausted to jump.")
-            self.AP -= (self.getMoveAPCost() / 2)
-            return False
 
         if (not self.isBlocked(nx, ny, var.DungeonLevel) and
             not self.isBlocked(nnx, nny, var.DungeonLevel) and
@@ -2713,24 +2871,37 @@ class Mob(Entity):
         if (x > 0 and x < var.MapWidth - 1 and y > 0 and y < var.MapHeight - 1):
             if var.getMap()[x][y].hasFlag('CAN_BE_OPENED'):
                 if var.getMap()[x][y].hasFlag('DOOR'):
+                    # Fail to open door sometimes.
+                    if var.rand_chance(20 - self.getStr()) or self.SP < 0:
+                        ui.message("%s fail&S to open the %s." % (self.getName(True), var.getMap()[x][y].getName()),
+                                   libtcod.light_red, actor = self)
+                        self.AP -= self.getActionAPCost()
+                        return True
+
                     # Blocked door will only appear in vault where we want to keep
                     # monsters inside.
-                    if (var.getMap()[x][y].hasFlag('BLOCKED') and
-                        not self.hasFlag('AVATAR')):
+                    if var.getMap()[x][y].hasFlag('BLOCKED') and not self.hasFlag('AVATAR'):
                         return False
+                    elif var.getMap()[x][y].hasFlag('BLOCKED'):
+                        var.getMap()[x][y].flags.remove('BLOCKED')
 
                     # TODO: LOCKED flag.
                     if var.getMap()[x][y].hasFlag('SECRET'):
-                        ui.message("%s discover&S a secret door!" % self.getName(True),
+                        ui.message("%s discover&S a %s!" % (self.getName(True), var.getMap()[x][y].getName()),
                                    libtcod.azure, actor = self)
 
-                    if var.getMap()[x][y].hasFlag('PORTCULLIS'):
+                    if var.getMap()[x][y].material == 'IRON':
                         var.getMap()[x][y].change(raw.OpenPort)
+                        self.SP -= 2
+                    elif var.getMap()[x][y].material == 'GOLD':
+                        var.getMap()[x][y].change(raw.OpenGoldDoor)
+                        self.SP -= 4
                     else:
                         var.getMap()[x][y].change(raw.OpenDoor)
+                        self.SP -= 1
 
                     var.changeFOVMap(x, y)
-                    ui.message("%s open&S the door." % self.getName(True), actor = self)
+                    ui.message("%s open&S the %s." % (self.getName(True), var.getMap()[x][y].getName()), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 elif var.getMap()[x][y].hasFlag('CONTAINER'):
@@ -2746,7 +2917,8 @@ class Mob(Entity):
     def actionPickUp(self, x, y, pickAll = False):
         #if self.AP < 1:
         #    return False
-
+        if not dungeon.isOnMap(x, y):
+            return False
         if self.getBurdenState() == 3:
             if self.hasFlag('AVATAR'):
                 ui.message("Your inventory is already full.")
@@ -2759,6 +2931,13 @@ class Mob(Entity):
         for i in var.getEntity():
             if i.hasFlag('ITEM') and i.x == x and i.y == y:
                 options.append(i)
+
+        if len(options) == 0 and var.getMap()[x][y].hasFlag('LIQUID') and len(var.getMap()[x][y].inventory) != 0:
+            options = var.getMap()[x][y].inventory
+            pickAll = False
+            liquid = True
+        else:
+            liquid = False
 
         if len(options) == 0:
             if self.hasFlag('AVATAR'):
@@ -2791,21 +2970,32 @@ class Mob(Entity):
             if not self.hasFlag('AVATAR'):
                 return False
 
-            toPick = ui.option_menu("Pick up what?", options)
+            if liquid:
+                pickUpLine = "What do you want to fish out of %s?" % var.getMap()[x][y].getName()
+            else:
+                pickUpLine = "Pick up what?"
+
+            toPick = ui.option_menu(pickUpLine, options)
 
             if toPick == None:
                 return False
             else:
-                try:
+                if liquid:
+                    ui.message("%s fish&ES out %s." % (self.getName(True), options[toPick].getName()),
+                               actor = self)
+
+                    self.inventory.append(options[toPick])
+                    options[toPick].tryStacking(self)
+                    var.getMap()[x][y].inventory.remove(options[toPick])
+                    self.AP -= self.getActionAPCost(2)
+                else:
+                    ui.message("%s pick&S up %s." % (self.getName(True), options[toPick].getName()),
+                               actor = self)
+
                     self.inventory.append(options[toPick])
                     options[toPick].tryStacking(self)
                     var.getEntity().remove(options[toPick])
-                    ui.message("%s pick&S up %s." % (self.getName(True), options[toPick].getName()),
-                               actor = self)
                     self.AP -= self.getActionAPCost()
-                except:
-                    # Out-of-range letter was pressed.
-                    return True
 
         if len(options) > 1:
             return True
@@ -2876,6 +3066,15 @@ class Mob(Entity):
         if self == Other:
             ui.message("%s attempt&S to swap with &SELF and fail&S." % self.getName(True), actor = self)
             return False
+        if var.getMap()[self.x][self.y].hasFlag('STICKY') and not self.isFlying() and var.rand_chance(20 - self.getStr()):
+            ui.message("%s fail&S to move in the sticky %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
+                       color = libtcod.light_red, actor = self)
+            self.AP -= self.getMoveAPCost()
+            return False
+        if var.getMap()[self.x][self.y].hasFlag('SWIM') and not self.isFlying() and not self.hasIntrinsic('WATER_WALK'):
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot swap while swimming.", color = libtcod.light_red)
+            return False
 
         x1 = self.x
         y1 = self.y
@@ -2918,14 +3117,40 @@ class Mob(Entity):
                 ui.message("You can barely move with so much load.", color = libtcod.light_red)
             self.AP -= self.getMoveAPCost()
             return False
+        if var.getMap()[self.x][self.y].hasFlag('STICKY') and not self.isFlying() and var.rand_chance(20 - self.getStr()):
+            ui.message("%s fail&S to move in the sticky %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
+                       color = libtcod.light_red, actor = self)
+            self.AP -= self.getMoveAPCost()
+            return False
+        if var.getMap()[self.x][self.y].hasFlag('WADE') and not self.isFlying() and not self.hasIntrinsic('WATER_WALK'):
+            if self.hasFlag('AVATAR') and var.rand_chance(10):
+                ui.message("You wade through the %s." % var.getMap()[self.x][self.y].getName())
+            if self.SP > 0:
+                self.SP -= 2
 
         # TODO: If running, takes half a turn. With Unarmored and not running,
         #       you recover 1 SP per move.
 
         moved = False
+        canMove = False
 
-        if (not self.isBlocked(self.x + dx, self.y + dy, var.DungeonLevel) or
-           (self.hasFlag('AVATAR') and var.WizModeNoClip)):
+        if self.hasFlag('AVATAR'):
+            if not self.isBlocked(self.x + dx, self.y + dy, var.DungeonLevel, False):
+                if self.isPassable(self.x + dx, self.y + dy) or not self.isPassable(self.x, self.y):
+                    canMove = True
+                else:
+                    try:
+                        if ai.askForConfirmation(self, "Really walk into the %s" % var.getMap()[self.x + dx][self.y + dy].getName()):
+                            canMove = True
+                    except:
+                        pass # Out-of-bounds tile.
+            elif var.WizModeNoClip:
+                canMove = True
+        else:
+            if not self.isBlocked(self.x + dx, self.y + dy, var.DungeonLevel):
+                canMove = True
+
+        if canMove:
             self.move(dx, dy)
             moved = True
 
@@ -2952,6 +3177,12 @@ class Mob(Entity):
                 names = "There are " + ', '.join(stuff) + "."
             else:
                 names = "There are many items."
+
+            if var.getMap()[self.x][self.y].hasFlag('FEATURE'):
+                if names == None:
+                    names = "There is %s." % var.getMap()[self.x][self.y].getName()
+                else:
+                    names = "There is " + var.getMap()[self.x][self.y].getName() + ". " + names
 
             if names != None:
                 ui.message(names)
@@ -3041,7 +3272,9 @@ class Item(Entity):
         # Item stacks:
         if self.hasFlag('PAIRED'):
             self.stack = 2
-        elif self.hasFlag('PILE'):
+        elif self.hasFlag('SMALL_PILE'):
+            self.stack = libtcod.random_get_int(0, 1, 4)
+        elif self.hasFlag('BIG_PILE'):
             self.stack = libtcod.random_get_int(0, 1, 20)
         else:
             self.stack = 1
@@ -3238,10 +3471,10 @@ class Item(Entity):
 
                 lit = "light   : " + lit
 
-                if self.hasFlag('CARRY_LIGHT'):
-                    lit = lit + " (carry)"
-
                 lines.append(lit)
+
+                if self.hasFlag('CARRY_LIGHT'):
+                    lines.append("floating nearby")
 
             if self.acc != 0 and not self.hasFlag('WEAPON'):
                 toHit = self.acc
@@ -3292,6 +3525,7 @@ class Item(Entity):
                 if i == self: # We should make sure we are actually lying on the floor.
                     var.getEntity().remove(self)
                     del self
+                    return True
         else:
             try:
                 Owner.inventory.remove(self)
@@ -3299,6 +3533,7 @@ class Item(Entity):
                 pass # Tmp item that was not appended to Owner.inventory.
 
             del self
+            return True
 
     def tryStacking(self, Owner = None):
         if Owner != None:
@@ -3633,12 +3868,6 @@ class Item(Entity):
             return True
 
         return False
-
-    def willSink(self):
-        if self.material in ['AETHER', 'WATER', 'WOOD']:
-            return False
-        else:
-            return True
 
     # Various use methods:
     def beApplied(self, User, victim = None):

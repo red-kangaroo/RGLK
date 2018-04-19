@@ -2,8 +2,9 @@ To do list:
 ===========
 * release with pyinstaller?
 * AI
+   item use
+   guarding, wandering, hunting
 * terrain effects
-* pain
 * kill list
 * intrinsics:
    VULN_material
@@ -62,7 +63,7 @@ To do list:
 * multiple FOVMaps (forestry, clairvoyance, ESP)
 * Skills:
    Two-handers vs Dual wielding
-   isTwoHanding(item) - 1.5 * Str
+   isTwoHanding(item) -> 1.5 * Str; of maybe pain?
 * checkDeath for WizMode
 * better canSense()
    lines only for stealth
@@ -78,6 +79,8 @@ To do list:
    magic chest
    strongbox
 * hotkeys
+* assure dead-ends have loot or other stuff
+* num2words
 
 Rivers:
 http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
@@ -100,7 +103,6 @@ Artifacts:
 * Royal Aegis
    gold tower shield
 
-* floating wyrd-light
 * wyrd-wand, -staff and -lance
 
 * add description optional attribute to tiles, which would be printed when player
@@ -133,7 +135,7 @@ Artifacts:
 
 MOB
 ===
-CAN_READ, CAN_OPEN, CAN_TALK, CAN_EQUIP, CAN_FLEE, CAN_ZAP, CAN_THROW, UNIQUE, EXTRA_COWARD,
+CANNOT_READ, CANNOT_OPEN, CANNOT_TALK, CANNOT_EQUIP, CANNOT_FLEE, CANNOT_ZAP, CANNOT_THROW, UNIQUE, EXTRA_COWARD,
 NO_CORPSE (body parts also disappear), ALWAYS_CORPSE, DESTROY_WALLS, ROOTED, TAMING_DIFFICULTY,
 SADIST, MASOCHIST, ALLOW_UNDEAD, ALCOHOLIC
 bloodColor
