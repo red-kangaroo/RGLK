@@ -3243,6 +3243,17 @@ Grave = {
 'flags': ['FEATURE', 'CAN_BE_KICKED']
 }
 
+Pit = {
+'char': chr(224),
+'color': libtcod.dark_grey,
+'name': 'pit',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['FEATURE', 'PIT']
+}
+
+# TODO: chasm
+
 BookShelf = {
 'char': chr(252),
 'color': libtcod.darker_orange,

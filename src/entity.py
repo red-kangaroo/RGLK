@@ -291,13 +291,16 @@ class Entity(object):
         if var.getMap()[x][y].BlockMove:
             return False
 
-        if var.getMap()[x][y].hasFlag('BURN') and not (self.hasIntrinsic('RESIST_FIRE') or self.hasIntrinsic('IMMUNE_FIRE')):
+        if (var.getMap()[x][y].hasFlag('BURN') and
+            not (self.hasIntrinsic('RESIST_FIRE') or self.hasIntrinsic('IMMUNE_FIRE') or self.isFlying())):
             return False
 
-        if var.getMap()[x][y].hasFlag('DISSOLVE') and not (self.hasIntrinsic('RESIST_ACID') or self.hasIntrinsic('IMMUNE_ACID')):
+        if (var.getMap()[x][y].hasFlag('DISSOLVE') and
+            not (self.hasIntrinsic('RESIST_ACID') or self.hasIntrinsic('IMMUNE_ACID') or self.isFlying())):
             return False
 
-        if var.getMap()[x][y].hasFlag('SWIM') and not (self.hasIntrinsic('SWIM') or self.hasIntrinsic('WATER_WALK')):
+        if (var.getMap()[x][y].hasFlag('SWIM') and
+            not (self.hasIntrinsic('SWIM') or self.hasIntrinsic('WATER_WALK') or self.isFlying())):
             return False
 
         if var.getMap()[x][y].hasFlag('CAN_BE_OPENED') and self.hasFlag('CANNOT_OPEN'):
@@ -460,6 +463,13 @@ class Entity(object):
                         var.getEntity().remove(self)
                     except:
                         print "Failed to sink an item."
+
+        if var.getMap()[self.x][self.y].hasFlag('PIT'):
+            if self.hasFlag('ITEM') and self.hasFlag('PLUG'):
+                ui.message("%s fill&S the %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
+                           actor = self)
+                self.getDestroyed()
+                var.getMap()[self.x][self.y].change(raw.RockFloor)
 
     def getName(self, capitalize = False, full = False):
         name = self.name
@@ -854,6 +864,9 @@ class Mob(Entity):
 
         if self.tactics:
             toDodge += 1
+
+        if self.isFlying():
+            toDodge += 2
 
         # Get equipment bonus:
         for part in self.bodyparts:
@@ -1365,14 +1378,17 @@ class Mob(Entity):
         if var.getMap()[self.x][self.y].hasFlag('CAN_BE_CLIMBED'):
             light += 4
 
+        if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
+            light = 1
+
         if light <= 0: # Sadly, libtcod requires at least radius 1, because 0 or less
             light = 1  # means unlimited sight radius.
 
-            if not self.hasFlag('CANNOT_SEE'):
-                self.flags.append('CANNOT_SEE')
-
-        elif light > 0 and self.hasFlag('CANNOT_SEE'):
-            self.flags.remove('CANNOT_SEE')
+        #    if not self.hasFlag('CANNOT_SEE'):
+        #        self.flags.append('CANNOT_SEE')
+        #
+        #elif light > 0 and self.hasFlag('CANNOT_SEE'):
+        #    self.flags.remove('CANNOT_SEE')
 
         return light
 
@@ -1646,8 +1662,7 @@ class Mob(Entity):
         # TODO: Blindness, invisibility, other senses, ...
         can = False
 
-        if (libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y) and
-            not (self.hasFlag('CANNOT_SEE') or self.hasIntrinsic('BLIND'))):
+        if libtcod.map_is_in_fov(var.FOVMap, Target.x, Target.y) and not self.hasIntrinsic('BLIND'):
             can = True
 
         # You can always just touch it.
@@ -1737,10 +1752,14 @@ class Mob(Entity):
         toHit += attacker.getAccuracyBonus(weapon)
         toDodge += self.getDodgeBonus(attacker, weapon)
 
-        # Unseen penalty.
+        # Penalties.
         if not attacker.canSense(self):
             print "Unseen defender."
-            toHit -= 4
+            toHit -= 3
+        if var.getMap()[attacker.x][attacker.y].hasFlag('PIT') and not attacker.isFlying():
+            toHit -= 3
+        if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
+            toDodge -= 3
 
         print "modified hit chance: %s vs %s" % (toHit, toDodge)
 
@@ -2201,6 +2220,8 @@ class Mob(Entity):
         attackNo = 0
 
         for i in attacks:
+            if self.SP < 0:
+                break
             if victim.hasFlag('DEAD'):
                 break
 
@@ -2742,10 +2763,11 @@ class Mob(Entity):
                 ui.message("You are too exhausted to jump.")
             return False
         if (var.getMap()[self.x][self.y].hasFlag('STICKY') or ((var.getMap()[self.x][self.y].hasFlag('SWIM') or
-            var.getMap()[self.x][self.y].hasFlag('WADE')) and not self.hasIntrinsic('WATER_WALK'))):
+            var.getMap()[self.x][self.y].hasFlag('WADE')) and not self.hasIntrinsic('WATER_WALK')) or
+            (var.getMap()[self.x][self.y].hasFlag('PIT') and self.isFlying())):
             if self.hasFlag('AVATAR'):
                 ui.message("You cannot jump in %s." % var.getMap()[self.x][self.y].getName(), color = libtcod.light_red)
-            return False
+            return False # Not even with flying, because you need some solid ground.
 
         dx = where[0]
         dy = where[1]
@@ -2771,10 +2793,15 @@ class Mob(Entity):
         moved = False
 
         # TODO: Leap attack, stamina cost, jumping out of pits.
-
-        if (not self.isBlocked(nx, ny, var.DungeonLevel) and
-            not self.isBlocked(nnx, nny, var.DungeonLevel) and
-            libtcod.map_is_in_fov(var.FOVMap, nnx, nny)):
+        if (var.getMap()[self.x][self.y].hasFlag('PIT') and
+            not self.isBlocked(nx, ny, var.DungeonLevel) and
+            libtcod.map_is_in_fov(var.FOVMap, nx, ny)):
+            ui.message("%s jump&S out of the pit." % self.getName(True), actor = self)
+            self.move(dx, dy)
+            moved = True
+        elif (not self.isBlocked(nx, ny, var.DungeonLevel) and
+              not self.isBlocked(nnx, nny, var.DungeonLevel) and
+              libtcod.map_is_in_fov(var.FOVMap, nnx, nny)):
             ui.message("%s leap&S." % self.getName(True), actor = self)
             self.move(dx * 2, dy * 2)
             moved = True
@@ -3075,6 +3102,10 @@ class Mob(Entity):
             if self.hasFlag('AVATAR'):
                 ui.message("You cannot swap while swimming.", color = libtcod.light_red)
             return False
+        if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
+            if self.hasFlag('AVATAR'):
+                ui.message("You cannot swap from a pit.", color = libtcod.light_red)
+            return False
 
         x1 = self.x
         y1 = self.y
@@ -3119,6 +3150,11 @@ class Mob(Entity):
             return False
         if var.getMap()[self.x][self.y].hasFlag('STICKY') and not self.isFlying() and var.rand_chance(20 - self.getStr()):
             ui.message("%s fail&S to move in the sticky %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
+                       color = libtcod.light_red, actor = self)
+            self.AP -= self.getMoveAPCost()
+            return False
+        if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying() and var.rand_chance(50 - self.getDex()):
+            ui.message("%s fail&S to climb out of the %s." % (self.getName(True), var.getMap()[self.x][self.y].getName()),
                        color = libtcod.light_red, actor = self)
             self.AP -= self.getMoveAPCost()
             return False

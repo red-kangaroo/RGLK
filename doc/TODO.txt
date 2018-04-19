@@ -5,6 +5,7 @@ To do list:
    item use
    guarding, wandering, hunting
 * terrain effects
+   pits - climbing, jumping, liquids
 * kill list
 * intrinsics:
    VULN_material

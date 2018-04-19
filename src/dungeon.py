@@ -1166,7 +1166,8 @@ def postProcess(map, type = None):
                 raw.BonePile,
                 raw.BonePile,
                 raw.BonePile,
-                raw.Grave
+                raw.Grave,
+                raw.Pit
                 ])
             elif type == 'FOREST':
                 which = random.choice([
@@ -1189,7 +1190,7 @@ def postProcess(map, type = None):
                 raw.LeafyTree,
                 raw.ConifTree,
                 raw.ShallowWater,
-                raw.ShallowWater,
+                raw.ShallowWater
                 ])
             else:
                 which = random.choice([
@@ -1198,10 +1199,13 @@ def postProcess(map, type = None):
                 raw.Vines,
                 raw.RockPile,
                 raw.ShallowWater,
-                raw.ShallowWater,
+                raw.ShallowWater
                 ])
 
             if (map[x][y].hasFlag('GROUND') and var.rand_chance(10)):
+                if var.rand_chance(1):
+                    which = raw.Pit
+
                 map[x][y].change(which)
 
             if (map[x][y].hasFlag('WALL') and type == 'MAZE' and var.rand_chance(5)):
@@ -1210,7 +1214,8 @@ def postProcess(map, type = None):
                 raw.ClosedPort,
                 raw.SecretDoor,
                 raw.SecretDoor,
-                raw.SecretDoor
+                raw.SecretDoor,
+                raw.Pit
                 ])
 
                 map[x][y].change(which)

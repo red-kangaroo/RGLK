@@ -36,8 +36,7 @@ def render_map(Player):
 
     # Let's see if the Player can see:
     if Player != None:
-        if ((Player.hasFlag('CANNOT_SEE') or Player.hasIntrinsic('BLIND')) and
-            not var.WizModeTrueSight):
+        if Player.hasIntrinsic('BLIND') and not var.WizModeTrueSight:
             canSee = False
         else:
             canSee = True
@@ -251,15 +250,17 @@ def render_UI(Player):
                                  'Slow')
         y += 1
 
+    '''
     # No light:
     if Player.hasFlag('CANNOT_SEE'):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.grey)
         libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Blind')
         y += 1
+    '''
 
     # Flight:
-    if Player.isFlying():
+    if Player.isFlying() and not Player.hasIntrinsic('LEVITATION'):
         libtcod.console_set_default_foreground(var.UIPanel, libtcod.azure)
         libtcod.console_print_ex(var.UIPanel, 1, y, libtcod.BKGND_NONE, libtcod.LEFT,
                                  'Flying')
