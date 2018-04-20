@@ -127,6 +127,7 @@ def save():
 
     file["map"] = var.Maps
     file["entity"] = var.Entities
+    file["magicbox"] = var.MagicBox
     file["wizard"] = var.WizModeActivated
     file["message"] = var.MessageHistory
     file["turn"] = var.TurnCount
@@ -140,6 +141,7 @@ def load():
 
     var.Maps = file["map"]
     var.Entities = file["entity"]
+    var.MagicBox = file["magicbox"]
     var.WizModeActivated = file["wizard"]
     var.MessageHistory = file["message"]
     var.TurnCount = file["turn"]

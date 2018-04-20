@@ -1484,12 +1484,14 @@ class Terrain(object):
             return False
 
     def isWalkable(self):
-        if ((self.hasFlag('GROUND') or self.hasFlag('DOOR') or
-            self.hasFlag('LIQUID') or self.hasFlag('FEATURE')) and
-            not self.hasFlag('SWIM')):
-            return True
-        else:
+        if self.BlockMove and not self.hasFlag('DOOR'):
             return False
+
+        for flag in self.flags:
+            if flag in ['BURN', 'DISSOLVE', 'HARM', 'SWIM']:
+                return False
+
+        return True
 
     def isExplored(self):
         if self.explored == None:
@@ -1534,7 +1536,11 @@ class Terrain(object):
                 ui.message("You cannot loot the %s." % self.getName())
             return False
 
-        if len(self.inventory) == 0:
+        if self.hasFlag('MAGIC_BOX') and len(var.MagicBox) == 0:
+            if Looter.hasFlag('AVATAR'):
+                ui.message("%s is empty." % self.getName(True))
+            return False
+        elif not self.hasFlag('MAGIC_BOX') and len(self.inventory) == 0:
             if Looter.hasFlag('AVATAR'):
                 ui.message("%s is empty." % self.getName(True))
             return False
@@ -1544,13 +1550,29 @@ class Terrain(object):
                 ui.message("Your inventory is already full.")
             return False
 
-        if Looter.hasFlag('AVATAR'):
-            toLoot = ui.option_menu("Take what?", self.inventory)
+        if self.hasFlag('MAGIC_BOX'):
+            if Looter.hasFlag('AVATAR'):
+                toLoot = ui.option_menu("Take what?", var.MagicBox)
+            else:
+                toLoot = libtcod.random_get_int(0, 0, len(var.MagicBox))
         else:
-            toLoot = libtcod.random_get_int(0, 0, len(self.inventory))
+            if Looter.hasFlag('AVATAR'):
+                toLoot = ui.option_menu("Take what?", self.inventory)
+            else:
+                toLoot = libtcod.random_get_int(0, 0, len(self.inventory))
 
         if toLoot == None:
             return False
+        elif self.hasFlag('MAGIC_BOX'):
+            try:
+                item = var.MagicBox[toLoot]
+
+                Looter.inventory.append(item)
+                item.tryStacking(Looter)
+                var.MagicBox.remove(item)
+                Looter.AP -= Looter.getActionAPCost()
+            except:
+                pass # Out-of-bounds letter was pressed.
         else:
             try:
                 item = self.inventory[toLoot]
@@ -1573,7 +1595,7 @@ class Terrain(object):
                 ui.message("You cannot loot the %s." % self.getName())
             return False
 
-        if len(self.inventory) >= 30:
+        if len(self.inventory) >= 30 and not self.hasFlag('HOLDING'):
             if Looter.hasFlag('AVATAR'):
                 ui.message("%s is full." % self.getName(True))
             return False
@@ -1582,6 +1604,16 @@ class Terrain(object):
 
         if toLoot == None:
             return False
+        elif self.hasFlag('MAGIC_BOX'):
+            try:
+                item = Looter.inventory[toLoot]
+
+                var.MagicBox.append(item)
+                print "appended"
+                Looter.inventory.remove(item)
+                Looter.AP -= Looter.getActionAPCost()
+            except:
+                pass # Out-of-bounds letter was pressed.
         else:
             try:
                 item = Looter.inventory[toLoot]

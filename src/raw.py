@@ -288,6 +288,12 @@ RapierAttack = {
 
 SmallShield = {
 'verb': 'bash&ES',
+'DiceNumber': 1,
+'DiceValue': 3
+}
+
+TurtleShieldAttack = {
+'verb': 'bash&ES',
 'ToHitBonus': 1,
 'DiceNumber': 1,
 'DiceValue': 3
@@ -295,14 +301,12 @@ SmallShield = {
 
 MediumShield = {
 'verb': 'bash&ES',
-'ToHitBonus': 1,
 'DiceNumber': 2,
 'DiceValue': 3
 }
 
 LargeShield = {
 'verb': 'bash&ES',
-'ToHitBonus': 1,
 'DiceNumber': 3,
 'DiceValue': 3
 }
@@ -1410,7 +1414,7 @@ DaiKlaive = {
 'StrScaling': 'S',
 'DexScaling': 'E',
 'attack': KlaiveAttack,
-'flags': ['MELEE', 'WEAPON', 'ENCHANT_DOUBLE', 'ALWAYS_BLESSED'],
+'flags': ['MELEE', 'WEAPON', 'ENCHANT_DOUBLE', 'ALWAYS_BLESSED', 'UNIQUE'],
 'frequency': 1
 }
 
@@ -1454,6 +1458,20 @@ Buckler = {
 'frequency': 400
 }
 
+TurtleShield = {
+'char': '[',
+'color': libtcod.desaturated_green,
+'name': 'turtle shield',
+'material': 'BONE',
+'PV': 1,
+'size': -1,
+'attack': TurtleShieldAttack,
+'StrScaling': 'C',
+'DexScaling': 'A',
+'flags': ['SHIELD'],
+'frequency': 50
+}
+
 RoundShield = {
 'char': '[',
 'color': libtcod.darkest_orange,
@@ -1477,7 +1495,20 @@ LanternShield = {
 'StrScaling': 'B',
 'DexScaling': 'B',
 'flags': ['SHIELD'],
-'frequency': 100
+'frequency': 50
+}
+
+SpikedShield = {
+'char': '[',
+'color': libtcod.dark_grey,
+'name': 'spiked shield',
+'material': 'IRON',
+'size': -1,
+'attack': MediumShield,
+'StrScaling': 'B',
+'DexScaling': 'B',
+'flags': ['SHIELD', 'WEAPON'],
+'frequency': 50
 }
 
 KiteShield = {
@@ -1503,7 +1534,7 @@ IceShield = {
 'DexScaling': 'C',
 'intrinsics': [('RESIST_FIRE', 1)],
 'flags': ['SHIELD'],
-'frequency': 100
+'frequency': 50
 }
 
 TowerShield = {
@@ -1515,13 +1546,11 @@ TowerShield = {
 'attack': HugeShield,
 'StrScaling': 'S',
 'DexScaling': 'D',
-'flags': ['SHIELD'],
+'flags': ['SHIELD', 'ENCHANT_PROTECTION'],
 'frequency': 600
 }
 
-# turtle shield
 # mirror shield
-# spiked shield
 
 # Headgear:
 Bandana = {
@@ -1792,6 +1821,18 @@ ChainArmor = {
 'flags': ['TORSO', 'ARMOR']
 }
 
+SilverChainArmor = {
+'char': ']',
+'color': libtcod.white,
+'name': 'mithril chain mail',
+'material': 'SILVER',
+'size': 0,
+'DV': -2,
+'PV': 5,
+'flags': ['TORSO', 'ARMOR', 'ENCHANT_DODGE'],
+'frequency': 50
+}
+
 ScaleArmor = {
 'char': ']',
 'color': libtcod.silver,
@@ -1962,7 +2003,6 @@ BlueDress = {
 # bark breastplate
 # zombie hide armor
 # troll hide armor
-# mithril chain mail
 # dragon scale mail
 # gold plate mail
 # fur cloak
@@ -2044,7 +2084,7 @@ LevitationBelt = {
 Sandal = {
 'char': '(',
 'color': libtcod.darker_orange,
-'name': 'sandal',
+'name': 'leather sandal',
 'material': 'LEATHER',
 'size': -1,
 'DV': 1,
@@ -2067,13 +2107,14 @@ SnakeSandal = {
 SaintSandal = {
 'char': '(',
 'color': libtcod.yellow,
-'name': 'water flower sandal',
+'name': 'river-wife sandal',
 'material': 'LEATHER',
 'size': -1,
 'DV': 1,
 'PV': 0,
 'intrinsics': [('WATER_WALK', 1)],
-'flags': ['LEG', 'ARMOR', 'PAIRED']
+'flags': ['LEG', 'ARMOR', 'PAIRED'],
+'frequency': 50
 }
 
 LowBoot = {
@@ -2371,7 +2412,7 @@ Player = {
 'sex': 'MOF',
 'intrinsics': [],
 'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, WyrdLight],
-'flags': ['HUMANOID', 'AVATAR'],
+'flags': ['HUMANOID', 'AVATAR', 'UNIQUE'],
 'frequency': 0
 }
 
@@ -2567,7 +2608,7 @@ BlackKnight = {
 'inventory': [FlamingSword, TowerShield, FullHelm, Gauntlet, Greave, PlateArmor,
               PlateSkirt, MacGuffin],
 'mutations': ['RANDOM_ANY'],
-'flags': ['HUMANOID', 'USE_LEGS'],
+'flags': ['HUMANOID', 'USE_LEGS', 'UNIQUE'],
 'frequency': 0
 }
 
@@ -3264,6 +3305,16 @@ BookShelf = {
 'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED', 'CAN_BE_CHOPPED', 'CAN_BE_BURNED']
 }
 
+MagicBox = {
+'char': chr(252),
+'color': libtcod.fuchsia,
+'name': 'magic box',
+'material': 'SILVER',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['FEATURE', 'CONTAINER', 'CAN_BE_OPENED', 'MAGIC_BOX', 'HOLDING']
+}
+
 '''
 # Changing terrain:
 ChangedTerrain = {        # Certain actions can change terrain into this, eg. actionOpen on doors.
@@ -3302,7 +3353,8 @@ DummyRoom = {
 '>': (DownStairs, None, None, None),
 '~': (DeepWater, None, None, None),
 '=': (IronBars, None, None, None),
-'_': (Carpet, None, None, None)
+'_': (Carpet, None, None, None),
+'@': (MagicBox, None, None, None)
 }
 
 # Several small cages.
@@ -3413,7 +3465,11 @@ Secret4 = {
 'file': 'rooms/secret4',
 'frequency': 10,
 'width': 10,
-'height': 9
+'height': 9,
+'X': (BookShelf, None, None, None),
+'@': (MagicBox, None, None, None),
+'T': (RockFloor, None, Table, None),
+'c': (RockFloor, None, Chair, None)
 }
 
 # Barracks.
@@ -3516,9 +3572,16 @@ Castle = {
 }
 
 # A small library.
-Library = {
-'file': 'rooms/library',
+Library1 = {
+'file': 'rooms/library1',
 'width': 7,
+'height': 7,
+'X': (BookShelf, None, None, None)
+}
+
+Library2 = {
+'file': 'rooms/library2',
+'width': 9,
 'height': 7,
 'X': (BookShelf, None, None, None)
 }
@@ -3624,22 +3687,22 @@ Pool1c = {
 
 Pool2a = {
 'file': 'rooms/pool2',
-'width': 7,
-'height': 7,
+'width': 9,
+'height': 9,
 '~': (DeepWater, None, None, None)
 }
 
 Pool2b = {
 'file': 'rooms/pool2',
-'width': 7,
-'height': 7,
+'width': 9,
+'height': 9,
 '~': (Lava, None, None, None)
 }
 
 Pool2c = {
 'file': 'rooms/pool2',
-'width': 7,
-'height': 7,
+'width': 9,
+'height': 9,
 '~': (AcidPool, None, None, None)
 }
 
@@ -3653,14 +3716,14 @@ Pool3 = {
 # Circular corridors.
 Circle1 = {
 'file': 'rooms/circle1',
-'width': 4,
-'height': 4
+'width': 6,
+'height': 6
 }
 
 Circle2 = {
 'file': 'rooms/circle2',
-'width': 5,
-'height': 5
+'width': 7,
+'height': 7
 }
 
 Circle3 = {
@@ -3717,6 +3780,20 @@ Diamond8 = {
 'file': 'rooms/diamond8',
 'width': 7,
 'height': 7
+}
+
+# Magic box rooms:
+Magic1 = {
+'file': 'rooms/magic1',
+'width': 11,
+'height': 11
+}
+
+Magic2 = {
+'file': 'rooms/magic2',
+'width': 9,
+'height': 9,
+',': (Carpet, None, None, None)
 }
 
 # the Surface:
@@ -4139,7 +4216,10 @@ Goal1 = {
 '<': (UpStairs, None, None, None),
 '#': (GoldWall, None, None, None),
 '.': (GoldFloor, None, None, None),
+',': (GoldFloor, None, 'RANDOM_ANY', None),
+'+': (ClosedGoldDoor, ['BLOCKED'], None, None),
 '_': (Carpet, None, None, None),
+'B': (BookShelf, None, None, None),
 'X': (Throne, None, None, BlackKnight)
 }
 
@@ -4151,6 +4231,7 @@ Goal2 = {
 '#': (GoldWall, None, None, None),
 '.': (GoldFloor, None, None, None),
 '+': (WoodDoor, ['BLOCKED'], None, None),
+'d': (ClosedGoldDoor, ['BLOCKED'], None, None),
 'X': (RockWall, None, None, None),
 ',': (RockFloor, None, None, None),
 'x': (IronWall, None, None, None),
@@ -4158,6 +4239,7 @@ Goal2 = {
 '-': (ClosedPort, None, None, None),
 '=': (IronBars, None, None, None),
 '_': (Carpet, None, None, None),
+'I': (GoldFloor, None, 'RANDOM_ANY', None),
 'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY'),
 'T': (Throne, None, None, BlackKnight)
 }
@@ -4169,7 +4251,7 @@ Goal3 = {
 '<': (UpStairs, None, None, None),
 'X': (GoldWall, None, None, None),
 '.': (GoldFloor, None, None, None),
-'+': (ClosedPort, ['BLOCKED'], None, None),
+'+': (ClosedGoldDoor, ['BLOCKED'], None, None),
 ',': (RockFloor, None, None, None),
 '-': (DeepWater, None, None, None),
 '=': (IronBars, None, None, None),
@@ -4366,8 +4448,10 @@ Chain,
 Whip,
 # Shields:
 Buckler,
+TurtleShield,
 RoundShield,
 LanternShield,
+SpikedShield,
 KiteShield,
 IceShield,
 TowerShield,
@@ -4396,6 +4480,7 @@ ArmGuard,
 LeatherArmor,
 StuddedArmor,
 ChainArmor,
+SilverChainArmor,
 ScaleArmor,
 PlateArmor,
 GoldPlateArmor,
@@ -4644,7 +4729,10 @@ Guard4,
 Guard5,
 LetterS,
 LetterX,
-Library,
+Library1,
+Library2,
+Magic1,
+Magic2,
 Pillars1,
 Pillars2,
 Pillars3,

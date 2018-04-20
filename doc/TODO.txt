@@ -1,6 +1,6 @@
 To do list:
 ===========
-* release with pyinstaller?
+* release with pyinstaller, cx_Freeze, or something?
 * AI
    item use
    guarding, wandering, hunting

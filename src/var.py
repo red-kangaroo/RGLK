@@ -168,6 +168,7 @@ WizModeNewMap = False
 Maps = []
 Entities = []
 MessageHistory = []
+MagicBox = []
 
 TextColor = libtcod.white
 VersionNumber = "pre-alpha-test"

@@ -19,7 +19,7 @@ import var
 
 def getAICommand(Mob):
     if Mob == None:
-        print "Handling keys for None mob, might be a bug!"
+        #print "Handling keys for None mob, might be a bug!"
         handleKeys(Mob)
         return
     elif Mob.hasFlag('AVATAR'):

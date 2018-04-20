@@ -291,6 +291,12 @@ class Entity(object):
         if var.getMap()[x][y].BlockMove:
             return False
 
+        if var.getMap()[x][y].hasFlag('CAN_BE_OPENED') and self.hasFlag('CANNOT_OPEN'):
+            return False
+
+        if var.getMap()[self.x][self.y].isWalkable() == False:
+            return True # Monsters already in dangerous terrain can get out now.
+
         if (var.getMap()[x][y].hasFlag('BURN') and
             not (self.hasIntrinsic('RESIST_FIRE') or self.hasIntrinsic('IMMUNE_FIRE') or self.isFlying())):
             return False
@@ -301,9 +307,6 @@ class Entity(object):
 
         if (var.getMap()[x][y].hasFlag('SWIM') and
             not (self.hasIntrinsic('SWIM') or self.hasIntrinsic('WATER_WALK') or self.isFlying())):
-            return False
-
-        if var.getMap()[x][y].hasFlag('CAN_BE_OPENED') and self.hasFlag('CANNOT_OPEN'):
             return False
 
         return True
@@ -815,10 +818,15 @@ class Mob(Entity):
             except:
                 print "Failed to add accuracy!"
 
+        # Get terrain penalties:
+        if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
+            toHit -= 3
+
         toHit = var.rand_int_from_float(toHit)
 
         if base == True:
             return toHit
+
         # We return at least +1 if we get positive toHit, otherwise randomly between
         # toHit and zero.
         elif toHit > 0:
@@ -882,6 +890,16 @@ class Mob(Entity):
                     elif item.hasFlag(slot):
                         toDodge += item.getDefenseValue()
 
+        # Get intrinsics:
+        if self.hasIntrinsic('LEVITATION'):
+            toDodge += self.getIntrinsicPower('LEVITATION')
+        elif self.isFlying(): # Used when flying not through levitation.
+            toDodge += 3
+
+        # Get terrain penalties:
+        if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
+            toDodge -= 3
+
         if base == True:
             return toDodge
 
@@ -943,26 +961,26 @@ class Mob(Entity):
         if not limb.hasFlag('TORSO'):
             if limb.hasFlag('HAND'):
                 # Hands get full PV of worn gloves.
-                flag = limb.getPlacement()
+                index = self.bodyparts.index(limb)
+                part = self.bodyparts[index - 1]
 
-                for part in self.bodyparts:
-                    if part.hasFlag('ARM') and part.hasFlag(flag):
-                        for item in part.inventory:
-                            PV += item.getProtectionValue()
-                        break
+                if part.hasFlag('ARM'):
+                    for item in part.inventory:
+                        PV += item.getProtectionValue()
             else:
                 # Body armor gives half its PV to all other body parts,
                 # shields give thier full PV, if any.
                 for part in self.bodyparts:
-                    if part.hasFlag('HAND'):
-                        for item in part.inventory:
-                            if item.hasFlag('SHIELD'):
-                                PV += item.getProtectionValue()
-                    elif part.hasFlag('TORSO'):
-                        for item in part.inventory:
-                            PV += (item.getProtectionValue() / 2)
+                    if part != limb:
+                        if part.hasFlag('HAND'):
+                            for item in part.inventory:
+                                if item.hasFlag('SHIELD'):
+                                    PV += item.getProtectionValue()
+                        elif part.hasFlag('TORSO'):
+                            for item in part.inventory:
+                                PV += (item.getProtectionValue() / 2)
 
-        # TODO: Magic items.
+        # TODO: Magic items, natural PV.
 
         if self.getEnd() > 10:
             PV += (self.getEnd() - 10)
@@ -970,7 +988,7 @@ class Mob(Entity):
         return max(0, PV)
 
     def getTotalProtection(self):
-        PV = 0
+        PV = 0.0
 
         for part in self.bodyparts:
             for item in part.inventory:
@@ -1284,7 +1302,7 @@ class Mob(Entity):
 
         cost *= 1.3 ** (self.getBurdenState())
 
-        if var.getMap()[self.x][self.y].hasFlag('ROUGH'):
+        if var.getMap()[self.x][self.y].hasFlag('ROUGH') and not self.isFlying():
             cost += 0.2
 
         return max(0.1, cost)
@@ -1377,6 +1395,9 @@ class Mob(Entity):
 
         if var.getMap()[self.x][self.y].hasFlag('CAN_BE_CLIMBED'):
             light += 4
+
+        if self.hasIntrinsic('BLIND'):
+            light = 1
 
         if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
             light = 1
@@ -1754,12 +1775,9 @@ class Mob(Entity):
 
         # Penalties.
         if not attacker.canSense(self):
-            print "Unseen defender."
-            toHit -= 3
-        if var.getMap()[attacker.x][attacker.y].hasFlag('PIT') and not attacker.isFlying():
-            toHit -= 3
-        if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
-            toDodge -= 3
+            #print "Unseen defender."
+            toHit -= 3 # This is rather hefty penalty, because it is applied after
+                       # normally randomized bonus/penalty to accuracy.
 
         print "modified hit chance: %s vs %s" % (toHit, toDodge)
 
@@ -2165,16 +2183,17 @@ class Mob(Entity):
             if i.hasFlag('GRASP'):
                 if len(i.inventory) > 0:
                     for n in i.inventory: # If this produces more than one weapon, we have a bug in equipping.
-                        if not n.hasFlag('SHIELD'):
+                        if n.canAttack():
                             primaryAttacks.append(n)
-                        weapons = True
+
+                    weapons = True
 
             if i.hasFlag('HAND'):
                 if weapons == False:
                     # You attack unarmed only if you are wielding no weapons.
                     primaryAttacks.append(i)
                 else:
-                    secondaryAttacks.append(i)
+                    tertiaryAttacks.append(i)
 
             elif i.hasFlag('LEG'):
                 if self.hasFlag('USE_LEGS') or self.hasHands(False) == 0:
@@ -2273,9 +2292,9 @@ class Mob(Entity):
 
             # Here we want fallthrough with if instead of elif,
             # because we want to chop stuck doors when actionOpen fails.
-            # We cannot do that, or we'll be automatically chopping down bookshelves
-            # any time we try to loot them. :/
-        elif self.isBlocked(x, y, var.DungeonLevel, False):
+            # EDIT: We cannot do that, or we'll be automatically chopping down
+            # bookshelves any time we try to loot them. :/
+            elif self.isBlocked(x, y, var.DungeonLevel, False):
                 if var.getMap()[x][y].beDug(self):
                     var.changeFOVMap(x, y)
                     return True
@@ -3904,6 +3923,18 @@ class Item(Entity):
             return True
 
         return False
+
+    def canAttack(self):
+        if self.hasFlag('WEAPON'):
+            return True
+
+        if self.hasFlag('SHIELD'):
+            return False
+
+        if var.rand_chance(50):
+            return True
+        else:
+            return False
 
     # Various use methods:
     def beApplied(self, User, victim = None):
