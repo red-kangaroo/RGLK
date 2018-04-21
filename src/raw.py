@@ -705,6 +705,94 @@ ImmuneDark = {
 'secret': True
 }
 
+AllergyIron = {
+'name': 'iron allergy',
+'type': 'VULN_IRON',
+'beginMsg': " feel&S disgusted by unclean metals.",
+'endMsg': " feel&S like some smithing.",
+'secret': True
+}
+
+AllergySilver = {
+'name': 'silver allergy',
+'type': 'VULN_SILVER',
+'beginMsg': " feel&S disgusted by the moon metal.",
+'endMsg': " feel&S at peace with the Moon.",
+'secret': True
+}
+
+AllergyGold = {
+'name': 'gold allergy',
+'type': 'VULN_GOLD',
+'beginMsg': " feel&S disgusted by opulent jewelry.",
+'endMsg': " feel&S a bit greedy.",
+'secret': True
+}
+
+AllergyGlass = {
+'name': 'glass allergy',
+'type': 'VULN_GLASS',
+'beginMsg': " feel&S disgusted by translucency.",
+'endMsg': " feel&S at peace with windows.", # Linux is better, though.
+'secret': True
+}
+
+AllergyHoly = {
+'name': 'unholy',
+'type': 'VULN_HOLY',
+'beginMsg': " feel&S unholy.",
+'endMsg': " feel&S blessed.",
+'secret': True
+}
+
+AllergyUnholy = {
+'name': 'holy',
+'type': 'VULN_UNHOLY',
+'beginMsg': " feel&S holy.",
+'endMsg': " feel&S cursed.",
+'secret': True
+}
+
+ResistMetal = {
+'name': 'metal protection',
+'type': 'RESIST_METAL',
+'beginMsg': " yearn&S for metal crashing on metal.",
+'endMsg': " shudder&S at the thought of smithing.",
+'secret': True
+}
+
+ResistMeat = {
+'name': 'bodily protection',
+'type': 'RESIST_MEAT',
+'beginMsg': " yearn&S for some bodily action.",
+'endMsg': " yearn&S for some privacy.",
+'secret': True
+}
+
+ResistEarth = {
+'name': 'earth protection',
+'type': 'RESIST_EARTH',
+'beginMsg': " feel&S in tune with nature.",
+'endMsg': " shudder&S at the thought of nature.",
+'secret': True
+}
+
+ResistWood = {
+'name': 'forest protection',
+'type': 'RESIST_WOOD',
+'beginMsg': " hear&S the trees singing.",
+'endMsg': " hate&S the trees.",
+'secret': True
+}
+
+ResistMundane = {
+'name': 'mundanity protection',
+'type': 'RESIST_MUNDANE',
+'beginMsg': " feel&S special.",
+'endMsg': " feel&S mundane.",
+'secret': True
+}
+
 Aflame = {
 'name': 'aflame',
 'type': 'AFLAME',
@@ -1994,7 +2082,20 @@ BlueDress = {
 'size': -1,
 'DV': 0,
 'PV': 0,
-'intrinsics': [('HASTE', 1)],
+'intrinsics': [('HASTE', 1), ('WATER_WALK', 1)],
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 50
+}
+
+GrayDress = {
+'char': ']',
+'color': libtcod.grey,
+'name': 'gray dress',
+'material': 'CLOTH',
+'size': -1,
+'DV': 0,
+'PV': 0,
+'intrinsics': [('RESIST_EARTH', 1), ('CAN_DIG', 1)],
 'flags': ['TORSO', 'ARMOR'],
 'frequency': 50
 }
@@ -2007,6 +2108,9 @@ BlueDress = {
 # gold plate mail
 # fur cloak
 # cloak of invisibility
+# cloak of protection
+# cloak of defense
+# green dress - resist wood, forestry
 
 # Belts:
 LeatherBelt = {
@@ -2410,7 +2514,7 @@ Player = {
 'speed': 1.0,
 'sight': 0,
 'sex': 'MOF',
-'intrinsics': [],
+#'intrinsics': [],
 'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, WyrdLight],
 'flags': ['HUMANOID', 'AVATAR', 'UNIQUE'],
 'frequency': 0
@@ -2586,6 +2690,7 @@ Alien = {
 'Ego': 3,
 'sight': 5,
 'sex': 'UNDEFINED',
+'intrinsics': [('VULN_GOLD', 3)],
 'flags': ['ALIEN', 'USE_LEGS', 'AI_DIJKSTRA'],
 'frequency': 5
 }
@@ -4551,6 +4656,7 @@ MaterialsList = [
 
 DamageTypeList = [
 'ASPHYX',
+'ALLERGY',
 'BLUNT',
 'SLASH',
 'PIERCE',
@@ -4569,6 +4675,7 @@ DamageTypeList = [
 
 NonWoundingList = [
 'ASPHYX',
+'ALLERGY',
 'NECROTIC',
 'POISON',
 'BLEED',
@@ -4577,6 +4684,7 @@ NonWoundingList = [
 
 MaterialDamageList = {
 'ASPHYX': [],
+'ALLERGY': [],
 'BLUNT': ['BONE', 'CLAY', 'GLASS', 'WATER', 'WOOD'],
 'SLASH': ['BONE', 'CLOTH', 'FLESH', 'LEATHER', 'PAPER', 'PLANT', 'WATER', 'WOOD'],
 'PIERCE': ['CLOTH', 'FLESH', 'LEATHER', 'PAPER', 'PLANT'],
@@ -4595,6 +4703,7 @@ MaterialDamageList = {
 
 ResistanceTypeList = {
 'ASPHYX': 'RESIST_CHOKE',
+'ALLERGY': None,
 'BLEED': None,
 'BLUNT': 'RESIST_BLUNT',
 'SLASH': 'RESIST_SLASH',
@@ -4613,6 +4722,7 @@ ResistanceTypeList = {
 
 VulnerabilityTypeList = {
 'ASPHYX': None,
+'ALLERGY': None,
 'BLEED': None,
 'BLUNT': 'VULN_BLUNT',
 'SLASH': 'VULN_SLASH',
@@ -4631,6 +4741,7 @@ VulnerabilityTypeList = {
 
 ImmunityTypeList = {
 'ASPHYX': None,
+'ALLERGY': None,
 'BLEED': 'BLOODLESS',
 'BLUNT': 'IMMUNE_PHYSICAL',
 'SLASH': 'IMMUNE_PHYSICAL',
@@ -4817,6 +4928,17 @@ ImmuneAcid,
 ImmunePoison,
 ImmuneNecrotic,
 ImmuneElectricity,
+AllergyGold,
+AllergyIron,
+AllergyGlass,
+AllergySilver,
+AllergyHoly,
+AllergyUnholy,
+ResistMeat,
+ResistWood,
+ResistMetal,
+ResistEarth,
+ResistMundane,
 # DoT:
 Aflame,
 Bleed,

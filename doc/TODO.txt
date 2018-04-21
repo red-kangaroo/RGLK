@@ -19,8 +19,6 @@ To do list:
    pits - climbing, jumping, liquids
 * kill list
 * intrinsics:
-   VULN_material
-   RESIST_METAL
    BUFF_attribute, damage, light
    DEBUFF_attribute, damage, light
    IMMUNE_GAS

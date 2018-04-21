@@ -107,3 +107,9 @@ Wizard mode:
 ![Screenshot](doc/screenshots/sewer2.png)
 
 ![Screenshot](doc/screenshots/maze.png)
+
+![Screenshot](doc/screenshots/world1.png)
+
+![Screenshot](doc/screenshots/world2.png)
+
+![Screenshot](doc/screenshots/world3.png)

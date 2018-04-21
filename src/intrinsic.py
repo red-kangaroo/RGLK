@@ -94,6 +94,7 @@ class Intrinsic(object):
         if not self.isPermanent():
             self.duration -= 1
         if self.duration <= 0:
+            # TODO: Handle ending effects of intrinsics.
             return None
 
         # TODO: The effects.
@@ -116,6 +117,73 @@ class Intrinsic(object):
                 if var.rand_chance(self.power * 10):
                     ui.message("%s burn&S up!" % owner.getName(True), libtcod.light_red, owner)
                     owner.getDestroyed()
+
+        # Allergies:
+        if self.type == 'VULN_IRON':
+            if owner.hasFlag('MOB'):
+                for item in owner.getEquipment():
+                    if item.material == 'IRON':
+                        ui.message("%s %s sear&S &POSS!" % (owner.getName(True, possessive = True), item.getName()),
+                                   libtcod.light_red, owner)
+
+                        power = max(1, var.rand_int_from_float(self.power))
+                        damage = libtcod.random_get_int(0, power, 3)
+                        owner.receiveDamage(damage, DamageType = 'ALLERGY')
+
+        if self.type == 'VULN_SILVER':
+            if owner.hasFlag('MOB'):
+                for item in owner.getEquipment():
+                    if item.material == 'SILVER':
+                        ui.message("%s %s sear&S &POSS!" % (owner.getName(True, possessive = True), item.getName()),
+                                   libtcod.light_red, owner)
+
+                        power = max(1, var.rand_int_from_float(self.power))
+                        damage = libtcod.random_get_int(0, power, 3)
+                        owner.receiveDamage(damage, DamageType = 'ALLERGY')
+
+        if self.type == 'VULN_GOLD':
+            if owner.hasFlag('MOB'):
+                for item in owner.getEquipment():
+                    if item.material == 'GOLD':
+                        ui.message("%s %s sear&S &POSS!" % (owner.getName(True, possessive = True), item.getName()),
+                                   libtcod.light_red, owner)
+
+                        power = max(1, var.rand_int_from_float(self.power))
+                        damage = libtcod.random_get_int(0, power, 3)
+                        owner.receiveDamage(damage, DamageType = 'ALLERGY')
+
+        if self.type == 'VULN_GLASS':
+            if owner.hasFlag('MOB'):
+                for item in owner.getEquipment():
+                    if item.material == 'GLASS':
+                        ui.message("%s %s sear&S &POSS!" % (owner.getName(True, possessive = True), item.getName()),
+                                   libtcod.light_red, owner)
+
+                        power = max(1, var.rand_int_from_float(self.power))
+                        damage = libtcod.random_get_int(0, power, 3)
+                        owner.receiveDamage(damage, DamageType = 'ALLERGY')
+
+        if self.type == 'VULN_HOLY':
+            if owner.hasFlag('MOB'):
+                for item in owner.getEquipment():
+                    if item.beautitude > 0:
+                        ui.message("%s %s sear&S &POSS!" % (owner.getName(True, possessive = True), item.getName()),
+                                   libtcod.light_red, owner)
+
+                        power = max(1, var.rand_int_from_float(self.power))
+                        damage = libtcod.random_get_int(0, power, item.beautitude)
+                        owner.receiveDamage(damage, DamageType = 'ALLERGY')
+
+        if self.type == 'VULN_UNHOLY':
+            if owner.hasFlag('MOB'):
+                for item in owner.getEquipment():
+                    if item.beautitude < 0:
+                        ui.message("%s %s sear&S &POSS!" % (owner.getName(True, possessive = True), item.getName()),
+                                   libtcod.light_red, owner)
+
+                        power = max(1, var.rand_int_from_float(self.power))
+                        damage = libtcod.random_get_int(0, power, abs(item.beautitude))
+                        owner.receiveDamage(damage, DamageType = 'ALLERGY')
 
         # Bleeding:
         if self.type == 'BLEED':

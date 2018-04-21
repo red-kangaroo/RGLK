@@ -1902,21 +1902,66 @@ class Mob(Entity):
             limb = self.getLimbToHit()
 
         # TODO:
-        #       Limb wounds, pain.
+        #       Pain.
         #       Armor-piercing crits.
+        #       DamageType effects.
 
         if not DamageType in raw.DamageTypeList:
             print "Unknown damage type: %s" % DamageType
             return
 
+        # Material intrinsics:
+        modifier = 1.0
+
+        if weapon != None:
+        # Body parts are used as weapons for natural attacks, so attacker made of
+        # material will also trigger this.
+
+            # Allergies:
+            if weapon.material == 'IRON' and self.hasIntrinsic('VULN_IRON'):
+                modifier *= 1.3 ** self.getIntrinsicPower('VULN_IRON')
+                ui.message("%s sear&S %s!" % (weapon.getName(True), self.getName()),
+                           libtcod.light_red, actor = self)
+            if weapon.material == 'SILVER' and self.hasIntrinsic('VULN_SILVER'):
+                modifier *= 1.3 ** self.getIntrinsicPower('VULN_SILVER')
+                ui.message("%s sear&S %s!" % (weapon.getName(True), self.getName()),
+                           libtcod.light_red, actor = self)
+            if weapon.material == 'GOLD' and self.hasIntrinsic('VULN_GOLD'):
+                modifier *= 1.3 ** self.getIntrinsicPower('VULN_GOLD')
+                ui.message("%s sear&S %s!" % (weapon.getName(True), self.getName()),
+                           libtcod.light_red, actor = self)
+            if weapon.material == 'GLASS' and self.hasIntrinsic('VULN_GLASS'):
+                modifier *= 1.3 ** self.getIntrinsicPower('VULN_GLASS')
+                ui.message("%s sear&S %s!" % (weapon.getName(True), self.getName()),
+                           libtcod.light_red, actor = self)
+            if weapon.beautitude > 0 and self.hasIntrinsic('VULN_HOLY'):
+                modifier *= 1.3 ** self.getIntrinsicPower('VULN_HOLY')
+                ui.message("%s sear&S %s!" % (weapon.getName(True), self.getName()),
+                           libtcod.light_red, actor = self)
+            if weapon.beautitude < 0 and self.hasIntrinsic('VULN_UNHOLY'):
+                modifier *= 1.3 ** self.getIntrinsicPower('VULN_UNHOLY')
+                ui.message("%s sear&S %s!" % (weapon.getName(True), self.getName()),
+                           libtcod.light_red, actor = self)
+
+            # Resistances:
+            if weapon.material in ['BONE', 'FLESH', 'LEATHER'] and self.hasIntrinsic('RESIST_MEAT'):
+                modifier *= 0.7 ** self.getIntrinsicPower('RESIST_MEAT')
+            if weapon.material in ['GOLD', 'IRON', 'SILVER'] and self.hasIntrinsic('RESIST_METAL'):
+                modifier *= 0.7 ** self.getIntrinsicPower('RESIST_METAL')
+            if weapon.material in ['CLAY', 'STONE'] and self.hasIntrinsic('RESIST_EARTH'):
+                modifier *= 0.7 ** self.getIntrinsicPower('RESIST_EARTH')
+            if weapon.material in ['PAPER', 'PLANT', 'WOOD'] and self.hasIntrinsic('RESIST_WOOD'):
+                modifier *= 0.7 ** self.getIntrinsicPower('RESIST_WOOD')
+            if weapon.beautitude == 0 and self.hasIntrinsic('RESIST_MUNDANE'):
+                modifier *= 0.7 ** self.getIntrinsicPower('RESIST_MUNDANE')
+
+        damage *= modifier
+
+        # Resistances:
         if DamageType in ['BLUNT', 'SLASH', 'PIERCE']:
             damage = self.resistDamage(damage, DamageType, self.getLimbProtection(limb))
         else:
             damage = self.resistDamage(damage, DamageType)
-
-        # TODO: Modifiers.
-        #       Different materials.
-        #       Damage type effects.
 
         if damage > 0:
             # Inflict effects of the attack:
@@ -2635,6 +2680,19 @@ class Mob(Entity):
                     if len(part.inventory) != 0:
                         for equip in part.inventory:
                             cool = equip.getCoolness()
+
+                            if equip.material == 'IRON' and self.hasIntrinsic('VULN_IRON'):
+                                cool = -5
+                            elif equip.material == 'GOLD' and self.hasIntrinsic('VULN_GOLD'):
+                                cool = -5
+                            elif equip.material == 'SILVER' and self.hasIntrinsic('VULN_SILVER'):
+                                cool = -5
+                            elif equip.material == 'GLASS' and self.hasIntrinsic('VULN_GLASS'):
+                                cool = -5
+                            elif equip.beautitude > 0 and self.hasIntrinsic('VULN_HOLY'):
+                                cool = -5
+                            elif equip.beautitude < 0 and self.hasIntrinsic('VULN_UNHOLY'):
+                                cool = -5
                     elif part.hasFlag('GRASP'):
                         cool = part.getCoolness()
                     else:
@@ -2647,6 +2705,19 @@ class Mob(Entity):
                             item.size = part.size
                         else:
                             itemCool = -2
+
+                    if item.material == 'IRON' and self.hasIntrinsic('VULN_IRON'):
+                        itemCool = -5
+                    elif item.material == 'GOLD' and self.hasIntrinsic('VULN_GOLD'):
+                        itemCool = -5
+                    elif item.material == 'SILVER' and self.hasIntrinsic('VULN_SILVER'):
+                        itemCool = -5
+                    elif item.material == 'GLASS' and self.hasIntrinsic('VULN_GLASS'):
+                        itemCool = -5
+                    elif item.beautitude > 0 and self.hasIntrinsic('VULN_HOLY'):
+                        itemCool = -5
+                    elif item.beautitude < 0 and self.hasIntrinsic('VULN_UNHOLY'):
+                        itemCool = -5
 
                     if itemCool > cool:
                         if slot == 'GRASP':
@@ -2689,6 +2760,16 @@ class Mob(Entity):
                                 self.AP -= self.getActionAPCost()
                             if not self.hasFlag('AVATAR'):
                                 self.actionDrop(what = item)
+                    elif cool < 0:
+                        # De-equip and not cool items.
+
+                        equip = part.doDeEquip(self)
+                        if equip != None:
+                            self.inventory.append(equip)
+                            equip.tryStacking(self)
+
+                            if not forced:
+                                self.AP -= self.getActionAPCost()
 
         return True # Just for the good sleep of mine.
 
