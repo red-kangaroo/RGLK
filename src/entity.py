@@ -2334,6 +2334,8 @@ class Mob(Entity):
                         self.AP -= self.getActionAPCost()
                         return True
 
+                    ui.message("%s close&S the %s." % (self.getName(True), var.getMap()[x][y].getName()), actor = self)
+
                     if var.getMap()[x][y].material == 'IRON':
                         var.getMap()[x][y].change(raw.ClosedPort)
                         self.SP -= 2
@@ -2345,7 +2347,6 @@ class Mob(Entity):
                         self.SP -= 1
 
                     var.changeFOVMap(x, y)
-                    ui.message("%s close&S the %s." % (self.getName(True), var.getMap()[x][y].getName()), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 else:
@@ -2618,8 +2619,6 @@ class Mob(Entity):
 
             if describe == None:
                 return False
-            elif describe == True:
-                return True
             else:
                 try:
                     ui.item_description(self.inventory[describe])
@@ -2936,6 +2935,8 @@ class Mob(Entity):
                         ui.message("%s discover&S a %s!" % (self.getName(True), var.getMap()[x][y].getName()),
                                    libtcod.azure, actor = self)
 
+                    ui.message("%s open&S the %s." % (self.getName(True), var.getMap()[x][y].getName()), actor = self)
+
                     if var.getMap()[x][y].material == 'IRON':
                         var.getMap()[x][y].change(raw.OpenPort)
                         self.SP -= 2
@@ -2947,7 +2948,6 @@ class Mob(Entity):
                         self.SP -= 1
 
                     var.changeFOVMap(x, y)
-                    ui.message("%s open&S the %s." % (self.getName(True), var.getMap()[x][y].getName()), actor = self)
                     self.AP -= self.getActionAPCost()
                     return True
                 elif var.getMap()[x][y].hasFlag('CONTAINER'):

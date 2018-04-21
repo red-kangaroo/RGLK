@@ -705,6 +705,10 @@ def buildQIXDungeon(map, DungeonLevel):
     pass
 
 def buildDrunkenCave(map, DungeonLevel):
+    type = 'CAVE'
+    if var.rand_chance(5):
+        type = 'ICE'
+
     StepsTaken = 0
     Fails = 0
 
@@ -750,7 +754,7 @@ def buildDrunkenCave(map, DungeonLevel):
         else:
             Fails += 1
 
-    map = postProcess(map, 'CAVE')
+    map = postProcess(map, type)
 
     while var.rand_chance(50):
         map = makePrefabRoom(map, DungeonLevel)
@@ -1179,6 +1183,18 @@ def postProcess(map, type = None):
                 raw.LeafyTree,
                 raw.ConifTree
                 ])
+            elif type == 'ICE':
+                which = random.choice([
+                raw.IceFloor,
+                raw.IceFloor,
+                raw.DeepSnow,
+                raw.SnowTree,
+                raw.SnowTree,
+                raw.RockPile,
+                raw.SnowPile,
+                raw.ShallowWater,
+                raw.ShallowWater
+                ])
             elif type in ['CAVE', 'BIG']:
                 which = random.choice([
                 raw.Vines,
@@ -1202,11 +1218,13 @@ def postProcess(map, type = None):
                 raw.ShallowWater
                 ])
 
-            if (map[x][y].hasFlag('GROUND') and var.rand_chance(10)):
-                if var.rand_chance(1):
+            if map[x][y].hasFlag('GROUND') and var.rand_chance(10):
+                if var.rand_chance(1) and not type == 'FOREST':
                     which = raw.Pit
 
                 map[x][y].change(which)
+            elif map[x][y].hasFlag('GROUND') and type == 'ICE':
+                map[x][y].change(raw.Snow)
 
             if (map[x][y].hasFlag('WALL') and type == 'MAZE' and var.rand_chance(5)):
                 which = random.choice([
@@ -1241,6 +1259,14 @@ def postProcess(map, type = None):
             raw.Mud,
             raw.ShallowWater,
             raw.ShallowWater,
+            raw.ShallowWater,
+            raw.DeepWater
+            ])
+        elif type == 'ICE':
+            liquid = random.choice([
+            raw.IceFloor,
+            raw.Snow,
+            raw.DeepSnow,
             raw.ShallowWater,
             raw.DeepWater
             ])

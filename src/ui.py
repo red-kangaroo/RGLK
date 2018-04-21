@@ -281,11 +281,11 @@ def render_UI(Player):
 
         if Player.target.sex == 'MALE':
             libtcod.console_set_default_foreground(var.UIPanel, libtcod.blue)
-            libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+            libtcod.console_print_ex(var.UIPanel, 18, 54, libtcod.BKGND_NONE, libtcod.LEFT,
                                      chr(11))
         elif Player.target.sex == 'FEMALE':
             libtcod.console_set_default_foreground(var.UIPanel, libtcod.pink)
-            libtcod.console_print_ex(var.UIPanel, 18, 1, libtcod.BKGND_NONE, libtcod.LEFT,
+            libtcod.console_print_ex(var.UIPanel, 18, 54, libtcod.BKGND_NONE, libtcod.LEFT,
                                      chr(12))
 
         # Restore the text color. :D
@@ -437,7 +437,7 @@ def inventory_menu(Player):
                     for i in Player.inventory:
                         i.tryStacking(Player)
                     Player.inventory.sort(key = lambda i: i.name)
-                    return True
+                    continue
 
                 if Key.vk == libtcod.KEY_SPACE:
                     libtcod.console_clear(var.MenuPanel)

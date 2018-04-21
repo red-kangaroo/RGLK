@@ -3136,6 +3136,16 @@ ConifTree = {   # Coniferous tree
 'flags': ['CAN_BE_BURNED', 'CAN_BE_CHOPPED', 'CAN_BE_CLIMBED', 'PLANT']
 }
 
+SnowTree = {   # Snow-covered tree
+'char': chr(6),
+'color': libtcod.white,
+'name': 'tree',
+'material': 'PLANT',
+'BlockMove': True,
+'BlockSight': True,
+'flags': ['CAN_BE_CHOPPED', 'CAN_BE_CLIMBED', 'PLANT']
+}
+
 Vines = {
 'char': '|',
 'color': libtcod.dark_green,
@@ -3185,6 +3195,15 @@ GoldPile = {
 'BlockMove': False,
 'BlockSight': False,
 'flags': ['GROUND', 'ROUGH', 'CAN_BE_KICKED']
+}
+
+SnowPile = {
+'char': '*',
+'color': libtcod.white,
+'name': 'snow pile',
+'BlockMove': False,
+'BlockSight': False,
+'flags': ['GROUND', 'ROUGH', 'CAN_BE_KICKED', 'CAN_BE_MELTED']
 }
 
 RockPile = {
@@ -3796,6 +3815,58 @@ Magic2 = {
 ',': (Carpet, None, None, None)
 }
 
+# Vaults:
+Vault1 = {
+'file': 'rooms/vault1',
+'frequency': 1,
+'width': 5,
+'height': 5,
+'#': (GoldWall, None, None, None),
+'+': (ClosedGoldDoor, ['BLOCKED'], None, None),
+'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY')
+}
+
+Vault2 = {
+'file': 'rooms/vault2',
+'frequency': 1,
+'width': 5,
+'height': 5,
+'#': (GoldWall, None, None, None),
+'+': (ClosedGoldDoor, ['BLOCKED'], None, None),
+'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY')
+}
+
+Vault3 = {
+'file': 'rooms/vault3',
+'frequency': 1,
+'width': 5,
+'height': 5,
+'#': (GoldWall, None, None, None),
+'+': (ClosedGoldDoor, ['BLOCKED'], None, None),
+'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY')
+}
+
+Vault4 = {
+'file': 'rooms/vault4',
+'frequency': 1,
+'width': 5,
+'height': 5,
+'#': (GoldWall, None, None, None),
+'+': (ClosedGoldDoor, ['BLOCKED'], None, None),
+'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY')
+}
+
+Vault5 = {
+'file': 'rooms/vault5',
+'frequency': 1,
+'width': 8,
+'height': 10,
+'#': (GoldWall, None, None, None),
+'X': (RockWall, None, None, None),
+'+': (ClosedGoldDoor, ['BLOCKED'], None, None),
+'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY')
+}
+
 # the Surface:
 
 Entrance1 = {
@@ -3810,26 +3881,200 @@ Entrance2 = {
 'width': 33,
 'height': 17,
 '#': (BrickWall, None, None, None),
-',': (GrassFloor, None, None, None),
+',': (GrassFloor, None, None, None)
 }
 
 # the Big room:
-BigRoom1 = {
+BigRoom1a = {
 'file': 'rooms/bigroom1',
 'width': 75,
-'height': 18
+'height': 18,
+'#': (RockWall, None, None, None),
+'.': (RockFloor, None, None, None)
 }
 
-BigRoom2 = {
+BigRoom1b = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18,
+'#': (BrickWall, None, None, None),
+'.': (Carpet, None, None, None)
+}
+
+BigRoom1c = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18,
+'#': (IronWall, None, None, None),
+'.': (IronFloor, None, None, None)
+}
+
+BigRoom1d = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18,
+'#': (GoldWall, None, None, None),
+'.': (GoldFloor, None, None, None)
+}
+
+BigRoom1e = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18,
+'#': (IceWall, None, None, None),
+'.': (IceFloor, None, None, None)
+}
+
+BigRoom1f = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18,
+'#': (EarthWall, None, None, None),
+'.': (GrassFloor, None, None, None)
+}
+
+BigRoom1g = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18,
+'#': (WoodWall, None, None, None),
+'.': (WoodFloor, None, None, None)
+}
+
+BigRoom1h = {
+'file': 'rooms/bigroom1',
+'width': 75,
+'height': 18,
+'#': (RockWall, None, None, None),
+'.': (Sand, None, None, None)
+}
+
+BigRoom2a = {
 'file': 'rooms/bigroom2',
 'width': 75,
-'height': 18
+'height': 18,
+'#': (RockWall, None, None, None),
+'.': (RockFloor, None, None, None)
 }
 
-BigRoom3 = {
+BigRoom2b = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18,
+'#': (BrickWall, None, None, None),
+'.': (Carpet, None, None, None)
+}
+
+BigRoom2c = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18,
+'#': (IronWall, None, None, None),
+'.': (IronFloor, None, None, None)
+}
+
+BigRoom2d = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18,
+'#': (GoldWall, None, None, None),
+'.': (GoldFloor, None, None, None)
+}
+
+BigRoom2e = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18,
+'#': (IceWall, None, None, None),
+'.': (IceFloor, None, None, None)
+}
+
+BigRoom2f = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18,
+'#': (EarthWall, None, None, None),
+'.': (GrassFloor, None, None, None)
+}
+
+BigRoom2g = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18,
+'#': (WoodWall, None, None, None),
+'.': (WoodFloor, None, None, None)
+}
+
+BigRoom2h = {
+'file': 'rooms/bigroom2',
+'width': 75,
+'height': 18,
+'#': (RockWall, None, None, None),
+'.': (Sand, None, None, None)
+}
+
+BigRoom3a = {
 'file': 'rooms/bigroom3',
 'width': 74,
-'height': 19
+'height': 19,
+'#': (RockWall, None, None, None),
+'.': (RockFloor, None, None, None)
+}
+
+BigRoom3b = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19,
+'#': (BrickWall, None, None, None),
+'.': (Carpet, None, None, None)
+}
+
+BigRoom3c = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19,
+'#': (IronWall, None, None, None),
+'.': (IronFloor, None, None, None)
+}
+
+BigRoom3d = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19,
+'#': (GoldWall, None, None, None),
+'.': (GoldFloor, None, None, None)
+}
+
+BigRoom3e = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19,
+'#': (IceWall, None, None, None),
+'.': (IceFloor, None, None, None)
+}
+
+BigRoom3f = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19,
+'#': (EarthWall, None, None, None),
+'.': (GrassFloor, None, None, None)
+}
+
+BigRoom3g = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19,
+'#': (WoodWall, None, None, None),
+'.': (WoodFloor, None, None, None)
+}
+
+BigRoom3h = {
+'file': 'rooms/bigroom3',
+'width': 74,
+'height': 19,
+'#': (RockWall, None, None, None),
+'.': (Sand, None, None, None)
 }
 
 BigRoom4 = {
@@ -4761,6 +5006,11 @@ SmallRooms1,
 SmallRooms2,
 SmallRooms3,
 TJunction,
+Vault1,
+Vault2,
+Vault3,
+Vault4,
+Vault5,
 Whirl,
 Why1,
 Why2
@@ -4778,9 +5028,30 @@ Goal3
 ]
 
 BigRoomList = [
-BigRoom1,
-BigRoom2,
-BigRoom3,
+BigRoom1a,
+BigRoom1b,
+BigRoom1c,
+BigRoom1d,
+BigRoom1e,
+BigRoom1f,
+BigRoom1g,
+BigRoom1h,
+BigRoom2a,
+BigRoom2b,
+BigRoom2c,
+BigRoom2d,
+BigRoom2e,
+BigRoom2f,
+BigRoom2g,
+BigRoom2h,
+BigRoom3a,
+BigRoom3b,
+BigRoom3c,
+BigRoom3d,
+BigRoom3e,
+BigRoom3f,
+BigRoom3g,
+BigRoom3h,
 BigRoom4,
 BigRoom5,
 BigRoom6a,

@@ -35,12 +35,11 @@ def getAICommand(Mob):
             Mob.AP -= 100
             return
 
-        if var.rand_chance(1):
-            aiDoNothing(Mob)
+        if aiDoUrgent(Mob):
             return
 
-        if Mob.getBurdenState() >= 2:
-            Mob.actionDrop()
+        if var.rand_chance(1, 1000):
+            aiDoNothing(Mob)
             return
 
         aiCheckFlee(Mob)
@@ -48,36 +47,19 @@ def getAICommand(Mob):
         Target = aiFindTarget(Mob)
 
         if Target != None:
-            if Mob.hasFlag('AI_FLEE'):
-                if aiDoFlee(Mob, Target) == True:
-                    return
+            if aiDoFlee(Mob, Target):
+                return
 
             # TODO: ranged attacks
 
             if Mob.range(Target) >= 2:
-                if Mob.hasFlag('AI_KITE') and Target.hasFlag('MOB'):
-                    if aiKite(Mob, Target) == True:
-                        return
-
-                if aiMove(Mob, Target) == True:
+                if aiBattlePrep(Mob, Target):
                     return
 
             if Target.hasFlag('MOB') and Mob.range(Target) < 2:
                 if Mob.getRelation(Target) < 1:
-                    if Mob.hasFlag('AI_KITE') and var.rand_chance(50):
-                        if aiKite(Mob, Target) == True:
-                            return
-
-                    if aiSidestep(Mob, Target) == True:
+                    if aiDoMeleeAttack(Mob, Target):
                         return
-
-                    dx = Target.x - Mob.x
-                    dy = Target.y - Mob.y
-
-                    # Exterminate! Exterminate! Exterminate!
-                    Mob.tactics = False
-                    Mob.actionAttack(dx, dy, Target)
-                    return
                 else:
                     Target = None
                     Mob.target = None
@@ -886,6 +868,20 @@ def aiDoNothing(Me):
     Me.goal = None
     Me.actionWait()
 
+def aiBattlePrep(Mob, Target):
+    # TODO
+    if Mob.range(Target) < 2:
+        return False
+
+    if Mob.hasFlag('AI_KITE') and Target.hasFlag('MOB'):
+        if aiKite(Mob, Target):
+            return True
+
+    if aiMove(Mob, Target):
+        return True
+
+    return False
+
 def aiCheckFlee(Mob):
     if (Mob.SP <= 0 or Mob.HP <= (Mob.maxHP / 20)):
         if not Mob.hasFlag('AI_FLEE'):
@@ -912,6 +908,7 @@ def aiDoFlee(Me, Target):
     if not Me.hasFlag('AI_FLEE'):
         return False
     elif Target == None or not Me.canSense(Target):
+        # TODO: aiHealSelf()
         Me.actionWait()
         return True
     else:
@@ -941,7 +938,59 @@ def aiDoFlee(Me, Target):
         else:
             ui.message("%s shriek&S in terror." % Me.getName(True), actor = Me)
 
+        # TODO: Use items.
+
         return False
+
+def aiDoMeleeAttack(Mob, Target):
+    # TODO
+    if Mob.range(Target) >= 2:
+        return False
+
+    if Mob.getRelation(Target) > 0:
+        Target = None
+        Mob.target = None
+        return False
+
+    if Mob.hasFlag('AI_KITE') and var.rand_chance(50):
+        if aiKite(Mob, Target):
+            return True
+
+    if aiSidestep(Mob, Target):
+        return True
+
+    dx = Target.x - Mob.x
+    dy = Target.y - Mob.y
+
+    # Exterminate! Exterminate! Exterminate!
+    Mob.tactics = False
+    Mob.actionAttack(dx, dy, Target)
+    return True
+
+def aiDoRangedAttack(Mob, Target):
+    # TODO
+    return False
+
+def aiDoWandAttack(Mob, Target):
+    # TODO
+    return False
+
+def aiDoUrgent(Mob):
+    # TODO:
+    '''
+    aiStopStoning()
+    aiHealSelf()
+    aiDouseSelf() - AFLAME
+    aiCureBleed()
+    aiCurePoison()
+    aiEscape() - dangerous terrain etc.
+    '''
+
+    if Mob.getBurdenState() >= 2:
+        Mob.actionDrop()
+        return True
+
+    return False
 
 def aiFindTarget(Mob):
     Target = None
@@ -1135,6 +1184,10 @@ def aiCheckInventory(Me):
 
     Me.actionAutoEquip()
     return True
+
+def aiUseInventory(Mob):
+    # Find item to use for current situation.
+    return False
 
 def aiPickEquipment(Me, item):
     # Do we want to pick up this item?

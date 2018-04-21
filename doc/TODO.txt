@@ -4,6 +4,17 @@ To do list:
 * AI
    item use
    guarding, wandering, hunting
+   coolness - material vulnerabilities
+   aiBattlePrep()
+   aiDoUrgent()
+   aiUseInventory()
+   aiTargetResist() - find what target doesn't resist?
+   aiMoveMouse()
+   aiEat()
+   aiDoMeleeAttack()
+   aiDoRangedAttack() + thrown items, aiDoThrownAttack()?
+   aiDoWandAttack()
+   aiDoSpellAttack()
 * terrain effects
    pits - climbing, jumping, liquids
 * kill list
@@ -56,6 +67,7 @@ To do list:
    PHASING
    FASTING
    RAGE
+   CRAZED
 
    noisy?
    diseases - no time-out
@@ -71,13 +83,13 @@ To do list:
 * builders for QIX and noise forest
 * splitting item stacks, requires being able to write how much
 * containers
-   satchel
+   *satchel
    oilskin sack
-   bag of holding
+   *bag of holding
    bag of tricks
    bag of alchemy
-   chest
-   magic chest
+   *chest
+   *magic chest
    strongbox
 * hotkeys
 * assure dead-ends have loot or other stuff
@@ -95,7 +107,6 @@ World map:
 https://gillesleblanc.wordpress.com/2012/10/16/creating-a-random-2d-game-world-map/
 https://github.com/Dozed12/df-style-worldgen/blob/master/dist/pyWorld.py
  ^ This one might be used for inspiration.
-
 
 More vaults:
 https://github.com/crawl/crawl/tree/a43205b747151e4614bc3e110f0582e486c477c6/crawl-ref/source/dat/des
@@ -153,7 +164,6 @@ CANNOT_WISH, CANNOT_CLONE, CANNOT_BREAK, UNIQUE, KAMIKAZE, SADIST
 prefix, postfix
 price
 charges
-receiveDamage()
 
 Terrain
 =======
