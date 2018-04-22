@@ -169,6 +169,13 @@ LeadStaff = {
 'DiceValue': 3
 }
 
+VenomStaff = {
+'verb': 'bite&S', # Heh, heh.
+'DiceNumber': 2,
+'DiceValue': 2,
+'inflict': [('POISON', 2, 5, 0, 'power = 1 + weapon.enchantment', 30)],
+}
+
 KnifeAttack = {
 'verb': 'jab&S',
 'DiceNumber': 1,
@@ -339,6 +346,14 @@ SpearAttack = {
 'DamageType': 'PIERCE'
 }
 
+WyrdSpearAttack = {
+'verb': 'stab&S',
+'DiceNumber': 1,
+'DiceValue': 12,
+'DamageType': 'PIERCE',
+'flags': ['DAMAGE_MANA']
+}
+
 ScytheAttack = {
 'verb': 'reap&S',
 'DiceNumber': 3,
@@ -426,6 +441,16 @@ SpearThrown = {
 'range': 5,
 'DamageType': 'PIERCE',
 'flags': ['RANGED']
+}
+
+WyrdSpearThrown = {
+'verb': 'pierce&S',
+'DiceNumber': 1,
+'DiceValue': 8,
+'DamageBonus': 1,
+'range': 5,
+'DamageType': 'PIERCE',
+'flags': ['RANGED', 'DAMAGE_MANA']
 }
 
 ###############################################################################
@@ -545,6 +570,14 @@ ResistChoke = {
 'secret': True
 }
 
+ResistMind = {
+'name': 'mind resistance',
+'type': 'RESIST_MIND',
+'beginMsg': " feel&S iron-willed.",
+'endMsg': " feel&S feeble-minded.",
+'secret': True
+}
+
 VulnBlunt = {
 'name': 'blunt attack vulnerability',
 'type': 'VULN_BLUNT',
@@ -641,6 +674,14 @@ VulnSound = {
 'secret': True
 }
 
+VulnMind = {
+'name': 'mind vulnerability',
+'type': 'VULN_MIND',
+'beginMsg': " feel&S feeble-minded.",
+'endMsg': " feel&S iron-willed.",
+'secret': True
+}
+
 ImmunePhysical = {
 'name': 'physical immunity',
 'type': 'IMMUNE_PHYSICAL',
@@ -702,6 +743,14 @@ ImmuneDark = {
 'type': 'IMMUNE_DARK',
 'beginMsg': " feel&S the darkness rising.",
 'endMsg': " feel&S the darkness subside.",
+'secret': True
+}
+
+ImmuneMind = {
+'name': 'mind immunity',
+'type': 'IMMUNE_MIND',
+'beginMsg': " feel&S unbreakable determination.",
+'endMsg': " feel&S hesitant.",
 'secret': True
 }
 
@@ -957,12 +1006,482 @@ CanChop = {
 'secret': True
 }
 
+BuffStrength = {
+'name': 'brawny',
+'type': 'BUFF_STRENGTH',
+'beginMsg': " feel&S strong.",
+'endMsg': " feel&S weak.",
+'secret': True
+}
+
+BuffDexterity = {
+'name': 'agile',
+'type': 'BUFF_DEXTERITY',
+'beginMsg': " feel&S agile.",
+'endMsg': " feel&S clumsy.",
+'secret': True
+}
+
+BuffEndurance = {
+'name': 'hardy',
+'type': 'BUFF_ENDURANCE',
+'beginMsg': " feel&S very tough.",
+'endMsg': " feel&S sickly.",
+'secret': True
+}
+
+BuffWits = {
+'name': 'clever',
+'type': 'BUFF_WITS',
+'beginMsg': " feel&S clever.",
+'endMsg': " feel&S dumb.",
+'secret': True
+}
+
+BuffEgo = {
+'name': 'charming',
+'type': 'BUFF_EGO',
+'beginMsg': " feel&S charming.",
+'endMsg': " feel&S obnoxious.",
+'secret': True
+}
+
+BuffDamage = {
+'name': 'dangerous',
+'type': 'BUFF_DAMAGE',
+'beginMsg': " feel&S dangerous.",
+'endMsg': " feel&S harmless.",
+'secret': True
+}
+
+BuffLight = {
+'name': 'shining',
+'type': 'BUFF_LIGHT',
+'beginMsg': " start&S to glow.",
+'endMsg': " no longer glow&S.",
+'secret': True
+}
+
+DebuffStrength = {
+'name': 'weakened',
+'type': 'DEBUFF_STRENGTH',
+'beginMsg': " feel&S weak.",
+'endMsg': " feel&S strong.",
+'secret': True
+}
+
+DebuffDexterity = {
+'name': 'clumsy',
+'type': 'DEBUFF_DEXTERITY',
+'beginMsg': " feel&S clumsy.",
+'endMsg': " feel&S agile.",
+'secret': True
+}
+
+DebuffEndurance = {
+'name': 'sickly',
+'type': 'DEBUFF_ENDURANCE',
+'beginMsg': " feel&S sickly.",
+'endMsg': " feel&S very tough.",
+'secret': True
+}
+
+DebuffWits = {
+'name': 'stupid',
+'type': 'DEBUFF_WITS',
+'beginMsg': " feel&S dumb.",
+'endMsg': " feel&S clever.",
+'secret': True
+}
+
+DebuffEgo = {
+'name': 'aggravating',
+'type': 'DEBUFF_EGO',
+'beginMsg': " feel&S obnoxious.",
+'endMsg': " feel&S charming.",
+'secret': True
+}
+
+DebuffDamage = {
+'name': 'harmless',
+'type': 'DEBUFF_DAMAGE',
+'beginMsg': " feel&S harmless.",
+'endMsg': " feel&S dangerous.",
+'secret': True
+}
+
+DebuffLight = {
+'name': 'dazzled',
+'type': 'DEBUFF_LIGHT',
+'beginMsg': " cannot see clearly.",
+'endMsg': " can see clearly now.",
+'secret': True
+}
+
 NoneIntrinsic = {
 'name': 'none intrinsic',
 'type': None,
 'beginMsg': " feel&S nothing at all.",
 'endMsg': " feel&S even less than nothing.",
 'secret': False
+}
+
+###############################################################################
+#  Magical Egos
+###############################################################################
+
+DummyEgo = {
+'prefix': None, # All should have one of either prefix or suffix, never none,
+'suffix': None, # never both, or something might break.
+'material': None,
+'color': None,
+'size': None,
+'accuracy': None,
+'light': None,
+'Str': None,
+'Dex': None,
+'End': None,
+'Wit': None,
+'Ego': None,
+'DV': None,
+'PV': None,
+'StrScaling': None,
+'DexScaling': None,
+'flags': [],
+'intrinsics': []
+}
+
+# Stat boosts:
+Warrior = {
+'prefix': "warrior's",
+'Str': 1
+}
+
+Thief = {
+'prefix': "thief's",
+'Dex': 1
+}
+
+Healer = {
+'prefix': "healer's",
+'End': 1
+}
+
+Sage = {
+'prefix': "sage's",
+'Wit': 1
+}
+
+Wizard = {
+'prefix': "wizard's",
+'Ego': 1
+}
+
+Berserker = {
+'prefix': "berserker's",
+'Str': 2,
+'Dex': -1
+}
+
+Dancer = {
+'prefix': "dancer's",
+'Dex': 2,
+'Str': -1
+}
+
+Leper = {
+'prefix': "leper's",
+'End': 2,
+'Str': -1,
+'Dex': -1
+}
+
+Courtesan = {
+'prefix': "courtesan's",
+'Dex': 2,
+'Ego': 1,
+'End': -1
+}
+
+Apprentice = {
+'prefix': "apprentice's",
+'Wit': 2,
+'Ego': -1
+}
+
+Fool = {
+'prefix': "fool's",
+'Ego': 2,
+'Wit': -1
+}
+
+Princess = {
+'suffix': "the princess",
+'Ego': 2,
+'Str': -1
+}
+
+EgoStrength = {
+'suffix': "giant strength",
+'intrinsics': [('BUFF_STRENGTH', 1)]
+}
+
+EgoDexterity = {
+'suffix': "agility",
+'intrinsics': [('BUFF_DEXTERITY', 1)]
+}
+
+EgoEndurance = {
+'suffix': "the bear",
+'intrinsics': [('BUFF_ENDURANCE', 1)]
+}
+
+EgoWits = {
+'suffix': "quick wits",
+'intrinsics': [('BUFF_WITS', 1)]
+}
+
+EgoEgo = { # Yep, the name is cool.
+'suffix': "adornment",
+'intrinsics': [('BUFF_EGO', 1)]
+}
+
+# General bonuses and flags:
+Balanced = {
+'prefix': "balanced",
+'accuracy': 2
+}
+
+Seeking = {
+'suffix': "seeking",
+'accuracy': 1,
+'flags': ['ENCHANT_ACCURACY']
+}
+
+Strapped = {
+'prefix': "strapped",
+'flags': ['TWO_HAND_OK']
+}
+
+Glowing = {
+'prefix': "glowing",
+'color': libtcod.amber,
+'light': 1
+}
+
+Luminescence = {
+'prefix': "floating",
+'suffix': "luminescence",
+'color': libtcod.amber,
+'flags': ['CARRY_LIGHT'],
+'light': 1
+}
+
+Sun = {
+'suffix': "the Sun",
+'color': libtcod.amber,
+'flags': ['ENCHANT_LIGHT'],
+'light': 1
+}
+
+Moon = {
+'suffix': "the Moon",
+'color': libtcod.white,
+'intrinsics': [('BUFF_LIGHT', 1)]
+}
+
+Defense = {
+'suffix': "defense",
+'flags': ['ENCHANT_DODGE']
+}
+
+Coward = {
+'prefix': "coward's",
+'DV': 1
+}
+
+Willowy = {
+'prefix': "willowy",
+'DV': 2,
+'PV': -2
+}
+
+Protection = {
+'suffix': "protection",
+'flags': ['ENCHANT_PROTECTION']
+}
+
+Sturdy = {
+'prefix': "sturdy",
+'PV': 1
+}
+
+Unyielding = {
+'prefix': "impervious",
+'DV': -2,
+'PV': 2
+}
+
+Massive = {
+'prefix': "massive",
+'StrScaling': 'A',
+'size': 1
+}
+
+Masterwork = {
+'prefix': "masterwork",
+'DexScaling': 'A'
+}
+
+Eldritch = {
+'prefix': "eldritch",
+'color': libtcod.yellow,
+'material': 'GOLD',
+'flags': ['ENCHANT_DOUBLE']
+}
+
+# Intrinsics:
+EgoLevitation = {
+'suffix': "levitation",
+'color': libtcod.azure,
+'intrinsics': [('LEVITATION', 1)]
+}
+
+EgoRegeneration = {
+'suffix': "regeneration",
+'color': libtcod.dark_red,
+'intrinsics': [('REGEN_LIFE', 1)]
+}
+
+EgoStarpower = {
+'suffix': "the stars",
+'color': libtcod.dark_blue,
+'intrinsics': [('REGEN_MANA', 1)]
+}
+
+EgoVigor = {
+'suffix': "vigor",
+'color': libtcod.dark_green,
+'intrinsics': [('REGEN_STAM', 1)]
+}
+
+Speed = {
+'suffix': "speed",
+'intrinsics': [('HASTE', 1)]
+}
+
+Sailor = {
+'prefix': "sailor's",
+'intrinsics': [('SWIM', 1)]
+}
+
+EgoResistLight = {
+'prefix': "shrouded",
+'intrinsics': [('RESIST_LIGHT', 1)]
+}
+
+EgoResistDark = {
+'prefix': "pilgrim's",
+'intrinsics': [('RESIST_DARK', 1)]
+}
+
+EgoResistMind = {
+'suffix': "the village idiot",
+'intrinsics': [('RESIST_MIND', 1)]
+}
+
+EgoResistChoke = {
+'suffix': "the last breath",
+'intrinsics': [('RESIST_CHOKE', 1)]
+}
+
+EgoResistFire = {
+'prefix': "charred",
+'intrinsics': [('RESIST_FIRE', 1)]
+}
+
+EgoResistCold = {
+'prefix': "fur-lined",
+'intrinsics': [('RESIST_COLD', 1)]
+}
+
+EgoResistPoison = {
+'prefix': "poisoner's",
+'intrinsics': [('RESIST_POISON', 1)]
+}
+
+Thunder = {
+'suffix': "the thunderstorm",
+'intrinsics': [('RESIST_SHOCK', 1), ('RESIST_SOUND', 1), ('VULN_COLD', 1)]
+}
+
+Alchemical = {
+'prefix': "alchemical",
+'intrinsics': [('RESIST_POISON', 1), ('RESIST_ACID', 1), ('VULN_FIRE', 1)]
+}
+
+Violence = {
+'suffix': "violence",
+'intrinsics': [('BUFF_DAMAGE', 1), ('FRAGILE', 1)]
+}
+
+Peace = {
+'suffix': "peace",
+'intrinsics': [('DEBUFF_DAMAGE', 1), ('RESIST_MUNDANE', 1)]
+}
+
+Padded = {
+'prefix': "padded",
+'intrinsics': [('RESIST_BLUNT', 1), ('VULN_SLASH', 1)]
+}
+
+Reinforced = {
+'prefix': "reinforced",
+'intrinsics': [('RESIST_PIERCE', 1), ('VULN_BLUNT', 1)]
+}
+
+Banded = {
+'prefix': "banded",
+'intrinsics': [('RESIST_SLASH', 1), ('VULN_PIERCE', 1)]
+}
+
+EgoForest = {
+'suffix': "the forest",
+'intrinsics': [('RESIST_WOOD', 1), ('VULN_FIRE', 1)]
+}
+
+Fey = {
+'prefix': "fey",
+'color': libtcod.white,
+'material': 'SILVER',
+'intrinsics': [('RESIST_MEAT', 1), ('VULN_IRON', 1)]
+}
+
+EgoDead = {
+'suffix': "the dead",
+'color': libtcod.dark_grey,
+'intrinsics': [('BLOODLESS', 1), ('SLOW', 1)]
+}
+
+EgoGrave = {
+'prefix': "graveknight's",
+'color': libtcod.light_grey,
+'material': 'BONE',
+'intrinsics': [('IMMUNE_NECRO', 1), ('VULN_HOLY', 1)]
+}
+
+Summer = {
+'suffix': "the Summer Court",
+'color': libtcod.yellow,
+'material': 'GOLD',
+'intrinsics': [('IMMUNE_FIRE', 1), ('VULN_COLD', 1)]
+}
+
+Winter = {
+'suffix': "the Winter Court",
+'color': libtcod.white,
+'material': 'SILVER',
+'intrinsics': [('IMMUNE_COLD', 1), ('VULN_FIRE', 1)]
 }
 
 ###############################################################################
@@ -976,6 +1495,9 @@ DummyItem = {
 'color': libtcod.white,
 'name': 'BUG: dummy item',
 'plural': None,
+'givenName': None,
+'prefix': "",
+'suffix': "",
 'BlockMove': False,
 'material': 'STONE',
 'size': 0,
@@ -983,10 +1505,15 @@ DummyItem = {
 'ranged': MisThrown,
 'accuracy': 0,             # This is not normal to hit, but a general bonus.
 'light': 0,
-'StrScaling': 'F',
-'DexScaling': 'F',
+'Str': 0,
+'Dex': 0,
+'End': 0,
+'Wit': 0,
+'Ego': 0,
 'DV': 0,
 'PV': 0,
+'StrScaling': 'F',
+'DexScaling': 'F',
 'intrinsics': [],
 'flags': [],
 'coolness': 0,
@@ -1072,6 +1599,19 @@ WarHammer = {
 'flags': ['MELEE', 'WEAPON']
 }
 
+GoldHammer = {
+'char': '\\',
+'color': libtcod.yellow,
+'name': 'golden maul',
+'material': 'GOLD',
+'size': 2,
+'StrScaling': 'A',
+'DexScaling': 'D',
+'attack': Hammer,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 100
+}
+
 LanternHammer = { # In my language, 'lucerna' means lantern, so this is a play on
 'char': '\\',     # the good old D&D 'lucerne hammer'. ;)
 'color': libtcod.amber,
@@ -1152,6 +1692,20 @@ Spear = {
 'flags': ['MELEE', 'WEAPON']
 }
 
+WyrdSpear = {
+'char': '|',
+'color': libtcod.cyan,
+'name': 'wyrd spear',
+'material': 'GLASS',
+'size': 1,
+'StrScaling': 'D',
+'DexScaling': 'B',
+'attack': WyrdSpearAttack,
+'ranged': WyrdSpearThrown,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 100
+}
+
 Scythe = {
 'char': '|',
 'color': libtcod.darker_grey,
@@ -1177,7 +1731,7 @@ QuarterStaff = {
 'DexScaling': 'B',
 'attack': WoodStaff,
 'flags': ['MELEE', 'WEAPON', 'ENCHANT_DODGE'],
-'frequency': 150
+'frequency': 50
 }
 
 IronShodStaff = {
@@ -1191,7 +1745,7 @@ IronShodStaff = {
 'DexScaling': 'C',
 'attack': IronStaff,
 'flags': ['MELEE', 'WEAPON'],
-'frequency': 150
+'frequency': 50
 }
 
 SilverTipStaff = {
@@ -1218,6 +1772,34 @@ LeadFillStaff = {
 'StrScaling': 'C',
 'DexScaling': 'C',
 'attack': LeadStaff,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 50
+}
+
+DragonStaff = {
+'char': '|',
+'color': libtcod.light_grey,
+'name': 'dragonbone staff',
+'plural': 'dragonbone staves',
+'material': 'BONE',
+'size': 1,
+'StrScaling': 'C',
+'DexScaling': 'C',
+'attack': LeadStaff,
+'flags': ['MELEE', 'WEAPON'],
+'frequency': 50
+}
+
+SerpentStaff = {
+'char': '|',
+'color': libtcod.desaturated_green,
+'name': 'serpent staff',
+'plural': 'serpent staves',
+'material': 'WOOD',
+'size': 1,
+'StrScaling': 'C',
+'DexScaling': 'C',
+'attack': VenomStaff,
 'flags': ['MELEE', 'WEAPON'],
 'frequency': 50
 }
@@ -1502,7 +2084,8 @@ DaiKlaive = {
 'StrScaling': 'S',
 'DexScaling': 'E',
 'attack': KlaiveAttack,
-'flags': ['MELEE', 'WEAPON', 'ENCHANT_DOUBLE', 'ALWAYS_BLESSED', 'UNIQUE'],
+'flags': ['MELEE', 'WEAPON', 'ENCHANT_DOUBLE', 'ALWAYS_BLESSED', 'NO_PREFIX',
+          'NO_SUFFIX', 'UNIQUE'],
 'frequency': 1
 }
 
@@ -1716,7 +2299,7 @@ Coif = {
 'DV': 1,
 'size': -2,
 'flags': ['HEAD', 'ARMOR'],
-'frequency': 250
+'frequency': 50
 }
 
 Helm = {
@@ -1770,12 +2353,12 @@ Halo = {
 Mask = {
 'char': '-',
 'color': libtcod.darkest_orange,
-'name': 'tribal mask',
+'name': 'mask',
 'material': 'WOOD',
 'PV': 0,
 'DV': 0,
 'size': -2,
-'flags': ['HEAD', 'ARMOR'],
+'flags': ['HEAD', 'ARMOR', 'ALWAYS_SPECIAL'],
 'frequency': 300
 }
 
@@ -1955,6 +2538,18 @@ GoldPlateArmor = {
 'frequency': 100
 }
 
+BarkArmor = {
+'char': ']',
+'color': libtcod.darkest_orange,
+'name': 'bark breastplate',
+'material': 'WOOD',
+'size': 0,
+'DV': 1,
+'PV': 1,
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 100
+}
+
 CrystalShard = {
 'char': ']',
 'color': libtcod.cyan,
@@ -2007,8 +2602,8 @@ RedTunic = {
 'name': 'red tunic',
 'material': 'CLOTH',
 'size': 0,
-'accuracy': 2,
-'flags': ['TORSO', 'ARMOR'],
+'accuracy': 1,
+'flags': ['TORSO', 'ARMOR', 'ENCHANT_ACCURACY'],
 'frequency': 300
 }
 
@@ -2031,8 +2626,8 @@ SnakeVest = {
 'name': 'snakeskin vest',
 'material': 'LEATHER',
 'size': 0,
-'accuracy': 1,
-'flags': ['TORSO', 'ARMOR', 'ENCHANT_ACCURACY'],
+'intrinsics': [('RESIST_POISON', 3)],
+'flags': ['TORSO', 'ARMOR'],
 'frequency': 100
 }
 
@@ -2084,7 +2679,20 @@ BlueDress = {
 'PV': 0,
 'intrinsics': [('HASTE', 1), ('WATER_WALK', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 50
+'frequency': 5
+}
+
+GreenDress = {
+'char': ']',
+'color': libtcod.dark_green,
+'name': 'green dress',
+'material': 'CLOTH',
+'size': -1,
+'DV': 0,
+'PV': 0,
+'intrinsics': [('RESIST_WOOD', 1)], # TODO: forestry
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 5
 }
 
 GrayDress = {
@@ -2097,20 +2705,30 @@ GrayDress = {
 'PV': 0,
 'intrinsics': [('RESIST_EARTH', 1), ('CAN_DIG', 1)],
 'flags': ['TORSO', 'ARMOR'],
-'frequency': 50
+'frequency': 5
+}
+
+RedDress = {
+'char': ']',
+'color': libtcod.dark_red,
+'name': 'red dress',
+'material': 'CLOTH',
+'size': -1,
+'DV': 0,
+'PV': 0,
+'intrinsics': [('BLOODLESS', 1)], # TODO: blood sense?
+'flags': ['TORSO', 'ARMOR'],
+'frequency': 5
 }
 
 # spiked leather cuirass
-# bark breastplate
 # zombie hide armor
 # troll hide armor
 # dragon scale mail
-# gold plate mail
 # fur cloak
 # cloak of invisibility
 # cloak of protection
 # cloak of defense
-# green dress - resist wood, forestry
 
 # Belts:
 LeatherBelt = {
@@ -2170,18 +2788,6 @@ Baldric = {
 'PV': 0,
 'flags': ['GROIN', 'ARMOR'],
 'frequency': 700
-}
-
-LevitationBelt = {
-'char': '-',
-'color': libtcod.azure,
-'name': 'belt of levitation',
-'plural': 'belts of levitation',
-'material': 'LEATHER',
-'size': -1,
-'intrinsics': [('LEVITATION', 1)],
-'flags': ['GROIN', 'ARMOR'],
-'frequency': 50
 }
 
 # Legwear:
@@ -2295,8 +2901,8 @@ HealPotion = {
 MutationPotion = {
 'char': '!',
 'color': libtcod.green,
-'name': 'vial of mutagen',
-'plural': 'vials of mutagen',
+'name': 'vial',
+'suffix': 'of mutagen',
 'material': 'WATER',
 'size': -2,
 'ranged': MisThrown, # TODO: Splash.
@@ -2312,19 +2918,19 @@ Bandage = {
 'name': 'bandage',
 'material': 'CLOTH',
 'size': -2,
-'flags': ['APPLY', 'BANDAGE', 'SMALL_PILE'],
+'flags': ['TOOL', 'BANDAGE', 'SMALL_PILE'],
 'coolness': 10,
 'frequency': 500
 }
 
-# General:
+# Valuables:
 GoldPiece = {
 'char': '$',
 'color': libtcod.yellow,
 'name': 'gold nugget',
 'material': 'GOLD',
 'size': -2,
-'flags': ['BIG_PILE', 'ALWAYS_MUNDANE'],
+'flags': ['VALUABLE', 'BIG_PILE', 'ALWAYS_MUNDANE'],
 'frequency': 50
 }
 
@@ -2336,20 +2942,37 @@ SunStone = {
 'light': 10,
 'size': -2,
 'ranged': RockThrown,
+'flags': ['VALUABLE'],
 'frequency': 10
 }
 
 WyrdLight = {
 'char': '*',
 'color': libtcod.cyan,
-'name': 'floating wyrd-light',
+'prefix': 'floating',
+'name': 'wyrd-light',
 'material': 'GLASS',
 'light': 3,
 'size': -2,
-'flags': ['ENCHANT_LIGHT', 'CARRY_LIGHT'],
+'flags': ['VALUABLE', 'ENCHANT_LIGHT', 'CARRY_LIGHT', 'NO_PREFIX', 'NO_SUFFIX'],
 'frequency': 5
 }
 
+MacGuffin = {
+'char': chr(12),
+'color': libtcod.yellow,
+'name': 'amulet',
+'suffix': 'of Yendor',
+'material': 'GOLD',
+'light': 1,
+'size': -2,
+'intrinsics': [('REGEN_LIFE', 1), ('REGEN_MANA', 1), ('REGEN_STAM', 1)],
+'flags': ['VALUABLE', 'MAC_GUFFIN', 'ALWAYS_BLESSED', 'ENCHANT_LIGHT', 'NO_PREFIX',
+          'NO_SUFFIX', 'UNIQUE'],
+'frequency': 0
+}
+
+# Food:
 Berry = {
 'char': chr(236),
 'color': libtcod.blue,
@@ -2359,18 +2982,6 @@ Berry = {
 'size': -2,
 'flags': ['FOOD'],
 'frequency': 300
-}
-
-MacGuffin = {
-'char': chr(12),
-'color': libtcod.yellow,
-'name': 'amulet of Yendor',
-'material': 'GOLD',
-'light': 1,
-'size': -2,
-'intrinsics': [('REGEN_LIFE', 1), ('REGEN_MANA', 1), ('REGEN_STAM', 1)],
-'flags': ['MAC_GUFFIN', 'ALWAYS_BLESSED', 'ENCHANT_LIGHT'],
-'frequency': 0
 }
 
 # Containers:
@@ -2397,8 +3008,8 @@ Sack = {
 HoldingBag = {
 'char': chr(11),
 'color': libtcod.fuchsia,
-'name': 'bag of holding',
-'plural': 'bags of holding',
+'name': 'bag',
+'suffix': 'of holding',
 'material': 'LEATHER',
 'size': 0,
 'flags': ['CONTAINER', 'HOLDING'],
@@ -4654,6 +5265,24 @@ MaterialsList = [
 'WOOD'
 ]
 
+MaterialNameList = {
+'AETHER': ['ethereal '],
+'BONE': ['bone '],
+'CLAY': ['clay ', 'ceramic '],
+'CLOTH': ['cloth '],
+'FLESH': ['flesh '],
+'GLASS': ['glass ', 'crystal '],
+'GOLD': ['gold ', 'golden ', 'gilded ', 'orichalcum '],
+'IRON': ['iron ', 'iron-shod ', 'steel '],
+'LEATHER': ['leather '],
+'PAPER': ['paper ', 'parchment '],
+'PLANT': ['plant '],
+'SILVER': ['silver ', 'silvered ', 'silver-tipped ', 'mithril '],
+'STONE': ['stone ', 'obsidian ', 'jade '],
+'WATER': ['water '], # 'ice'
+'WOOD': ['wood ', 'wooden ', 'bark ']
+}
+
 DamageTypeList = [
 'ASPHYX',
 'ALLERGY',
@@ -4670,7 +5299,8 @@ DamageTypeList = [
 'BLEED',
 'LIGHT',
 'DARK',
-'SOUND'
+'SOUND',
+'MIND'
 ]
 
 NonWoundingList = [
@@ -4679,7 +5309,8 @@ NonWoundingList = [
 'NECROTIC',
 'POISON',
 'BLEED',
-'DARK'
+'DARK',
+'MIND'
 ]
 
 MaterialDamageList = {
@@ -4698,7 +5329,8 @@ MaterialDamageList = {
 'BLEED': [],
 'LIGHT': [],
 'DARK': [],
-'SOUND': ['GLASS']
+'SOUND': ['GLASS'],
+'MIND': []
 }
 
 ResistanceTypeList = {
@@ -4717,7 +5349,8 @@ ResistanceTypeList = {
 'POISON': 'RESIST_POISON',
 'LIGHT': 'RESIST_LIGHT',
 'DARK': 'RESIST_DARK',
-'SOUND': 'RESIST_SOUND'
+'SOUND': 'RESIST_SOUND',
+'MIND': 'RESIST_MIND'
 }
 
 VulnerabilityTypeList = {
@@ -4736,7 +5369,8 @@ VulnerabilityTypeList = {
 'POISON': 'VULN_POISON',
 'LIGHT': 'VULN_LIGHT',
 'DARK': 'VULN_DARK',
-'SOUND': 'VULN_SOUND'
+'SOUND': 'VULN_SOUND',
+'MIND': 'VULN_MIND'
 }
 
 ImmunityTypeList = {
@@ -4755,7 +5389,8 @@ ImmunityTypeList = {
 'POISON': 'IMMUNE_POISON',
 'LIGHT': 'BLIND',
 'DARK': 'IMMUNE_DARK',
-'SOUND': 'DEAF'
+'SOUND': 'DEAF',
+'MIND': 'IMMUNE_MIND'
 }
 
 # Items:
@@ -4768,17 +5403,21 @@ Mace,
 SilverMace,
 IceMace,
 WarHammer,
+GoldHammer,
 LanternHammer,
 GiantSpikedClub,
 BroadAxe,
 PickAxe,
 BattleAxe,
 Spear,
+WyrdSpear,
 Scythe,
 QuarterStaff,
 IronShodStaff,
 SilverTipStaff,
 LeadFillStaff,
+DragonStaff,
+SerpentStaff,
 Knife,
 VampireKnife,
 RitualKnife,
@@ -4840,6 +5479,7 @@ SilverChainArmor,
 ScaleArmor,
 PlateArmor,
 GoldPlateArmor,
+BarkArmor,
 CrystalShard,
 CrystalPlate,
 GreenTunic,
@@ -4851,13 +5491,15 @@ BlackRobe,
 BrownRobe,
 WhiteRobe,
 BlueDress,
+GreenDress,
+GrayDress,
+RedDress,
 # Belts:
 LeatherBelt,
 BlackBelt,
 Girdle,
 PlateSkirt,
 Baldric,
-LevitationBelt,
 # Legwear:
 Sandal,
 SnakeSandal,
@@ -4891,12 +5533,125 @@ Statue,
 #Bed
 ]
 
+MagicEgoList = {
+'WEAPON': [
+           Warrior,
+           Thief,
+           Berserker,
+           Balanced,
+           Seeking,
+           Glowing,
+           Sun,
+           Moon,
+           Defense,
+           Protection,
+           Coward,
+           Massive,
+           Masterwork,
+           Eldritch,
+           Violence,
+           EgoRegeneration,
+           EgoStarpower,
+           EgoVigor
+          ],
+'SHIELD': [
+           Warrior,
+           Thief,
+           Healer,
+           Balanced,
+           Seeking,
+           Strapped,
+           Glowing,
+           Sun,
+           Moon,
+           Protection,
+           Coward,
+           Sturdy,
+           Eldritch,
+           EgoRegeneration,
+           EgoStarpower,
+           EgoVigor,
+           Speed,
+           EgoResistLight,
+           EgoResistDark,
+           EgoResistMind,
+           EgoResistFire,
+           EgoResistCold,
+           EgoResistPoison,
+           Peace,
+           Massive,
+           Masterwork
+          ],
+'ARMOR': [
+          Warrior,
+          Thief,
+          Healer,
+          Sage,
+          Wizard,
+          Berserker,
+          Dancer,
+          Leper,
+          Courtesan,
+          Apprentice,
+          Fool,
+          Princess,
+          EgoStrength,
+          EgoDexterity,
+          EgoEndurance,
+          EgoWits,
+          EgoEgo,
+          Glowing,
+          Sun,
+          Moon,
+          Defense,
+          Coward,
+          Sturdy,
+          Willowy,
+          Unyielding,
+          Eldritch,
+          EgoLevitation,
+          EgoRegeneration,
+          EgoStarpower,
+          EgoVigor,
+          Speed,
+          Sailor,
+          EgoResistLight,
+          EgoResistDark,
+          EgoResistMind,
+          EgoResistChoke,
+          EgoResistFire,
+          EgoResistCold,
+          EgoResistPoison,
+          Thunder,
+          Alchemical,
+          Peace,
+          Padded,
+          Reinforced,
+          Banded,
+          EgoForest,
+          Fey,
+          EgoDead,
+          EgoGrave,
+          Summer,
+          Winter
+         ],
+'POTION': [],
+'TOOL': [],
+'VALUABLE': [
+             Luminescence
+            ],
+'FOOD': [],
+'CONTAINER': [],
+'FEATURE': []
+}
+
 # Intrinsics:
 # -----------
 IntrinsicList = [
 # Resistances, vulnerabilities and immunities:
 ResistLight,
 ResistDark,
+ResistMind,
 ResistChoke,
 ResistSound,
 ResistCold,
@@ -4910,6 +5665,7 @@ ResistNecrotic,
 ResistElectricity,
 VulnLight,
 VulnDark,
+VulnMind,
 VulnSound,
 VulnCold,
 VulnFire,
@@ -4922,6 +5678,7 @@ VulnNecrotic,
 VulnElectricity,
 ImmunePhysical,
 ImmuneDark,
+ImmuneMind,
 ImmuneCold,
 ImmuneFire,
 ImmuneAcid,
@@ -4944,6 +5701,13 @@ Aflame,
 Bleed,
 Poison,
 # Buffs:
+BuffStrength,
+BuffDexterity,
+BuffEndurance,
+BuffWits,
+BuffEgo,
+BuffDamage,
+BuffLight,
 Regeneration,
 Starpower,
 Vigor,
@@ -4954,6 +5718,13 @@ Swimming,
 CanDig,
 CanChop,
 # Debuffs:
+DebuffStrength,
+DebuffDexterity,
+DebuffEndurance,
+DebuffWits,
+DebuffEgo,
+DebuffDamage,
+DebuffLight,
 Slow,
 Fragile,
 Blindness,

@@ -409,7 +409,7 @@ def handleKeys(Player):
             options = []
 
             for i in Player.inventory:
-                if i.hasFlag('APPLY'):
+                if i.hasFlag('TOOL'):
                     options.append(i)
 
             if len(options) == 0:
@@ -422,7 +422,7 @@ def handleKeys(Player):
                 ui.message("Never mind.")
                 return
 
-            where = askForDirection(Player)
+            where = askForDirection(Player) # TODO: Change that, only ask for direction in beApplied().
             if where == 'self':
                 dx = 0
                 dy = 0
@@ -469,6 +469,7 @@ def handleKeys(Player):
         if (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('e')):
             while Player.actionEquipment() == True:
                 pass # Return to menu.
+            Player.recalculateAll()
             ui.message("You change equipment.")
             return
 

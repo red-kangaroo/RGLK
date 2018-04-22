@@ -117,6 +117,18 @@ def spawn(x, y, BluePrint, type):
 
     elif type == 'ITEM':
         try:
+            prefix = BluePrint['prefix']
+        except:
+            prefix = raw.DummyItem['prefix']
+        try:
+            suffix = BluePrint['suffix']
+        except:
+            suffix = raw.DummyItem['suffix']
+        try:
+            givenName = BluePrint['givenName']
+        except:
+            givenName = raw.DummyItem['givenName']
+        try:
             material = BluePrint['material']
         except:
             material = raw.DummyItem['material']
@@ -140,6 +152,26 @@ def spawn(x, y, BluePrint, type):
             light = BluePrint['light']
         except:
             light = raw.DummyItem['light']
+        try:
+            Str = BluePrint['Str']
+        except:
+            Str = raw.DummyItem['Str']
+        try:
+            Dex = BluePrint['Dex']
+        except:
+            Dex = raw.DummyItem['Dex']
+        try:
+            End = BluePrint['End']
+        except:
+            End = raw.DummyItem['End']
+        try:
+            Wit = BluePrint['Wit']
+        except:
+            Wit = raw.DummyItem['Wit']
+        try:
+            Ego = BluePrint['Ego']
+        except:
+            Ego = raw.DummyItem['Ego']
         try:
             DV = BluePrint['DV']
         except:
@@ -179,9 +211,20 @@ def spawn(x, y, BluePrint, type):
         New = Item(x, y, char, color, name, myType, material, size, BlockMove,
                    attack, ranged, DV, PV, StrScaling, DexScaling, cool, addFlags, addIntrinsics)
 
+        New.givenName = givenName
+        New.prefix = prefix
+        New.suffix = suffix
+
         # Add special stats:
         New.acc = accuracy
         New.light = light
+        New.StrBonus = Str
+        New.DexBonus = Dex
+        New.EndBonus = End
+        New.WitBonus = Wit
+        New.EgoBonus = Ego
+
+        New.gainMagic()
 
     else:
         print "Failed to spawn unknown entity type."
@@ -278,9 +321,10 @@ class Entity(object):
             if var.Maps[DL][x][y].hasFlag('SWIM') and not (self.hasIntrinsic('SWIM') or self.hasIntrinsic('WATER_WALK')):
                 return True
 
-        for i in var.Entities[DL]:
-            if i != self and i.BlockMove and i.x == x and i.y == y:
-                return True
+        if self.BlockMove:
+            for i in var.Entities[DL]:
+                if i != self and i.BlockMove and i.x == x and i.y == y:
+                    return True
 
         return False
 
@@ -573,6 +617,23 @@ class Mob(Entity):
         self.FOVBase = FOVBase # TODO: This should depend on stats and equipment.
         #self.recalculateFOV()
 
+        self.flags.append('MOB')
+        for i in addFlags:
+            self.flags.append(i)
+
+        for (type, power) in addIntrinsics:
+            NewInt = intrinsic.Intrinsic(type, 30000, power)
+            self.intrinsics.append(NewInt)
+
+        self.baseArms = 0
+        self.baseLegs = 0
+        self.baseWings = 0
+        self.baseEyes = 0
+
+        self.diet = [] # Filled in spawn() function.
+        self.bodyparts = []
+        self.gainBody()
+
         # Calculate stats:
         self.bonusHP = 0
         self.bonusMP = 0
@@ -594,23 +655,6 @@ class Mob(Entity):
         self.recalculateCarryingCapacity()
         self.tactics = True # True is defensive, False aggresive.
 
-        self.flags.append('MOB')
-        for i in addFlags:
-            self.flags.append(i)
-
-        for (type, power) in addIntrinsics:
-            NewInt = intrinsic.Intrinsic(type, 30000, power)
-            self.intrinsics.append(NewInt)
-
-        self.baseArms = 0
-        self.baseLegs = 0
-        self.baseWings = 0
-        self.baseEyes = 0
-
-        self.diet = [] # Filled in spawn() function.
-        self.bodyparts = []
-        self.gainBody()
-
     def gainBody(self):
         body = None
         for i in self.flags:
@@ -630,7 +674,7 @@ class Mob(Entity):
         mutation.name_parts(self)
 
     def recalculateAll(self):
-        self.recalculateFOV()
+        #self.recalculateFOV()
         self.recalculateHealth()
         self.recalculateMana()
         self.recalculateStamina()
@@ -751,19 +795,84 @@ class Mob(Entity):
             self.AP -= 0.1
 
     def getStr(self):
-        return self.Str
+        Str = self.Str
+
+        # Equipment bonuses:
+        for i in self.getEquipment():
+            if i.StrBonus != 0:
+                Str += i.StrBonus
+
+        # Intrinsics:
+        if self.hasIntrinsic('BUFF_STRENGTH'):
+            Str += self.getIntrinsicPower('BUFF_STRENGTH')
+        if self.hasIntrinsic('DEBUFF_STRENGTH'):
+            Str -= self.getIntrinsicPower('DEBUFF_STRENGTH')
+
+        return Str
 
     def getDex(self):
-        return self.Dex
+        Dex = self.Dex
+
+        # Equipment bonuses:
+        for i in self.getEquipment():
+            if i.DexBonus != 0:
+                Dex += i.DexBonus
+
+        # Intrinsics:
+        if self.hasIntrinsic('BUFF_DEXTERITY'):
+            Dex += self.getIntrinsicPower('BUFF_DEXTERITY')
+        if self.hasIntrinsic('DEBUFF_DEXTERITY'):
+            Dex -= self.getIntrinsicPower('DEBUFF_DEXTERITY')
+
+        return Dex
 
     def getEnd(self):
-        return self.End
+        End = self.End
+
+        # Equipment bonuses:
+        for i in self.getEquipment():
+            if i.EndBonus != 0:
+                End += i.EndBonus
+
+        # Intrinsics:
+        if self.hasIntrinsic('BUFF_ENDURANCE'):
+            End += self.getIntrinsicPower('BUFF_ENDURANCE')
+        if self.hasIntrinsic('DEBUFF_ENDURANCE'):
+            End -= self.getIntrinsicPower('DEBUFF_ENDURANCE')
+
+        return End
 
     def getWit(self):
-        return self.Wit
+        Wit = self.Wit
+
+        # Equipment bonuses:
+        for i in self.getEquipment():
+            if i.WitBonus != 0:
+                Wit += i.WitBonus
+
+        # Intrinsics:
+        if self.hasIntrinsic('BUFF_WITS'):
+            Wit += self.getIntrinsicPower('BUFF_WITS')
+        if self.hasIntrinsic('DEBUFF_WITS'):
+            Wit -= self.getIntrinsicPower('DEBUFF_WITS')
+
+        return Wit
 
     def getEgo(self):
-        return self.Ego
+        Ego = self.Ego
+
+        # Equipment bonuses:
+        for i in self.getEquipment():
+            if i.EgoBonus != 0:
+                Ego += i.EgoBonus
+
+        # Intrinsics:
+        if self.hasIntrinsic('BUFF_EGO'):
+            Ego += self.getIntrinsicPower('BUFF_EGO')
+        if self.hasIntrinsic('DEBUFF_EGO'):
+            Ego -= self.getIntrinsicPower('DEBUFF_EGO')
+
+        return Ego
 
     def getAppearance(self): # Used for living mobs.
         pass
@@ -840,7 +949,12 @@ class Mob(Entity):
 
     def getDamageBonus(self, victim = None, weapon = None):
         bonus = 0.0
-        # TODO: Intrinsics.
+
+        # Intrinsics:
+        if self.hasIntrinsic('BUFF_DAMAGE'):
+            bonus += self.getIntrinsicPower('BUFF_DAMAGE')
+        if self.hasIntrinsic('DEBUFF_DAMAGE'):
+            bonus -= self.getIntrinsicPower('DEBUFF_DAMAGE')
 
         # Size difference:
         if victim != None:
@@ -1221,6 +1335,9 @@ class Mob(Entity):
         limb.y = self.y
         var.getEntity().append(limb)
 
+        # See what equipment bonuses changed.
+        self.recalculateAll()
+
         if not silent:
             ui.message("%s %s is severed!" % (self.getName(True, possessive = True), limb.getName()),
                        libtcod.red, self)
@@ -1304,6 +1421,9 @@ class Mob(Entity):
 
         if var.getMap()[self.x][self.y].hasFlag('ROUGH') and not self.isFlying():
             cost += 0.2
+        if (var.getMap()[self.x][self.y].hasFlag('SWIM') and self.hasIntrinsic('SWIM') and
+            not (self.isFlying() or self.hasIntrinsic('WATER_WALK'))):
+            cost *= 0.8 ** self.getIntrinsicPower('SWIM')
 
         return max(0.1, cost)
 
@@ -1324,6 +1444,10 @@ class Mob(Entity):
         # TODO:
         if full == True:
             # Whole name and title:
+            if self.prefix != "":
+                name = self.prefix + " " + name
+            if self.suffix != "":
+                name = name + " " + self.suffix
             if self.givenName != None:
                 name = self.givenName + ' the ' + name
 
@@ -1369,6 +1493,12 @@ class Mob(Entity):
 
     def getLightRadius(self):
         light = self.FOVBase
+
+        # Intrinsics:
+        if self.hasIntrinsic('BUFF_LIGHT'):
+            light += self.getIntrinsicPower('BUFF_LIGHT')
+        if self.hasIntrinsic('DEBUFF_LIGHT'):
+            light -= self.getIntrinsicPower('DEBUFF_LIGHT')
 
         # Get equipment bonuses:
         for i in self.getEquipment():
@@ -2065,6 +2195,12 @@ class Mob(Entity):
                     attacker.receiveMana(drain)
                     ui.message("%s drain&S %s lifeforce." % (attacker.getName(True), self.getName(possessive = True)),
                                libtcod.light_red, attacker)
+
+        if 'DAMAGE_MANA' in AttackFlags: # Wyrdish anti-magic weapon.
+            if damage > 0:
+                self.MP -= libtcod.random_get_int(0, 1, damage)
+                ui.message("%s can smell the aether burning in &POSS veins." % self.getName(True),
+                           libtcod.light_red, self)
 
         if damage > 0:
             # We get instakilled by enough damage.
@@ -2771,6 +2907,7 @@ class Mob(Entity):
                             if not forced:
                                 self.AP -= self.getActionAPCost()
 
+        self.recalculateAll()
         return True # Just for the good sleep of mine.
 
     def actionEquipment(self):
@@ -3401,9 +3538,13 @@ class Item(Entity):
                 ItemNo += 1
 
         # Special bonuses:
-        self.acc = 0 # This is not same as ToHitBonus from self.attack, this is used
-                     # for general accuracy bonus for all attacks, eg. from armor.
-        self.light = 0
+        self.acc = 0   # This is not same as ToHitBonus from self.attack, this is used
+        self.light = 0 # for general accuracy bonus for all attacks, eg. from armor.
+        self.StrBonus = 0
+        self.DexBonus = 0
+        self.EndBonus = 0
+        self.WitBonus = 0
+        self.EgoBonus = 0
 
         # Item stacks:
         if self.hasFlag('PAIRED'):
@@ -3415,14 +3556,202 @@ class Item(Entity):
         else:
             self.stack = 1
 
+    def gainMagic(self):
+        type = self.getType()
+
+        if type == None:
+            return
+
+        if var.rand_chance(var.DungeonLevel, 1000) or self.hasFlag('ALWAYS_SPECIAL'):
+            try:
+                BluePrint = random.choice(raw.MagicEgoList[type])
+            except:
+                #print "Failed to create prefixed item, %s." % type
+                return
+
+            try:
+                prefix = BluePrint['prefix']
+            except:
+                prefix = None
+
+            if prefix != None:
+                if self.hasFlag('NO_PREFIX'):
+                    return
+
+                if self.prefix == "":
+                    self.prefix = prefix
+                else:
+                    self.prefix = prefix + " " + self.prefix
+
+            try:
+                suffix = BluePrint['suffix']
+            except:
+                suffix = None
+
+            if suffix != None:
+                if self.hasFlag('NO_SUFFIX'):
+                    return
+
+                if self.suffix == "":
+                    self.suffix = "of " + suffix
+                else:
+                    self.suffix = self.suffix + " and " + suffix
+
+            if prefix == None and suffix == None:
+                print "No prefix and suffix!"
+                return
+
+            try:
+                material = BluePrint['material']
+            except:
+                material = None
+
+            if material != None and self.material != material:
+                # Change material and get rid of mentions of the item's material
+                # in it's name.
+                for stuff in raw.MaterialNameList[self.material]:
+                    self.name = self.name.replace(stuff, '')
+
+                self.material = material
+
+            try:
+                color = BluePrint['color']
+            except:
+                color = None
+
+            if color != None:
+                self.color = color
+
+            try:
+                size = BluePrint['size']
+            except:
+                size = None
+
+            if size != None:
+                self.size = size = min(2, max(-2, self.size + size))
+
+            try:
+                accuracy = BluePrint['accuracy']
+            except:
+                accuracy = None
+
+            if accuracy != None:
+                self.acc += accuracy
+
+            try:
+                light = BluePrint['light']
+            except:
+                light = None
+
+            if light != None:
+                self.light += light
+
+            try:
+                Str = BluePrint['Str']
+            except:
+                Str = None
+
+            if Str != None:
+                self.StrBonus += Str
+
+            try:
+                Dex = BluePrint['Dex']
+            except:
+                Dex = None
+
+            if Dex != None:
+                self.DexBonus += Dex
+
+            try:
+                End = BluePrint['End']
+            except:
+                End = None
+
+            if End != None:
+                self.EndBonus += End
+
+            try:
+                Wit = BluePrint['Wit']
+            except:
+                Wit = None
+
+            if Wit != None:
+                self.WitBonus += Wit
+
+            try:
+                Ego = BluePrint['Ego']
+            except:
+                Ego = None
+
+            if Ego != None:
+                self.EgoBonus += Ego
+
+            try:
+                DV = BluePrint['DV']
+            except:
+                DV = None
+
+            if DV != None:
+                self.DefenseValue += DV
+
+            try:
+                PV = BluePrint['PV']
+            except:
+                PV = None
+
+            if PV != None:
+                self.ProtectionValue += PV
+
+            try:
+                StrScaling = BluePrint['StrScaling']
+            except:
+                StrScaling = None
+
+            if StrScaling != None:
+                self.StrScaling = StrScaling
+
+            try:
+                DexScaling = BluePrint['DexScaling']
+            except:
+                DexScaling = None
+
+            if DexScaling != None:
+                self.DexScaling = DexScaling
+
+            try:
+                addFlags = BluePrint['flags']
+            except:
+                addFlags = []
+
+            for flag in addFlags:
+                if not self.hasFlag(flag):
+                    self.flags.append(flag)
+
+            try:
+                addIntrinsics = BluePrint['intrinsics']
+            except:
+                addIntrinsics = []
+
+            for (type, power) in addIntrinsics:
+                if not self.hasIntrinsic(type):
+                    NewInt = intrinsic.Intrinsic(type, 30000, power)
+                    self.intrinsics.append(NewInt)
+
     def getName(self, capitalize = False, full = False):
-        name = self.prefix + self.name + self.suffix
+        name = self.name
 
         if self.stack > 1:
             try:
                 name = self.type['plural']
             except:
                 name = name + "s"
+
+        if self.prefix != "":
+            name = self.prefix + " " + name
+        if self.suffix != "":
+            name = name + " " + self.suffix
+        if self.givenName != None:
+            name = name + " named " + self.givenName
 
         # TODO:
         # if full == False, show only base name
@@ -3505,9 +3834,6 @@ class Item(Entity):
                 name = "heap of " + str(self.stack) + " " + name
         elif self.stack <= 0:
             name = "BUG: 0 stack item: " + name
-
-        if self.givenName != None:
-            name = name + " named " + self.givenName
 
         if capitalize == True:
             name = name.capitalize()
@@ -3627,6 +3953,66 @@ class Item(Entity):
 
                 lines.append(toHit)
 
+            if self.StrBonus != 0:
+                bonus = self.StrBonus
+
+                if bonus >= 0:
+                    bonus = "+" + str(bonus)
+                else:
+                    bonus = str(bonus)
+
+                bonus = "strength: " + bonus
+
+                lines.append(bonus)
+
+            if self.DexBonus != 0:
+                bonus = self.DexBonus
+
+                if bonus >= 0:
+                    bonus = "+" + str(bonus)
+                else:
+                    bonus = str(bonus)
+
+                bonus = "dexterity: " + bonus
+
+                lines.append(bonus)
+
+            if self.EndBonus != 0:
+                bonus = self.EndBonus
+
+                if bonus >= 0:
+                    bonus = "+" + str(bonus)
+                else:
+                    bonus = str(bonus)
+
+                bonus = "endurance: " + bonus
+
+                lines.append(bonus)
+
+            if self.WitBonus != 0:
+                bonus = self.WitBonus
+
+                if bonus >= 0:
+                    bonus = "+" + str(bonus)
+                else:
+                    bonus = str(bonus)
+
+                bonus = "wits    : " + bonus
+
+                lines.append(bonus)
+
+            if self.EgoBonus != 0:
+                bonus = self.EgoBonus
+
+                if bonus >= 0:
+                    bonus = "+" + str(bonus)
+                else:
+                    bonus = str(bonus)
+
+                bonus = "ego     : " + bonus
+
+                lines.append(bonus)
+
             for i in self.intrinsics:
                 lines.append(i.getName())
 
@@ -3711,6 +4097,21 @@ class Item(Entity):
         if self.ProtectionValue != other.ProtectionValue:
             return False
 
+        if self.StrBonus != other.StrBonus:
+            return False
+
+        if self.DexBonus != other.DexBonus:
+            return False
+
+        if self.EndBonus != other.EndBonus:
+            return False
+
+        if self.WitBonus != other.WitBonus:
+            return False
+
+        if self.EgoBonus != other.EgoBonus:
+            return False
+
         if self.StrScaling != other.StrScaling:
             return False
 
@@ -3733,7 +4134,7 @@ class Item(Entity):
             return False
         else:
             for intrinsic in self.intrinsics:
-                if not other.hasIntrinsic(intrinsic):
+                if not other.hasIntrinsic(intrinsic.type):
                     return False
 
         return True
@@ -3772,7 +4173,7 @@ class Item(Entity):
         NewItem.light = self.light
 
         for intrinsic in self.intrinsics:
-            if NewItem.hasIntrinsic(intrinsic):
+            if NewItem.hasIntrinsic(intrinsic.type):
                 continue
             else:
                 NewItem.addIntrinsic(intrinsic.type, intrinsic.duration, intrinsic.power)
@@ -3824,10 +4225,6 @@ class Item(Entity):
             light += self.enchantment
 
         return light
-
-    def getAttributeValue(self, stat):
-        # TODO: Returns attribute bonus from item.
-        pass
 
     def getSPCost(self):
         base = 5
@@ -3996,11 +4393,33 @@ class Item(Entity):
 
         return slot
 
+    def getType(self):
+        for i in self.flags:
+            if i in ['WEAPON', 'SHIELD', 'ARMOR', 'POTION', 'TOOL', 'FOOD']:
+                return i
+
+        return None
+
     def hasSpecialBonuses(self):
         if self.acc != 0 and not self.hasFlag('WEAPON'):
             return True
 
         if self.light != 0:
+            return True
+
+        if self.StrBonus != 0:
+            return True
+
+        if self.DexBonus != 0:
+            return True
+
+        if self.EndBonus != 0:
+            return True
+
+        if self.WitBonus != 0:
+            return True
+
+        if self.EgoBonus != 0:
             return True
 
         return False

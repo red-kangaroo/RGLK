@@ -1,6 +1,8 @@
 To do list:
 ===========
 * release with pyinstaller, cx_Freeze, or something?
+* fix APPLY / TOOL
+* replace AP cost od pick up with SP cost
 * AI
    item use
    guarding, wandering, hunting
@@ -19,15 +21,13 @@ To do list:
    pits - climbing, jumping, liquids
 * kill list
 * intrinsics:
-   BUFF_attribute, damage, light
-   DEBUFF_attribute, damage, light
    IMMUNE_GAS
    IMMUNE_DISEASE
    RESIST_SLEEP insomnia
    RESIST_CHOKE unbreathing
    RESIST_POLY unchanging
    RESIST_TELE
-   RESIST_MIND stun, daze and confusion
+   RESIST_CHARM stun, daze and confusion
    RESIST_FEAR
    CONTROL_POLY
    CONTROL_TELE
@@ -44,12 +44,11 @@ To do list:
    INVISIBLE
    DISPLACED
    LIFE_SAVE
-   WATER_WALK
-   LEVITATION
    PARALYSED
+   FROZEN
    DEAF
    STONING
-   TELEPORT
+   *TELEPORT
    POLYMORPH
    STUN
    DAZE
@@ -59,13 +58,17 @@ To do list:
    AMNESIA
    POSSESSED
    FAMILIAR
-   ASLEEP
+   *ASLEEP
    OFF_BALANCE
    LICH_FORM
    PHASING
    FASTING
    RAGE
    CRAZED
+   HUNGER
+   FASTING
+   CONSERVE resist decay (power * 100) / (power + 1) %
+   PRESERVE resist item destruction (power * 100) / (power + 1) %
 
    noisy?
    diseases - no time-out
@@ -92,6 +95,7 @@ To do list:
 * hotkeys
 * assure dead-ends have loot or other stuff
 * num2words
+* nutrition
 
 Rivers:
 http://www.roguebasin.com/index.php?title=Basic_directional_dungeon_generation
@@ -132,14 +136,11 @@ Artifacts:
 
     powered by pain - high pain greatly increases SP regen
     powered by hate - low HP greatly increases SP regen
-* item prefixes:
-    warrior's  +1 Str
-    thief's    +1 Dex
-    healer's   +1 End
-    sage's     +1 Wit
-    wizard's   +1 Ego
-    pocketed   +3 carry
-    balanced   +2 acc
+* item prefixes
+   weapons - bonus damage, inflicts
+   ranged weapons - range+
+   special-case staffs
+   descriptions
 * climbing out of pit without tools had (Dex mod + Agi mod)= chance of success, with
   failure randomly doing nothing, making you stunned or taking damage from fall
 

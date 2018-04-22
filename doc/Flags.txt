@@ -72,10 +72,14 @@ Items
 Generation:
   These flags are removed at item generation, setting object properties.
 ALWAYS_MUNDANE     Never generated blessed, cursed or enchanted.
+ALWAYS_SPECIAL     Always generated with a prefix or suffix.
 ALWAYS_BLESSED
 ALWAYS_CURSED
-PILE               Generated as a small pile.
+SMALL_PILE         Generated as a small pile.
+BIG_PILE
 PAIRED             Generated as a pair.
+NO_PREFIX
+NO_SUFFIX
 
 Item types:
 WEAPON
@@ -83,6 +87,10 @@ SHIELD
 ARMOR
 POTION
 FOOD
+TOOL
+CONTAINER
+VALUABLE
+FEATURE
 
 Equipment:
 MELEE
