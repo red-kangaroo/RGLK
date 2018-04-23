@@ -32,10 +32,6 @@ class Intrinsic(object):
         except:
             self.color = raw.DummyIntrinsic['color']
         try:
-            self.secret = i['secret']
-        except:
-            self.secret = raw.DummyIntrinsic['secret']
-        try:
             self.begin = i['beginMsg']
         except:
             self.begin = raw.DummyIntrinsic['beginMsg']
@@ -43,9 +39,23 @@ class Intrinsic(object):
             self.end = i['endMsg']
         except:
             self.end = raw.DummyIntrinsic['endMsg']
+        try:
+            addFlags = i['flags']
+        except:
+            addFlags = []
+
+        self.flags = []
+        for flag in addFlags:
+            self.flags.append(flag)
 
     def isPermanent(self):
         if self.duration >= 30000:
+            return True
+        else:
+            return False
+
+    def hasFlag(self, flag):
+        if flag in self.flags:
             return True
         else:
             return False

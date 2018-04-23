@@ -460,7 +460,7 @@ WyrdSpearThrown = {
 DummyIntrinsic = {
 'name': 'BUG: dummy intrinsic',
 'type': None,
-'secret': False,
+'flags': [],
 'beginMsg': " gain&S a dummy intrinsic. Yes, seeing this is a bug.",
 'endMsg': " loose&S a dummy intrinsic. Yes, seeing this is a bug.",
 'color': libtcod.white
@@ -471,7 +471,7 @@ ResistBlunt = {
 'type': 'RESIST_BLUNT',
 'beginMsg': " look&S tough.",
 'endMsg': " look&S squishy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistSlash = {
@@ -479,7 +479,7 @@ ResistSlash = {
 'type': 'RESIST_SLASH',
 'beginMsg': " look&S hardy.",
 'endMsg': " look&S feeble.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistPierce = {
@@ -487,7 +487,7 @@ ResistPierce = {
 'type': 'RESIST_PIERCE',
 'beginMsg': " look&S thick-skinned.",
 'endMsg': " look&S frail.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistAcid = {
@@ -495,7 +495,7 @@ ResistAcid = {
 'type': 'RESIST_ACID',
 'beginMsg': " feel&S basic.",
 'endMsg': " feel&S acidic.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistFire = {
@@ -503,7 +503,7 @@ ResistFire = {
 'type': 'RESIST_FIRE',
 'beginMsg': " feel&S a pleasant chill.",
 'endMsg': " feel&S feverish.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistCold = {
@@ -511,7 +511,7 @@ ResistCold = {
 'type': 'RESIST_COLD',
 'beginMsg': " feel&S quite warm.",
 'endMsg': " feel&S an icy chill.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistElectricity = {
@@ -519,7 +519,7 @@ ResistElectricity = {
 'type': 'RESIST_SHOCK',
 'beginMsg': " feel&S grounded.",
 'endMsg': " feel&S electrified.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistNecrotic = {
@@ -527,7 +527,7 @@ ResistNecrotic = {
 'type': 'RESIST_NECRO',
 'beginMsg': " feel&S truly alive.",
 'endMsg': " feel&S a deadly chill.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistPoison = {
@@ -535,7 +535,7 @@ ResistPoison = {
 'type': 'RESIST_POISON',
 'beginMsg': " feel&S especially healthy.",
 'endMsg': " feel&S weak of stomach.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistLight = {
@@ -543,7 +543,7 @@ ResistLight = {
 'type': 'RESIST_LIGHT',
 'beginMsg': " feel&S enlightened.",
 'endMsg': " feel&S a light headache.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistDark = {
@@ -551,7 +551,7 @@ ResistDark = {
 'type': 'RESIST_DARK',
 'beginMsg': " &ISARE no longer afraid of the dark.",
 'endMsg': " hear&S something go bump.", # in the night
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistSound = {
@@ -559,7 +559,7 @@ ResistSound = {
 'type': 'RESIST_SOUND',
 'beginMsg': " &ISARE hard of hearing.",
 'endMsg': " feel&S an upcoming migraine.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistChoke = {
@@ -567,7 +567,7 @@ ResistChoke = {
 'type': 'RESIST_CHOKE',
 'beginMsg': " &ISARE breathing lightly.",
 'endMsg': " take&S a deep breath.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistMind = {
@@ -575,7 +575,7 @@ ResistMind = {
 'type': 'RESIST_MIND',
 'beginMsg': " feel&S iron-willed.",
 'endMsg': " feel&S feeble-minded.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnBlunt = {
@@ -583,7 +583,7 @@ VulnBlunt = {
 'type': 'VULN_BLUNT',
 'beginMsg': " look&S squishy.",
 'endMsg': " look&S tough.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnSlash = {
@@ -591,7 +591,7 @@ VulnSlash = {
 'type': 'VULN_SLASH',
 'beginMsg': " look&S feeble.",
 'endMsg': " look&S hardy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnPierce = {
@@ -599,7 +599,7 @@ VulnPierce = {
 'type': 'VULN_PIERCE',
 'beginMsg': " look&S frail.",
 'endMsg': " look&S thick-skinned.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnAcid = {
@@ -607,7 +607,7 @@ VulnAcid = {
 'type': 'VULN_ACID',
 'beginMsg': " feel&S very acidic.",
 'endMsg': " feel&S much less acidic.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnFire = {
@@ -615,7 +615,7 @@ VulnFire = {
 'type': 'VULN_FIRE',
 'beginMsg': " feel&S too hot.",
 'endMsg': " cool&S down a bit.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnCold = {
@@ -623,7 +623,7 @@ VulnCold = {
 'type': 'VULN_COLD',
 'beginMsg': " shiver&S.",
 'endMsg': " warm&S up a bit.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnElectricity = {
@@ -631,7 +631,7 @@ VulnElectricity = {
 'type': 'VULN_SHOCK',
 'beginMsg': " feel&S currently amplified.",
 'endMsg': " feel&S insulated.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnNecrotic = {
@@ -639,7 +639,7 @@ VulnNecrotic = {
 'type': 'VULN_NECRO',
 'beginMsg': " feel&S a deadly chill.",
 'endMsg': " feel&S truly alive.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnPoison = {
@@ -647,7 +647,7 @@ VulnPoison = {
 'type': 'VULN_POISON',
 'beginMsg': " feel&S somewhat sickly.",
 'endMsg': " feel&S rather healthy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnLight = {
@@ -655,7 +655,7 @@ VulnLight = {
 'type': 'VULN_LIGHT',
 'beginMsg': " feel&S a light headache.",
 'endMsg': " want&S to be in the dark no longer.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnDark = {
@@ -663,7 +663,7 @@ VulnDark = {
 'type': 'VULN_DARK',
 'beginMsg': " fear&S the shadows.",
 'endMsg': " feel&S goth.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnSound = {
@@ -671,7 +671,7 @@ VulnSound = {
 'type': 'VULN_SOUND',
 'beginMsg': " feel&S an upcoming migraine.",
 'endMsg': " &ISARE hard of hearing.",
-'secret': True
+'flags': ['SECRET']
 }
 
 VulnMind = {
@@ -679,7 +679,7 @@ VulnMind = {
 'type': 'VULN_MIND',
 'beginMsg': " feel&S feeble-minded.",
 'endMsg': " feel&S iron-willed.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmunePhysical = {
@@ -687,7 +687,7 @@ ImmunePhysical = {
 'type': 'IMMUNE_PHYSICAL',
 'beginMsg': " feel&S rock-hard.",
 'endMsg': " feel&S soft.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmuneAcid = {
@@ -695,7 +695,7 @@ ImmuneAcid = {
 'type': 'IMMUNE_ACID',
 'beginMsg': " feel&S very basic.",
 'endMsg': " feel&S acidic.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmuneFire = {
@@ -703,7 +703,7 @@ ImmuneFire = {
 'type': 'IMMUNE_FIRE',
 'beginMsg': " feel&S very cool!",
 'endMsg': " feel&S feverish.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmuneCold = {
@@ -711,7 +711,7 @@ ImmuneCold = {
 'type': 'IMMUNE_COLD',
 'beginMsg': " feel&S smoking hot.",
 'endMsg': " feel&S an icy chill.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmuneElectricity = {
@@ -719,7 +719,7 @@ ImmuneElectricity = {
 'type': 'IMMUNE_SHOCK',
 'beginMsg': " feel&S insulated.",
 'endMsg': " feel&S electrified.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmuneNecrotic = {
@@ -727,7 +727,7 @@ ImmuneNecrotic = {
 'type': 'IMMUNE_NECRO',
 'beginMsg': " feel&S truly alive.",
 'endMsg': " feel&S a deadly chill.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmunePoison = {
@@ -735,7 +735,7 @@ ImmunePoison = {
 'type': 'IMMUNE_POISON',
 'beginMsg': " feel&S especially healthy.",
 'endMsg': " feel&S weak of stomach.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmuneDark = {
@@ -743,7 +743,7 @@ ImmuneDark = {
 'type': 'IMMUNE_DARK',
 'beginMsg': " feel&S the darkness rising.",
 'endMsg': " feel&S the darkness subside.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ImmuneMind = {
@@ -751,7 +751,7 @@ ImmuneMind = {
 'type': 'IMMUNE_MIND',
 'beginMsg': " feel&S unbreakable determination.",
 'endMsg': " feel&S hesitant.",
-'secret': True
+'flags': ['SECRET']
 }
 
 AllergyIron = {
@@ -759,7 +759,7 @@ AllergyIron = {
 'type': 'VULN_IRON',
 'beginMsg': " feel&S disgusted by unclean metals.",
 'endMsg': " feel&S like some smithing.",
-'secret': True
+'flags': ['SECRET']
 }
 
 AllergySilver = {
@@ -767,7 +767,7 @@ AllergySilver = {
 'type': 'VULN_SILVER',
 'beginMsg': " feel&S disgusted by the moon metal.",
 'endMsg': " feel&S at peace with the Moon.",
-'secret': True
+'flags': ['SECRET']
 }
 
 AllergyGold = {
@@ -775,7 +775,7 @@ AllergyGold = {
 'type': 'VULN_GOLD',
 'beginMsg': " feel&S disgusted by opulent jewelry.",
 'endMsg': " feel&S a bit greedy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 AllergyGlass = {
@@ -783,7 +783,7 @@ AllergyGlass = {
 'type': 'VULN_GLASS',
 'beginMsg': " feel&S disgusted by translucency.",
 'endMsg': " feel&S at peace with windows.", # Linux is better, though.
-'secret': True
+'flags': ['SECRET']
 }
 
 AllergyHoly = {
@@ -791,7 +791,7 @@ AllergyHoly = {
 'type': 'VULN_HOLY',
 'beginMsg': " feel&S unholy.",
 'endMsg': " feel&S blessed.",
-'secret': True
+'flags': ['SECRET']
 }
 
 AllergyUnholy = {
@@ -799,7 +799,7 @@ AllergyUnholy = {
 'type': 'VULN_UNHOLY',
 'beginMsg': " feel&S holy.",
 'endMsg': " feel&S cursed.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistMetal = {
@@ -807,7 +807,7 @@ ResistMetal = {
 'type': 'RESIST_METAL',
 'beginMsg': " yearn&S for metal crashing on metal.",
 'endMsg': " shudder&S at the thought of smithing.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistMeat = {
@@ -815,7 +815,7 @@ ResistMeat = {
 'type': 'RESIST_MEAT',
 'beginMsg': " yearn&S for some bodily action.",
 'endMsg': " yearn&S for some privacy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistEarth = {
@@ -823,7 +823,7 @@ ResistEarth = {
 'type': 'RESIST_EARTH',
 'beginMsg': " feel&S in tune with nature.",
 'endMsg': " shudder&S at the thought of nature.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistWood = {
@@ -831,7 +831,7 @@ ResistWood = {
 'type': 'RESIST_WOOD',
 'beginMsg': " hear&S the trees singing.",
 'endMsg': " hate&S the trees.",
-'secret': True
+'flags': ['SECRET']
 }
 
 ResistMundane = {
@@ -839,7 +839,7 @@ ResistMundane = {
 'type': 'RESIST_MUNDANE',
 'beginMsg': " feel&S special.",
 'endMsg': " feel&S mundane.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Aflame = {
@@ -847,7 +847,7 @@ Aflame = {
 'type': 'AFLAME',
 'beginMsg': " catch&ES aflame!",
 'endMsg': " no longer burn&S.",
-'secret': False,
+'flags': [],
 'color': libtcod.red
 }
 
@@ -856,7 +856,7 @@ Bleed = {
 'type': 'BLEED',
 'beginMsg': " bleed&S profusely!",
 'endMsg': " no longer bleed&S.",
-'secret': False,
+'flags': [],
 'color': libtcod.red
 }
 
@@ -865,7 +865,7 @@ Poison = {
 'type': 'POISON',
 'beginMsg': " &ISARE posioned.",
 'endMsg': " feel&S better.",
-'secret': False,
+'flags': [],
 'color': libtcod.green
 }
 
@@ -874,7 +874,7 @@ Regeneration = {
 'type': 'REGEN_LIFE',
 'beginMsg': " can see &POSS bruises fading quickly.",
 'endMsg': " feel&S unwell.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Starpower = {
@@ -882,7 +882,7 @@ Starpower = {
 'type': 'REGEN_MANA',
 'beginMsg': " feel&S the stars watching.",
 'endMsg': " feel&S down.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Vigor = {
@@ -890,7 +890,7 @@ Vigor = {
 'type': 'REGEN_STAM',
 'beginMsg': " feel&S invigorated.",
 'endMsg': " feel&S fatigued.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Unhealing = {
@@ -898,7 +898,7 @@ Unhealing = {
 'type': 'DRAIN_LIFE',
 'beginMsg': " can feel all &POSS old pains.",
 'endMsg': " feel&S better.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Manaburn = {
@@ -906,7 +906,7 @@ Manaburn = {
 'type': 'DRAIN_MANA',
 'beginMsg': " can smell the aether burning in &POSS veins.",
 'endMsg': " feel&S energized.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Fatigue = {
@@ -914,7 +914,7 @@ Fatigue = {
 'type': 'DRAIN_STAM',
 'beginMsg': " feel&S fatigued.",
 'endMsg': " feel&S refreshed.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Haste = {
@@ -922,7 +922,7 @@ Haste = {
 'type': 'HASTE',
 'beginMsg': " &ISARE moving faster.",
 'endMsg': " slow&S down.",
-'secret': False
+'flags': []
 }
 
 Slow = {
@@ -930,7 +930,7 @@ Slow = {
 'type': 'SLOW',
 'beginMsg': " &ISARE moving slowly.",
 'endMsg': " speed&S up.",
-'secret': False
+'flags': []
 }
 
 Levitation = {
@@ -938,7 +938,7 @@ Levitation = {
 'type': 'LEVITATION',
 'beginMsg': " rise&S above the ground.",
 'endMsg': " descend&S gently upon the ground.",
-'secret': False
+'flags': []
 }
 
 WaterWalking = {
@@ -946,7 +946,7 @@ WaterWalking = {
 'type': 'WATER_WALK',
 'beginMsg': " feel&S very holy.",
 'endMsg': " feel&S sea-sick.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Swimming = {
@@ -954,7 +954,7 @@ Swimming = {
 'type': 'SWIM',
 'beginMsg': " fondly remember&S the ocean waves.",
 'endMsg': " feel&S hydrophobic.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Blindness = {
@@ -962,7 +962,7 @@ Blindness = {
 'type': 'BLIND',
 'beginMsg': " cannot see!",
 'endMsg': " can see again.",
-'secret': False,
+'flags': [],
 'color': libtcod.grey
 }
 
@@ -971,7 +971,7 @@ LeftHanded = {
 'type': 'LEFT_HANDED',
 'beginMsg': " feel&S sinister.",
 'endMsg': " feel&S right.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Bloodless = {
@@ -979,7 +979,7 @@ Bloodless = {
 'type': 'BLOODLESS',
 'beginMsg': " feel&S exsanguinated.",
 'endMsg': " listen&S to &POSS heart.",
-'secret': True
+'flags': ['SECRET']
 }
 
 Fragile = {
@@ -987,7 +987,7 @@ Fragile = {
 'type': 'FRAGILE',
 'beginMsg': " feel&S very fragile.",
 'endMsg': " toughen&S up.",
-'secret': True
+'flags': ['SECRET']
 }
 
 CanDig = {
@@ -995,7 +995,7 @@ CanDig = {
 'type': 'CAN_DIG',
 'beginMsg': " feel&S like some mining.",
 'endMsg': " feel&S lazy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 CanChop = {
@@ -1003,7 +1003,7 @@ CanChop = {
 'type': 'CAN_CHOP',
 'beginMsg': " feel&S like some woodcutting.",
 'endMsg': " feel&S lazy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 BuffStrength = {
@@ -1011,7 +1011,7 @@ BuffStrength = {
 'type': 'BUFF_STRENGTH',
 'beginMsg': " feel&S strong.",
 'endMsg': " feel&S weak.",
-'secret': True
+'flags': ['SECRET']
 }
 
 BuffDexterity = {
@@ -1019,7 +1019,7 @@ BuffDexterity = {
 'type': 'BUFF_DEXTERITY',
 'beginMsg': " feel&S agile.",
 'endMsg': " feel&S clumsy.",
-'secret': True
+'flags': ['SECRET']
 }
 
 BuffEndurance = {
@@ -1027,7 +1027,7 @@ BuffEndurance = {
 'type': 'BUFF_ENDURANCE',
 'beginMsg': " feel&S very tough.",
 'endMsg': " feel&S sickly.",
-'secret': True
+'flags': ['SECRET']
 }
 
 BuffWits = {
@@ -1035,7 +1035,7 @@ BuffWits = {
 'type': 'BUFF_WITS',
 'beginMsg': " feel&S clever.",
 'endMsg': " feel&S dumb.",
-'secret': True
+'flags': ['SECRET']
 }
 
 BuffEgo = {
@@ -1043,7 +1043,7 @@ BuffEgo = {
 'type': 'BUFF_EGO',
 'beginMsg': " feel&S charming.",
 'endMsg': " feel&S obnoxious.",
-'secret': True
+'flags': ['SECRET']
 }
 
 BuffDamage = {
@@ -1051,7 +1051,7 @@ BuffDamage = {
 'type': 'BUFF_DAMAGE',
 'beginMsg': " feel&S dangerous.",
 'endMsg': " feel&S harmless.",
-'secret': True
+'flags': ['SECRET']
 }
 
 BuffLight = {
@@ -1059,7 +1059,7 @@ BuffLight = {
 'type': 'BUFF_LIGHT',
 'beginMsg': " start&S to glow.",
 'endMsg': " no longer glow&S.",
-'secret': True
+'flags': ['SECRET']
 }
 
 DebuffStrength = {
@@ -1067,7 +1067,7 @@ DebuffStrength = {
 'type': 'DEBUFF_STRENGTH',
 'beginMsg': " feel&S weak.",
 'endMsg': " feel&S strong.",
-'secret': True
+'flags': ['SECRET']
 }
 
 DebuffDexterity = {
@@ -1075,7 +1075,7 @@ DebuffDexterity = {
 'type': 'DEBUFF_DEXTERITY',
 'beginMsg': " feel&S clumsy.",
 'endMsg': " feel&S agile.",
-'secret': True
+'flags': ['SECRET']
 }
 
 DebuffEndurance = {
@@ -1083,7 +1083,7 @@ DebuffEndurance = {
 'type': 'DEBUFF_ENDURANCE',
 'beginMsg': " feel&S sickly.",
 'endMsg': " feel&S very tough.",
-'secret': True
+'flags': ['SECRET']
 }
 
 DebuffWits = {
@@ -1091,7 +1091,7 @@ DebuffWits = {
 'type': 'DEBUFF_WITS',
 'beginMsg': " feel&S dumb.",
 'endMsg': " feel&S clever.",
-'secret': True
+'flags': ['SECRET']
 }
 
 DebuffEgo = {
@@ -1099,7 +1099,7 @@ DebuffEgo = {
 'type': 'DEBUFF_EGO',
 'beginMsg': " feel&S obnoxious.",
 'endMsg': " feel&S charming.",
-'secret': True
+'flags': ['SECRET']
 }
 
 DebuffDamage = {
@@ -1107,7 +1107,7 @@ DebuffDamage = {
 'type': 'DEBUFF_DAMAGE',
 'beginMsg': " feel&S harmless.",
 'endMsg': " feel&S dangerous.",
-'secret': True
+'flags': ['SECRET']
 }
 
 DebuffLight = {
@@ -1115,7 +1115,7 @@ DebuffLight = {
 'type': 'DEBUFF_LIGHT',
 'beginMsg': " cannot see clearly.",
 'endMsg': " can see clearly now.",
-'secret': True
+'flags': ['SECRET']
 }
 
 NoneIntrinsic = {
@@ -1123,7 +1123,7 @@ NoneIntrinsic = {
 'type': None,
 'beginMsg': " feel&S nothing at all.",
 'endMsg': " feel&S even less than nothing.",
-'secret': False
+'flags': []
 }
 
 ###############################################################################

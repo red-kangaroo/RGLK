@@ -218,11 +218,11 @@ def spawn(x, y, BluePrint, type):
         # Add special stats:
         New.acc = accuracy
         New.light = light
-        New.StrBonus = Str
-        New.DexBonus = Dex
-        New.EndBonus = End
-        New.WitBonus = Wit
-        New.EgoBonus = Ego
+        New.Str = Str
+        New.Dex = Dex
+        New.End = End
+        New.Wit = Wit
+        New.Ego = Ego
 
         New.gainMagic()
 
@@ -797,10 +797,15 @@ class Mob(Entity):
     def getStr(self):
         Str = self.Str
 
-        # Equipment bonuses:
+        # Equipment and body bonuses:
         for i in self.getEquipment():
-            if i.StrBonus != 0:
-                Str += i.StrBonus
+            if not i.hasFlag('DEAD') and not i.hasFlag('BODY_PART'):
+                if i.Str != 0:
+                    Str += i.Str
+
+        for i in self.bodyparts:
+            if i.Str != 0:
+                Str += i.Str
 
         # Intrinsics:
         if self.hasIntrinsic('BUFF_STRENGTH'):
@@ -813,10 +818,15 @@ class Mob(Entity):
     def getDex(self):
         Dex = self.Dex
 
-        # Equipment bonuses:
+        # Equipment and body bonuses:
         for i in self.getEquipment():
-            if i.DexBonus != 0:
-                Dex += i.DexBonus
+            if not i.hasFlag('DEAD') and not i.hasFlag('BODY_PART'):
+                if i.Dex != 0:
+                    Dex += i.Dex
+
+        for i in self.bodyparts:
+            if i.Dex != 0:
+                Dex += i.Dex
 
         # Intrinsics:
         if self.hasIntrinsic('BUFF_DEXTERITY'):
@@ -829,10 +839,15 @@ class Mob(Entity):
     def getEnd(self):
         End = self.End
 
-        # Equipment bonuses:
+        # Equipment and body bonuses:
         for i in self.getEquipment():
-            if i.EndBonus != 0:
-                End += i.EndBonus
+            if not i.hasFlag('DEAD') and not i.hasFlag('BODY_PART'):
+                if i.End != 0:
+                    End += i.End
+
+        for i in self.bodyparts:
+            if i.End != 0:
+                End += i.End
 
         # Intrinsics:
         if self.hasIntrinsic('BUFF_ENDURANCE'):
@@ -845,10 +860,15 @@ class Mob(Entity):
     def getWit(self):
         Wit = self.Wit
 
-        # Equipment bonuses:
+        # Equipment and body bonuses:
         for i in self.getEquipment():
-            if i.WitBonus != 0:
-                Wit += i.WitBonus
+            if not i.hasFlag('DEAD') and not i.hasFlag('BODY_PART'):
+                if i.Wit != 0:
+                    Wit += i.Wit
+
+        for i in self.bodyparts:
+            if i.Wit != 0:
+                Wit += i.Wit
 
         # Intrinsics:
         if self.hasIntrinsic('BUFF_WITS'):
@@ -861,10 +881,15 @@ class Mob(Entity):
     def getEgo(self):
         Ego = self.Ego
 
-        # Equipment bonuses:
+        # Equipment and body bonuses:
         for i in self.getEquipment():
-            if i.EgoBonus != 0:
-                Ego += i.EgoBonus
+            if not i.hasFlag('DEAD') and not i.hasFlag('BODY_PART'):
+                if i.Ego != 0:
+                    Ego += i.Ego
+
+        for i in self.bodyparts:
+            if i.Ego != 0:
+                Ego += i.Ego
 
         # Intrinsics:
         if self.hasIntrinsic('BUFF_EGO'):
@@ -919,13 +944,14 @@ class Mob(Entity):
 
         # Get equipment bonuses:
         for i in self.getEquipment():
-            try:
-                if i.acc != 0:
-                    toHit += i.acc
-                if i.hasFlag('ENCHANT_ACCURACY'):
-                    toHit += i.enchantment
-            except:
-                print "Failed to add accuracy!"
+            if not i.hasFlag('DEAD') and not i.hasFlag('BODY_PART'):
+                try:
+                    if i.acc != 0:
+                        toHit += i.acc
+                    if i.hasFlag('ENCHANT_ACCURACY'):
+                        toHit += i.enchantment
+                except:
+                    print "Failed to add accuracy!"
 
         # Get terrain penalties:
         if var.getMap()[self.x][self.y].hasFlag('PIT') and not self.isFlying():
@@ -1618,8 +1644,9 @@ class Mob(Entity):
                 return True
 
         for item in self.getEquipment():
-            if item.hasIntrinsic(intrinsic):
-                return True
+            if not item.hasFlag('DEAD') and not item.hasFlag('BODY_PART'):
+                if item.hasIntrinsic(intrinsic):
+                    return True
 
         return False
 
@@ -1632,8 +1659,9 @@ class Mob(Entity):
                 return True
 
         for item in self.getEquipment():
-            if item.hasIntrinsic(skill):
-                return True
+            if not item.hasFlag('DEAD') and not item.hasFlag('BODY_PART'):
+                if item.hasIntrinsic(skill):
+                    return True
 
         return False
 
@@ -1645,13 +1673,14 @@ class Mob(Entity):
                 toUse = i
 
         for item in self.getEquipment():
-            for i in item.intrinsics:
-                if i.type == intrinsic:
-                    if toUse != None:
-                        if i.power > toUse.power:
+            if not item.hasFlag('DEAD') and not item.hasFlag('BODY_PART'):
+                for i in item.intrinsics:
+                    if i.type == intrinsic:
+                        if toUse != None:
+                            if i.power > toUse.power:
+                                toUse = i
+                        else:
                             toUse = i
-                    else:
-                        toUse = i
 
         return toUse
 
@@ -1670,8 +1699,9 @@ class Mob(Entity):
 
         # TODO: Maybe limit this to equipment in right slot?
         for item in self.getEquipment():
-            if item.hasIntrinsic(intrinsic):
-                power += item.getIntrinsicPower(intrinsic)
+            if not item.hasFlag('DEAD') and not item.hasFlag('BODY_PART'):
+                if item.hasIntrinsic(intrinsic):
+                    power += item.getIntrinsicPower(intrinsic)
 
         return power
 
@@ -1687,21 +1717,22 @@ class Mob(Entity):
             if already:
                 continue
 
-            if not i.secret or all == True:
+            if not i.hasFlag('SECRET') or all == True:
                 intrinsics.append(i)
 
         for item in self.getEquipment():
-            for i in item.intrinsics:
-                already = False
-                for n in intrinsics:
-                    if n.type == i.type:
-                        already = True
+            if not item.hasFlag('DEAD') and not item.hasFlag('BODY_PART'):
+                for i in item.intrinsics:
+                    already = False
+                    for n in intrinsics:
+                        if n.type == i.type:
+                            already = True
 
-                if already:
-                    continue
+                    if already:
+                        continue
 
-                if not i.secret or all == True:
-                    intrinsics.append(i)
+                    if not i.hasFlag('SECRET') or all == True:
+                        intrinsics.append(i)
 
         return intrinsics
 
@@ -1756,9 +1787,10 @@ class Mob(Entity):
                     ui.message(self.getName(True) + i.end, actor = self)
 
         for item in self.getEquipment():
-            for i in item.intrinsics:
-                if i.getHandled(self) == None:
-                    item.intrinsics.remove(i)
+            if not item.hasFlag('DEAD') and not item.hasFlag('BODY_PART'):
+                for i in item.intrinsics:
+                    if i.getHandled(self) == None:
+                        item.intrinsics.remove(i)
 
     def isExtraFragile(self):
         if self.getEnd() < 0:
@@ -3540,11 +3572,11 @@ class Item(Entity):
         # Special bonuses:
         self.acc = 0   # This is not same as ToHitBonus from self.attack, this is used
         self.light = 0 # for general accuracy bonus for all attacks, eg. from armor.
-        self.StrBonus = 0
-        self.DexBonus = 0
-        self.EndBonus = 0
-        self.WitBonus = 0
-        self.EgoBonus = 0
+        self.Str = 0
+        self.Dex = 0
+        self.End = 0
+        self.Wit = 0
+        self.Ego = 0
 
         # Item stacks:
         if self.hasFlag('PAIRED'):
@@ -3652,7 +3684,7 @@ class Item(Entity):
                 Str = None
 
             if Str != None:
-                self.StrBonus += Str
+                self.Str += Str
 
             try:
                 Dex = BluePrint['Dex']
@@ -3660,7 +3692,7 @@ class Item(Entity):
                 Dex = None
 
             if Dex != None:
-                self.DexBonus += Dex
+                self.Dex += Dex
 
             try:
                 End = BluePrint['End']
@@ -3668,7 +3700,7 @@ class Item(Entity):
                 End = None
 
             if End != None:
-                self.EndBonus += End
+                self.End += End
 
             try:
                 Wit = BluePrint['Wit']
@@ -3676,7 +3708,7 @@ class Item(Entity):
                 Wit = None
 
             if Wit != None:
-                self.WitBonus += Wit
+                self.Wit += Wit
 
             try:
                 Ego = BluePrint['Ego']
@@ -3684,7 +3716,7 @@ class Item(Entity):
                 Ego = None
 
             if Ego != None:
-                self.EgoBonus += Ego
+                self.Ego += Ego
 
             try:
                 DV = BluePrint['DV']
@@ -3953,8 +3985,8 @@ class Item(Entity):
 
                 lines.append(toHit)
 
-            if self.StrBonus != 0:
-                bonus = self.StrBonus
+            if self.Str != 0:
+                bonus = self.Str
 
                 if bonus >= 0:
                     bonus = "+" + str(bonus)
@@ -3965,8 +3997,8 @@ class Item(Entity):
 
                 lines.append(bonus)
 
-            if self.DexBonus != 0:
-                bonus = self.DexBonus
+            if self.Dex != 0:
+                bonus = self.Dex
 
                 if bonus >= 0:
                     bonus = "+" + str(bonus)
@@ -3977,8 +4009,8 @@ class Item(Entity):
 
                 lines.append(bonus)
 
-            if self.EndBonus != 0:
-                bonus = self.EndBonus
+            if self.End != 0:
+                bonus = self.End
 
                 if bonus >= 0:
                     bonus = "+" + str(bonus)
@@ -3989,8 +4021,8 @@ class Item(Entity):
 
                 lines.append(bonus)
 
-            if self.WitBonus != 0:
-                bonus = self.WitBonus
+            if self.Wit != 0:
+                bonus = self.Wit
 
                 if bonus >= 0:
                     bonus = "+" + str(bonus)
@@ -4001,8 +4033,8 @@ class Item(Entity):
 
                 lines.append(bonus)
 
-            if self.EgoBonus != 0:
-                bonus = self.EgoBonus
+            if self.Ego != 0:
+                bonus = self.Ego
 
                 if bonus >= 0:
                     bonus = "+" + str(bonus)
@@ -4097,19 +4129,19 @@ class Item(Entity):
         if self.ProtectionValue != other.ProtectionValue:
             return False
 
-        if self.StrBonus != other.StrBonus:
+        if self.Str != other.Str:
             return False
 
-        if self.DexBonus != other.DexBonus:
+        if self.Dex != other.Dex:
             return False
 
-        if self.EndBonus != other.EndBonus:
+        if self.End != other.End:
             return False
 
-        if self.WitBonus != other.WitBonus:
+        if self.Wit != other.Wit:
             return False
 
-        if self.EgoBonus != other.EgoBonus:
+        if self.Ego != other.Ego:
             return False
 
         if self.StrScaling != other.StrScaling:
@@ -4407,19 +4439,19 @@ class Item(Entity):
         if self.light != 0:
             return True
 
-        if self.StrBonus != 0:
+        if self.Str != 0:
             return True
 
-        if self.DexBonus != 0:
+        if self.Dex != 0:
             return True
 
-        if self.EndBonus != 0:
+        if self.End != 0:
             return True
 
-        if self.WitBonus != 0:
+        if self.Wit != 0:
             return True
 
-        if self.EgoBonus != 0:
+        if self.Ego != 0:
             return True
 
         return False
@@ -4648,6 +4680,14 @@ class BodyPart(Entity):
         self.cover = cover
         self.placement = place
         self.eyes = eyes
+
+        # Attribute bonuses:
+        # TODO: Limbs should offer some.
+        self.Str = 0
+        self.Dex = 0
+        self.End = 0
+        self.Wit = 0
+        self.Ego = 0
 
         self.wounded = False
 
