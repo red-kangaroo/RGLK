@@ -1340,6 +1340,16 @@ Eldritch = {
 'flags': ['ENCHANT_DOUBLE']
 }
 
+EgoSilver = {
+'prefix': "silvered",
+'material': 'SILVER'
+}
+
+EgoGold = {
+'prefix': "gilded",
+'material': 'GOLD'
+}
+
 # Intrinsics:
 EgoLevitation = {
 'suffix': "levitation",
@@ -2930,7 +2940,7 @@ GoldPiece = {
 'name': 'gold nugget',
 'material': 'GOLD',
 'size': -2,
-'flags': ['VALUABLE', 'BIG_PILE', 'ALWAYS_MUNDANE'],
+'flags': ['VALUABLE', 'BIG_PILE', 'ALWAYS_MUNDANE', 'NO_PREFIX', 'NO_SUFFIX'],
 'frequency': 50
 }
 
@@ -3110,7 +3120,7 @@ DummyMonster = {
 'mutations': [],
 'flags': ['HUMANOID'],
 'frequency': 1000,
-'DL': 0 # TODO
+'DL': 0
 }
 
 Player = {
@@ -3165,6 +3175,7 @@ KoboldHunter = {
 'inventory': [Dagger],
 'flags': ['HUMANOID'],
 'mutations': ['MUTATION_CLAWS'],
+'DL': 2,
 'frequency': 600
 }
 
@@ -3203,6 +3214,7 @@ KoboldMiner = {
 'inventory': [PickAxe],
 'flags': ['HUMANOID'],
 'mutations': ['MUTATION_CLAWS'],
+'DL': 6,
 'frequency': 5
 }
 
@@ -3222,6 +3234,7 @@ KoboldWarrior = {
 'inventory': [Cudgel, RoundShield],
 'flags': ['HUMANOID'],
 'mutations': ['MUTATION_CLAWS'],
+'DL': 2,
 'frequency': 300
 }
 
@@ -3270,6 +3283,7 @@ Ogre = {
 'inventory': [GiantSpikedClub],
 'intrinsics': [('REGEN_STAM', 3)],
 'flags': ['HUMANOID'],
+'DL': 5,
 'frequency': 200
 }
 
@@ -3287,6 +3301,7 @@ Troll = {
 'intrinsics': [('REGEN_LIFE', 3)], # TODO: Revival.
 'flags': ['HUMANOID', 'USE_HEAD'],
 'mutations': ['MUTATION_CLAWS_LARGE'],
+'DL': 5,
 'frequency': 200
 }
 
@@ -3303,6 +3318,7 @@ Alien = {
 'sex': 'UNDEFINED',
 'intrinsics': [('VULN_GOLD', 3)],
 'flags': ['ALIEN', 'USE_LEGS', 'AI_DIJKSTRA'],
+'DL': 5,
 'frequency': 5
 }
 
@@ -4478,7 +4494,7 @@ Diamond2 = {
 'file': 'rooms/diamond2',
 'width': 7,
 'height': 7,
-')': (RockFloor, None, 'RANDOM_ANY', None)
+')': (RockFloor, None, 'RANDOM_SPECIAL', None)
 }
 
 Diamond3 = {
@@ -4539,7 +4555,7 @@ Vault1 = {
 'height': 5,
 '#': (GoldWall, None, None, None),
 '+': (ClosedGoldDoor, ['BLOCKED'], None, None),
-'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY')
+'M': (GoldFloor, None, 'RANDOM_SPECIAL', 'RANDOM_ANY')
 }
 
 Vault2 = {
@@ -5177,7 +5193,7 @@ Goal1 = {
 '<': (UpStairs, None, None, None),
 '#': (GoldWall, None, None, None),
 '.': (GoldFloor, None, None, None),
-',': (GoldFloor, None, 'RANDOM_ANY', None),
+',': (GoldFloor, None, 'RANDOM_SPECIAL', None),
 '+': (ClosedGoldDoor, ['BLOCKED'], None, None),
 '_': (Carpet, None, None, None),
 'B': (BookShelf, None, None, None),
@@ -5200,7 +5216,7 @@ Goal2 = {
 '-': (ClosedPort, None, None, None),
 '=': (IronBars, None, None, None),
 '_': (Carpet, None, None, None),
-'I': (GoldFloor, None, 'RANDOM_ANY', None),
+'I': (GoldFloor, None, 'RANDOM_SPECIAL', None),
 'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY'),
 'T': (Throne, None, None, BlackKnight)
 }
@@ -5217,7 +5233,7 @@ Goal3 = {
 '-': (DeepWater, None, None, None),
 '=': (IronBars, None, None, None),
 '*': (Carpet, None, None, None),
-'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY'),
+'M': (GoldFloor, None, 'RANDOM_SPECIAL', 'RANDOM_ANY'),
 '_': (Throne, None, None, BlackKnight)
 }
 
@@ -5552,7 +5568,9 @@ MagicEgoList = {
            Violence,
            EgoRegeneration,
            EgoStarpower,
-           EgoVigor
+           EgoVigor,
+           EgoSilver,
+           EgoGold
           ],
 'SHIELD': [
            Warrior,
@@ -5580,7 +5598,9 @@ MagicEgoList = {
            EgoResistPoison,
            Peace,
            Massive,
-           Masterwork
+           Masterwork,
+           EgoSilver,
+           EgoGold
           ],
 'ARMOR': [
           Warrior,
@@ -5633,12 +5653,16 @@ MagicEgoList = {
           EgoDead,
           EgoGrave,
           Summer,
-          Winter
+          Winter,
+          EgoSilver,
+          EgoGold
          ],
 'POTION': [],
 'TOOL': [],
 'VALUABLE': [
-             Luminescence
+             Luminescence,
+             EgoSilver,
+             EgoGold
             ],
 'FOOD': [],
 'CONTAINER': [],

@@ -369,12 +369,21 @@ def create_prefab(Prefab, room, map, DungeonLevel):
                         map[x][y].flags.append(p)
 
                 if item != None:
-                    if item == 'RANDOM_ANY':
+                    special = False
+
+                    if item in ['RANDOM_ANY', 'RANDOM_SPECIAL']:
+                        if item == 'RANDOM_SPECIAL':
+                            special = True
+                            
                         item = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
                     elif item == 'RANDOM_ARTIFACT':
                         pass # TODO
 
                     NewItem = entity.spawn(x, y, item, 'ITEM')
+
+                    if special:
+                        NewItem.gainMagic(True)
+
                     var.Entities[DungeonLevel].append(NewItem)
 
                 if mob != None:
@@ -1403,6 +1412,15 @@ def getRandomEntity(type, DungeonLevel = 0):
     for i in stuff:
         frequency = 0
 
+        if type == 'MOB':
+            try:
+                DangerLevel = i['DL']
+            except:
+                DangerLevel = raw.DummyMonster['DL']
+
+            if DangerLevel > DungeonLevel:
+                continue
+
         try:
             frequency = i['frequency']
         except:
@@ -1529,6 +1547,9 @@ class Terrain(object):
         self.explored = self.char
 
     def beDug(self, Digger):
+        if Digger.SP <= 0:
+            return False
+
         # Dig and chop!
         if Digger.hasIntrinsic('CAN_CHOP') and self.hasFlag('CAN_BE_CHOPPED'):
             ui.message("%s chop&S down the %s." % (Digger.getName(True), self.name), actor = Digger)

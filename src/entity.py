@@ -709,6 +709,7 @@ class Mob(Entity):
 
             # TODO:
             #  Full / Stuffed
+            #  Starving
 
             if toHeal < 0:
                 toHeal = 0
@@ -755,7 +756,10 @@ class Mob(Entity):
 
     def regainStamina(self):
         if not self.hasFlag('DEAD') and self.SP < self.maxSP:
-            toStamina = 1
+            toStamina = 1.0
+
+            # Encumberance
+            toStamina /= (self.getBurdenState() + 1)
 
             # Vigor
             if self.hasIntrinsic('REGEN_STAM'):
@@ -2509,6 +2513,7 @@ class Mob(Entity):
             # bookshelves any time we try to loot them. :/
             elif self.isBlocked(x, y, var.DungeonLevel, False):
                 if var.getMap()[x][y].beDug(self):
+                    self.SP -= 10
                     var.changeFOVMap(x, y)
                     return True
 
@@ -2695,7 +2700,13 @@ class Mob(Entity):
             return True
 
     def actionDig(self, dx, dy):
+        if self.SP <= 0:
+            if self.hasFlag('AVATAR'):
+                ui.message("You are too exhausted to do that.")
+            return False
+
         if var.getMap()[self.x + dx][self.y + dy].beDug(self):
+            self.SP -= 10
             var.changeFOVMap(self.x + dx, self.y + dy)
             return True
         else:
@@ -3588,13 +3599,13 @@ class Item(Entity):
         else:
             self.stack = 1
 
-    def gainMagic(self):
+    def gainMagic(self, forced = False):
         type = self.getType()
 
         if type == None:
             return
 
-        if var.rand_chance(var.DungeonLevel, 1000) or self.hasFlag('ALWAYS_SPECIAL'):
+        if var.rand_chance(var.DungeonLevel, 1000) or self.hasFlag('ALWAYS_SPECIAL') or forced:
             try:
                 BluePrint = random.choice(raw.MagicEgoList[type])
             except:
