@@ -127,9 +127,9 @@ def handleKeys(Player):
     # NON-TURN ACTIONS:
     # Escape for main menu
     if Key.vk == libtcod.KEY_ESCAPE:
-        what = ui.main_menu(Player)
-
         if Player == None:
+            what = ui.main_menu('basic')
+
             if what == 0: # Quick Start
                 initialize()
                 main_loop()
@@ -149,15 +149,20 @@ def handleKeys(Player):
             else: # Quit
                 sys.exit("Goodbye!")
         else:
+            what = ui.main_menu('gameplay')
+
             if what == 0: # Save
                 game.save()
                 sys.exit("Game saved.")
                 return
-            elif what == 1: # Options
+            elif what == 1: # Quit
+                sys.exit("You cowardly quit the game.")
+                return
+            elif what == 2: # Options
                 ui.message("This function is unfortunately not yet supported!", libtcod.chartreuse)
                 return
-            if what == 2: # Quit
-                sys.exit("You cowardly quit the game.")
+            elif what == 3: # Help
+                getHelp()
                 return
             else:
                 return
@@ -188,9 +193,9 @@ def handleKeys(Player):
             var.WizModeNoClip = not var.WizModeNoClip
 
             if var.WizModeNoClip == True:
-                ui.message("Walking through walls activated.")
+                ui.message("Walking through walls activated.", libtcod.chartreuse)
             else:
-                ui.message("Walking through walls deactivated.")
+                ui.message("Walking through walls deactivated.", libtcod.chartreuse)
             return
 
         # True sight
@@ -198,9 +203,9 @@ def handleKeys(Player):
             var.WizModeTrueSight = not var.WizModeTrueSight
 
             if var.WizModeNoClip == True:
-                ui.message("True sight activated.")
+                ui.message("True sight activated.", libtcod.chartreuse)
             else:
-                ui.message("True sight deactivated.")
+                ui.message("True sight deactivated.", libtcod.chartreuse)
             return
 
         # Change character
@@ -215,7 +220,8 @@ def handleKeys(Player):
             "Gain all intrinsics"
             ]
 
-            pass # TODO
+            # TODO
+            #ui.message("You call upon the power of wizard mode to alter yourself!", libtcod.chartreuse)
             return
 
         # Create all items
@@ -223,6 +229,9 @@ def handleKeys(Player):
             for i in raw.ItemList:
                 NewItem = entity.spawn(Player.x, Player.y, i, 'ITEM')
                 var.getEntity().append(NewItem)
+
+            ui.message("All items generated.", libtcod.chartreuse)
+            return
 
         # Summon creature
         if Key.vk == libtcod.KEY_F5:
@@ -253,6 +262,7 @@ def handleKeys(Player):
             for i in var.getEntity():
                 if i.hasFlag('MOB') and not i.hasFlag('AVATAR'):
                     i.receiveDamage(i.maxHP * 3, DamageType = 'NECROTIC')
+            ui.message("Everything dies. You monster.", libtcod.chartreuse)
             return
 
         # See stats
@@ -365,6 +375,12 @@ def handleKeys(Player):
         libtcod.console_is_key_pressed(libtcod.KEY_KP5)):
         if Player != None:
             Player.actionWait()
+        return
+
+    # Help
+    if ((Key.vk == libtcod.KEY_CHAR and Key.c == ord('?')) or
+        (Key.shift and Key.vk == libtcod.KEY_CHAR and Key.c == ord('/'))):
+        getHelp()
         return
 
     # Look
@@ -859,6 +875,31 @@ def waitForMore(Player):
         if (Key.vk == libtcod.KEY_ESCAPE or Key.vk == libtcod.KEY_ENTER or
             Key.vk == libtcod.KEY_SPACE):
             return
+
+def getHelp():
+    what = ui.main_menu('help')
+
+    if what == 0: # Basic Commands
+        file = open('help/BasicCommands', 'r')
+        lines = []
+
+        for line in file:
+            lines.append(line)
+
+        ui.help_menu("Basic commands:", lines)
+        return
+    elif what == 1: # Command List
+        file = open('help/CommandList', 'r')
+        lines = []
+
+        for line in file:
+            lines.append(line)
+
+        ui.help_menu("Command list:", lines)
+        return
+    #elif what == 1:
+    else: # Quit
+        return
 
 ###############################################################################
 #  Monster Actions

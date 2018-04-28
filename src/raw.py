@@ -1303,7 +1303,7 @@ Coward = {
 Willowy = {
 'prefix': "willowy",
 'DV': 2,
-'PV': -2
+'PV': -1
 }
 
 Protection = {
@@ -1318,8 +1318,14 @@ Sturdy = {
 
 Unyielding = {
 'prefix': "impervious",
-'DV': -2,
+'DV': -1,
 'PV': 2
+}
+
+MasterworkArmor = {
+'prefix': "masterwork",
+'DV': 1,
+'PV': 1
 }
 
 Massive = {
@@ -1328,7 +1334,7 @@ Massive = {
 'size': 1
 }
 
-Masterwork = {
+MasterworkWeapon = {
 'prefix': "masterwork",
 'DexScaling': 'A'
 }
@@ -5563,7 +5569,7 @@ MagicEgoList = {
            Protection,
            Coward,
            Massive,
-           Masterwork,
+           MasterworkWeapon,
            Eldritch,
            Violence,
            EgoRegeneration,
@@ -5598,7 +5604,8 @@ MagicEgoList = {
            EgoResistPoison,
            Peace,
            Massive,
-           Masterwork,
+           MasterworkWeapon,
+           MasterworkArmor,
            EgoSilver,
            EgoGold
           ],
@@ -5628,6 +5635,7 @@ MagicEgoList = {
           Sturdy,
           Willowy,
           Unyielding,
+          MasterworkArmor,
           Eldritch,
           EgoLevitation,
           EgoRegeneration,

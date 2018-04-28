@@ -93,7 +93,7 @@ def main_loop():
                     dungeon.makeMap(False, var.DungeonLevel)
                     var.calculateFOVMap()
                     var.WizModeNewMap = False
-                    ui.message("You call upon the great powers of wizard mode to create a whole new dungeon level!")
+                    ui.message("You call upon the great powers of wizard mode to create a new dungeon level!", libtcod.chartreuse)
 
         # This is a stupid way of doing this, but eh...
         if not playerTurn:
@@ -101,26 +101,31 @@ def main_loop():
             ai.getAICommand(None)
 
 def play():
-    what = ui.main_menu()
+    while True:
+        what = ui.main_menu()
 
-    if what == 0: # Quick Start
-        initialize()
-        main_loop()
-    elif what == 1: # Create Character
-        sys.exit("This function is unfortunately not yet supported!")
-    if what == 2: # Load
-        try:
-            load()
-        except:
-            sys.exit("No savefile detected!")
+        if what == 0: # Quick Start
+            initialize()
+            main_loop()
+        elif what == 1: # Create Character
+            ui.main_menu('warn')
+            continue
+        if what == 2: # Load
+            try:
+                load()
+            except:
+                ui.main_menu('warn')
+                continue
 
-        main_loop()
-    if what == 3: # Tutorial
-        sys.exit("This function is unfortunately not yet supported!")
-    if what == 4: # Options
-        sys.exit("This function is unfortunately not yet supported!")
-    else: # Quit
-        sys.exit("Goodbye!")
+            main_loop()
+        if what == 3: # Tutorial
+            ui.main_menu('warn')
+            continue
+        if what == 4: # Options
+            ui.main_menu('warn')
+            continue
+        else: # Quit
+            sys.exit("Goodbye!")
 
 def save():
     file = shelve.open('savegame', 'n')

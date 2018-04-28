@@ -568,7 +568,53 @@ def text_menu(header, text):
                     y = 28
                     break
 
-def main_menu(Player = None):
+def help_menu(header, lines):
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+    libtcod.console_clear(var.MenuPanel)
+
+    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                  header)
+
+    libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
+                             "[Space for next; Esc to exit]")
+
+    line = 0
+    y = 3
+
+    while line < len(lines):
+        libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 lines[line])
+        line += 1
+        y += 1
+
+        if y == 27 or line >= len(lines):
+            # Draw it and wait for input:
+            libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+            libtcod.console_flush()
+
+            while True:
+                Key = libtcod.console_wait_for_keypress(True)
+
+                if Key.vk == libtcod.KEY_ESCAPE:
+                    return None
+
+                if Key.vk == libtcod.KEY_SPACE:
+                    # This unfortunately must be repeated here:
+                    libtcod.console_clear(var.MenuPanel)
+
+                    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                                  header)
+
+                    libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
+                                             "[Space for next; Esc to exit]")
+
+                    y = 3
+                    break
+
+def main_menu(type = 'basic'):
     libtcod.console_set_default_foreground(var.MainMenu, var.TextColor)
     # No background to allow for an image, one day.
     #libtcod.console_set_default_background(var.MainMenu, libtcod.BKGND_NONE)
@@ -585,7 +631,7 @@ def main_menu(Player = None):
     index = ord('a')
     options = []
 
-    if Player == None:
+    if type == 'basic':
         options = [
         "Quick Start",
         "Create Character",
@@ -595,12 +641,29 @@ def main_menu(Player = None):
         #"Credits",
         "Quit"
         ]
-    else:
+    elif type == 'gameplay':
         options = [
         "Save and Quit",
+        "Quit and Abandon",
         "Options",
-        "Quit and Abandon"
+        "Help",
+        "Return to Game"
         ]
+    elif type == 'help':
+        options = [
+        "Basic Commands",
+        "Command List",
+        #"Character",
+        #"Combat",
+        ]
+    elif type == 'warn':
+        options = [
+        "Unable to do so.",
+        "Something is not working.",
+        "Do not try again."
+        ]
+    else:
+        return None
 
     y = 3
     for option in options:
@@ -627,7 +690,7 @@ def main_menu(Player = None):
         Key = libtcod.console_wait_for_keypress(True)
         what = Key.c - ord('a')
 
-        if what in range(0, len(options) + 1):
+        if what in range(0, len(options)):
             return what
         elif Key.vk == libtcod.KEY_ESCAPE:
             return None

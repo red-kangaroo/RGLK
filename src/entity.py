@@ -3315,6 +3315,7 @@ class Mob(Entity):
                 if i.x == x and i.y == y and i.hasFlag('MOB'):
                     self.flags.remove('AVATAR')
                     i.flags.append('AVATAR')
+                    ui.message("You possess %s." % i.getName(), libtcod.chartreuse)
             return True
         else:
             # TODO
