@@ -305,7 +305,7 @@ def render_UI(Player):
     libtcod.console_blit(var.UIPanel, 0, 0, var.PanelWidth, var.ScreenHeight, 0,
                          var.ScreenWidth - var.PanelWidth, 0)
 
-def option_menu(header, options):
+def item_menu(header, options):
     libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
     libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
     libtcod.console_clear(var.MenuPanel)
@@ -613,6 +613,67 @@ def help_menu(header, lines):
 
                     y = 3
                     break
+
+def option_menu(options):
+    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+    libtcod.console_set_default_background(var.MenuPanel, libtcod.black)
+    libtcod.console_clear(var.MenuPanel)
+
+    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                  "Options:")
+
+    libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
+                             "[press letter; Space for next; Esc to exit]")
+
+    index = ord('a')
+    option = 0
+    y = 3
+    page = 0
+
+    while option < len(options):
+        text = chr(index) + ') ' + options[option] + ': ' + str(var.Options[option])
+
+        libtcod.console_print_ex(var.MenuPanel, 2, y, libtcod.BKGND_SET, libtcod.LEFT,
+                                 text)
+        index += 1
+        option += 1
+        y += 1
+
+        if y == 27 or option >= len(options):
+            # Draw it and wait for input:
+            libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+            libtcod.console_flush()
+
+            while True:
+                Key = libtcod.console_wait_for_keypress(True)
+
+                if Key.vk == libtcod.KEY_ESCAPE:
+                    libtcod.console_clear(var.MenuPanel) # This needs to be here or we will draw main menu over it, but with parts still visible.
+                    libtcod.console_blit(var.MenuPanel, 0, 0, var.MenuWidth, var.MenuHeight, 0, 5, 5)
+                    return None
+
+                if Key.vk == libtcod.KEY_SPACE:
+                    libtcod.console_clear(var.MenuPanel)
+                    libtcod.console_set_default_foreground(var.MenuPanel, var.TextColor)
+
+                    libtcod.console_print_rect_ex(var.MenuPanel, 1, 1, var.MenuWidth, var.MenuHeight,
+                                                  libtcod.BKGND_SET, libtcod.LEFT,
+                                                  "Options:")
+
+                    libtcod.console_print_ex(var.MenuPanel, 1, 28, libtcod.BKGND_SET, libtcod.LEFT,
+                                             "[press letter; Space for next; Esc to exit]")
+
+                    index = ord('a')
+                    y = 3
+                    page += 1
+                    break
+
+                else:
+                    what = Key.c - ord('a') + (26 * page)
+
+                    if what in range(0, len(options)):
+                        return what
 
 def main_menu(type = 'basic'):
     libtcod.console_set_default_foreground(var.MainMenu, var.TextColor)

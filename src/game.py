@@ -17,15 +17,29 @@ import var
 #  Initialization
 ###############################################################################
 
-libtcod.console_set_custom_font('graphics/terminal.png',
-  libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
-# TODO: Add this as options:
-#libtcod.console_set_custom_font('graphics/terminal12.png',
-#  libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
-#libtcod.console_set_custom_font('graphics/terminal16.png',
-#  libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
+# Try loading options:
+try:
+    file = shelve.open('options', 'r')
+    var.Options = file["options"]
+    file.close()
+except:
+    pass
+
+if var.Options[0] == 2:
+    libtcod.console_set_custom_font('graphics/terminal12.png',
+      libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
+elif var.Options[0] == 3:
+    libtcod.console_set_custom_font('graphics/terminal16.png',
+      libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
+else:
+    libtcod.console_set_custom_font('graphics/terminal.png',
+      libtcod.FONT_TYPE_GRAYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
+
 libtcod.console_init_root(var.ScreenWidth, var.ScreenHeight, 'RGLK', False)
 #libtcod.sys_set_fps(30)
+
+if var.Options[1]:
+    libtcod.console_set_fullscreen(True)
 
 ###############################################################################
 #  Functions
@@ -122,7 +136,7 @@ def play():
             ui.main_menu('warn')
             continue
         if what == 4: # Options
-            ui.main_menu('warn')
+            ai.getOptions()
             continue
         else: # Quit
             sys.exit("Goodbye!")

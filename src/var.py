@@ -152,7 +152,7 @@ BSPMinSize = 5
 DrunkenSteps = 5000
 FloorMaxNumber = 15 # Depths of the dungeon.
 
-# TODO: Should depend on dungeon level.
+# Depends on dungeon level:
 MonsterMaxNumber = 10
 ItemMaxNumber = 10
 
@@ -160,7 +160,7 @@ TurnCount = 0
 DungeonLevel = 1 # Starting level of the player.
 
 # Wizard mode:
-WizModeActivated = False # For now.
+WizModeActivated = False
 WizModeNoClip = False
 WizModeTrueSight = False
 WizModeNewMap = False
@@ -177,6 +177,12 @@ GameName = "Recondite Gaol of the Lachrymose Knights" # Aka "Forlorn Jail of the
                                                       # Once this was "Realm of the Glorious Lich King",
                                                       # but that of course was nowhere as awsome as the
                                                       # current title.
+
+# Options:
+Options = [
+1,        # Graphics size used.
+False     # Fullscreen
+]
 
 # FOV map:
 FOVMap = libtcod.map_new(MapWidth, MapHeight)

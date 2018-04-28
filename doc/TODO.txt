@@ -1,7 +1,11 @@
-To do list:
-===========
-* release with pyinstaller, cx_Freeze, or something?
+FIX
+===
 * fix APPLY / TOOL
+* fix fullscreen sometimes broken before player does any move
+
+TODO
+====
+* release with pyinstaller, cx_Freeze, or something?
 * replace AP cost od pick up with SP cost
 * AI
    item use

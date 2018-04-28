@@ -2740,7 +2740,7 @@ class Mob(Entity):
             elif not self.hasFlag('AVATAR'):
                 toDrop = libtcod.random_get_int(0, 0, len(self.inventory) - 1)
             else:
-                toDrop = ui.option_menu("Drop what?", self.inventory)
+                toDrop = ui.item_menu("Drop what?", self.inventory)
 
             if toDrop == None:
                 return False
@@ -2996,7 +2996,7 @@ class Mob(Entity):
                     ui.render_all(self)
                     return True
                 else:
-                    item = ui.option_menu("Equip what?", options)
+                    item = ui.item_menu("Equip what?", options)
 
                     if item == None:
                         return True
@@ -3142,7 +3142,7 @@ class Mob(Entity):
             return False
         else:
             if self.hasFlag('AVATAR'):
-                toLoot = ui.option_menu("Loot what?", options)
+                toLoot = ui.item_menu("Loot what?", options)
             else:
                 toLoot = libtcod.random_get_int(0, 0, len(options))
 
@@ -3282,7 +3282,7 @@ class Mob(Entity):
             else:
                 pickUpLine = "Pick up what?"
 
-            toPick = ui.option_menu(pickUpLine, options)
+            toPick = ui.item_menu(pickUpLine, options)
 
             if toPick == None:
                 return False
@@ -3342,7 +3342,7 @@ class Mob(Entity):
                 ui.message("You have nothing to drink.")
             return False
 
-        toDrink = ui.option_menu("Quaff what?", options)
+        toDrink = ui.item_menu("Quaff what?", options)
 
         if toDrink == None:
             return False
@@ -4599,7 +4599,7 @@ class Item(Entity):
             return False
 
         if Looter.hasFlag('AVATAR'):
-            toLoot = ui.option_menu("Take what?", self.inventory)
+            toLoot = ui.item_menu("Take what?", self.inventory)
         else:
             toLoot = libtcod.random_get_int(0, 0, len(self.inventory))
 
@@ -4632,7 +4632,7 @@ class Item(Entity):
                 ui.message("%s is full." % self.getName(True))
             return False
 
-        toLoot = ui.option_menu("Put in what?", Looter.inventory)
+        toLoot = ui.item_menu("Put in what?", Looter.inventory)
 
         if toLoot == None:
             return False

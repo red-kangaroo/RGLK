@@ -4,6 +4,7 @@
 import libtcodpy as libtcod
 import math
 import random
+import shelve
 import sys
 
 import dungeon
@@ -134,18 +135,22 @@ def handleKeys(Player):
                 initialize()
                 main_loop()
             elif what == 1: # Create Character
-                sys.exit("This function is unfortunately not yet supported!")
+                ui.main_menu('warn')
+                return
             if what == 2: # Load
                 try:
                     load()
                 except:
-                    sys.exit("No savefile detected!")
+                    ui.main_menu('warn')
+                    return
 
                 main_loop()
             if what == 3: # Tutorial
-                sys.exit("This function is unfortunately not yet supported!")
+                ui.main_menu('warn')
+                return
             if what == 4: # Options
-                sys.exit("This function is unfortunately not yet supported!")
+                getOptions()
+                return
             else: # Quit
                 sys.exit("Goodbye!")
         else:
@@ -159,7 +164,7 @@ def handleKeys(Player):
                 sys.exit("You cowardly quit the game.")
                 return
             elif what == 2: # Options
-                ui.message("This function is unfortunately not yet supported!", libtcod.chartreuse)
+                getOptions()
                 return
             elif what == 3: # Help
                 getHelp()
@@ -279,7 +284,7 @@ def handleKeys(Player):
             if len(options) == 0:
                 ui.message("You have no special features.")
             else:
-                ui.option_menu("Your intrinsics:", options)
+                ui.item_menu("Your intrinsics:", options)
             return
 
         if Key.vk == libtcod.KEY_F10:
@@ -432,7 +437,7 @@ def handleKeys(Player):
                 ui.message("You have nothing to apply.")
                 return
 
-            toApply = ui.option_menu("Apply what?", options)
+            toApply = ui.item_menu("Apply what?", options)
 
             if toApply == None:
                 ui.message("Never mind.")
@@ -885,6 +890,7 @@ def getHelp():
 
         for line in file:
             lines.append(line)
+        file.close()
 
         ui.help_menu("Basic commands:", lines)
         return
@@ -894,12 +900,35 @@ def getHelp():
 
         for line in file:
             lines.append(line)
+        file.close()
 
         ui.help_menu("Command list:", lines)
         return
     #elif what == 1:
     else: # Quit
         return
+
+def getOptions():
+    while True:
+        options = [
+        "Graphics size",
+        "Fullscreen"
+        ]
+
+        which = ui.option_menu(options)
+
+        if which == None:
+            file = shelve.open('options', 'n')
+            file["options"] = var.Options
+            file.close()
+            return
+        elif which == 0:
+            var.Options[0] += 1
+
+            if var.Options[0] > 3:
+                var.Options[0] = 1
+        else:
+            var.Options[which] = not var.Options[which]
 
 ###############################################################################
 #  Monster Actions

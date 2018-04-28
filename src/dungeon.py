@@ -374,7 +374,7 @@ def create_prefab(Prefab, room, map, DungeonLevel):
                     if item in ['RANDOM_ANY', 'RANDOM_SPECIAL']:
                         if item == 'RANDOM_SPECIAL':
                             special = True
-                            
+
                         item = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
                     elif item == 'RANDOM_ARTIFACT':
                         pass # TODO
@@ -398,6 +398,8 @@ def create_prefab(Prefab, room, map, DungeonLevel):
 
             x += 1
         y += 1
+
+    file.close()
 
     # Now dig tunnels to connect the room.
     y = room.y1
@@ -1599,12 +1601,12 @@ class Terrain(object):
 
         if self.hasFlag('MAGIC_BOX'):
             if Looter.hasFlag('AVATAR'):
-                toLoot = ui.option_menu("Take what?", var.MagicBox)
+                toLoot = ui.item_menu("Take what?", var.MagicBox)
             else:
                 toLoot = libtcod.random_get_int(0, 0, len(var.MagicBox))
         else:
             if Looter.hasFlag('AVATAR'):
-                toLoot = ui.option_menu("Take what?", self.inventory)
+                toLoot = ui.item_menu("Take what?", self.inventory)
             else:
                 toLoot = libtcod.random_get_int(0, 0, len(self.inventory))
 
@@ -1647,7 +1649,7 @@ class Terrain(object):
                 ui.message("%s is full." % self.getName(True))
             return False
 
-        toLoot = ui.option_menu("Put in what?", Looter.inventory)
+        toLoot = ui.item_menu("Put in what?", Looter.inventory)
 
         if toLoot == None:
             return False
