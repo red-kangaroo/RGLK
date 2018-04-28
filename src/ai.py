@@ -146,8 +146,8 @@ def handleKeys(Player):
 
                 main_loop()
             if what == 3: # Tutorial
-                ui.main_menu('warn')
-                return
+                initialize(True)
+                main_loop()
             if what == 4: # Options
                 getOptions()
                 return

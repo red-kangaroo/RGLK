@@ -45,19 +45,23 @@ if var.Options[1]:
 #  Functions
 ##############################################################################
 
-def initialize():
+def initialize(Tutorial = False):
     # Create empty Maps and Entities lists.
     for i in range(0, var.FloorMaxNumber + 1):
         var.Maps.append(None)
     for i in range(0, var.FloorMaxNumber + 1):
         var.Entities.append([])
 
-    dungeon.makeMap(True, var.DungeonLevel)
+    if Tutorial:
+        dungeon.makeMap(True, var.DungeonLevel, True)
+    else:
+        dungeon.makeMap(True, var.DungeonLevel)
+
     var.calculateFOVMap()
 
     # Player must be defined here, we work with him shortly.
-    m = 0
-    n = 0
+    m = 1
+    n = 1
 
     for y in range(0, var.MapHeight):
         for x in range(0, var.MapWidth):
@@ -69,8 +73,11 @@ def initialize():
     var.getEntity().append(Player)
 
     # TODO: Better welcoming message.
-    ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
-    ui.message("Press '?' to view help, or try the tutorial. Don't die!")
+    if Tutorial:
+        ui.message("Welcome to the tutorial!", libtcod.dark_violet)
+    else:
+        ui.message("Welcome to the %s!" % var.GameName, libtcod.dark_violet)
+        ui.message("Press '?' to view help, or try the tutorial. Don't die!")
 
 def main_loop():
     while not libtcod.console_is_window_closed():
@@ -133,8 +140,8 @@ def play():
 
             main_loop()
         if what == 3: # Tutorial
-            ui.main_menu('warn')
-            continue
+            initialize(True)
+            main_loop()
         if what == 4: # Options
             ai.getOptions()
             continue

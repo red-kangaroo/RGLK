@@ -14,7 +14,7 @@ import var
 ###############################################################################
 #  Dungeon Generation
 ###############################################################################
-def makeMap(Populate, DungeonLevel):
+def makeMap(Populate, DungeonLevel, Tutorial = False):
     if DungeonLevel < 0 or DungeonLevel > var.FloorMaxNumber:
         sys.exit("Tried building beyond the dungeon.")
 
@@ -27,7 +27,7 @@ def makeMap(Populate, DungeonLevel):
         for x in range(var.MapWidth):
             map[x][y].change(raw.RockWall)
 
-    # TODO: Dungeon levels:
+    # Dungeon levels:
     #  0 the Surface
     #  1 traditional dungeon
     #  2 traditional / cave
@@ -45,56 +45,60 @@ def makeMap(Populate, DungeonLevel):
     # 14 traditional / cave / BSP / city
     # 15 the Goal
 
-    which = libtcod.random_get_int(0, 1, 4)
-
-    if DungeonLevel == 0:
-        print "Building the world."
-        map = buildWorld(map, DungeonLevel)
-    elif DungeonLevel == 1:
-        print "Building traditional dungeon."
-        map = buildTraditionalDungeon(map, DungeonLevel)
-    elif DungeonLevel in [10, 15]:
-        print "Building a special map."
-        map = buildBigRoom(map, DungeonLevel)
-    elif DungeonLevel < 5:
-        if which < 3:
-            print "Building a cave."
-            map = buildDrunkenCave(map, DungeonLevel)
-        else:
-            print "Building traditional dungeon."
-            map = buildTraditionalDungeon(map, DungeonLevel)
-    elif DungeonLevel == 5:
-        print "Building a city."
-        map = buildCity(map, DungeonLevel)
-    elif DungeonLevel < 8:
-        print "Building sewers."
-        map = buildSewers(map, DungeonLevel)
-    elif DungeonLevel < 10:
-        if which < 3:
-            print "Building BSP dungeon."
-            map = buildBSPDungeon(map, DungeonLevel)
-        else:
-            print "Building a maze."
-            map = buildMaze(map, DungeonLevel)
+    if Tutorial:
+        print "Building tutorial."
+        map = buildTutorial(map, DungeonLevel)
     else:
-        if which == 1:
+        which = libtcod.random_get_int(0, 1, 4)
+
+        if DungeonLevel == 0:
+            print "Building the world."
+            map = buildWorld(map, DungeonLevel)
+        elif DungeonLevel == 1:
             print "Building traditional dungeon."
             map = buildTraditionalDungeon(map, DungeonLevel)
-        elif which == 2:
-            print "Building BSP dungeon."
-            map = buildBSPDungeon(map, DungeonLevel)
-        elif which == 3:
+        elif DungeonLevel in [10, 15]:
+            print "Building a special map."
+            map = buildBigRoom(map, DungeonLevel)
+        elif DungeonLevel < 5:
+            if which < 3:
+                print "Building a cave."
+                map = buildDrunkenCave(map, DungeonLevel)
+            else:
+                print "Building traditional dungeon."
+                map = buildTraditionalDungeon(map, DungeonLevel)
+        elif DungeonLevel == 5:
             print "Building a city."
             map = buildCity(map, DungeonLevel)
+        elif DungeonLevel < 8:
+            print "Building sewers."
+            map = buildSewers(map, DungeonLevel)
+        elif DungeonLevel < 10:
+            if which < 3:
+                print "Building BSP dungeon."
+                map = buildBSPDungeon(map, DungeonLevel)
+            else:
+                print "Building a maze."
+                map = buildMaze(map, DungeonLevel)
         else:
-            print "Building a cave."
-            map = buildDrunkenCave(map, DungeonLevel)
+            if which == 1:
+                print "Building traditional dungeon."
+                map = buildTraditionalDungeon(map, DungeonLevel)
+            elif which == 2:
+                print "Building BSP dungeon."
+                map = buildBSPDungeon(map, DungeonLevel)
+            elif which == 3:
+                print "Building a city."
+                map = buildCity(map, DungeonLevel)
+            else:
+                print "Building a cave."
+                map = buildDrunkenCave(map, DungeonLevel)
 
     # Set map to the correct dungeon level.
     var.Maps[DungeonLevel] = map
 
     # Add entities.
-    if Populate:
+    if Populate and not Tutorial:
         populate(DungeonLevel)
     else:
         # We might have trapped someone while re-generating the level:
@@ -1130,6 +1134,12 @@ def buildPrefabLevel(map, DungeonLevel):
     # TODO: Check connectivity of stairs.
     map = makeStairs(map, DungeonLevel)
 
+    return map
+
+def buildTutorial(map, DungeonLevel):
+    NewRoom = Room(0, 0, var.MapWidth - 1, var.MapHeight - 1)
+    map = NewRoom.create_square_room(map, True)
+    map = create_prefab(raw.Tutorial, NewRoom, map, DungeonLevel)
     return map
 
 def buildCity(map, DungeonLevel):
