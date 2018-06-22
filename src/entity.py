@@ -18,7 +18,7 @@ import var
 #  Functions
 ###############################################################################
 
-def spawn(x, y, BluePrint, type):
+def spawn(x, y, BluePrint, type, allowSpecial = True):
     # Requires at least a colored character with a name.
     try:
         char = BluePrint['char']
@@ -101,19 +101,20 @@ def spawn(x, y, BluePrint, type):
 
         New.diet = diet
 
-        if len(inventory) != 0:
-            for i in inventory:
-                NewItem = spawn(x, y, i, 'ITEM')
-                New.inventory.append(NewItem)
-
-            New.actionAutoEquip(True)
-
         if len(mutations) != 0:
             for m in mutations:
                 mutation.gain(m, New)
 
         if New.hasFlag('AVATAR'):
             New.givenName = 'Adventurer'
+
+        if allowSpecial:
+            if len(inventory) != 0:
+                for i in inventory:
+                    NewItem = spawn(x, y, i, 'ITEM')
+                    New.inventory.append(NewItem)
+
+                New.actionAutoEquip(True)
 
     elif type == 'ITEM':
         try:
@@ -224,7 +225,8 @@ def spawn(x, y, BluePrint, type):
         New.Wit = Wit
         New.Ego = Ego
 
-        New.gainMagic()
+        if allowSpecial:
+            New.gainMagic()
 
     else:
         print "Failed to spawn unknown entity type."
@@ -4123,6 +4125,12 @@ class Item(Entity):
         if self.type != other.type:
             return False
 
+        if self.prefix != other.prefix:
+            return False
+
+        if self.suffix != other.suffix:
+            return False
+
         if self.material != other.material:
             return False
 
@@ -4202,11 +4210,19 @@ class Item(Entity):
         if self.stack <= number:
             return None
 
-        NewItem = spawn(self.x, self.y, self.type, 'ITEM')
+        NewItem = spawn(self.x, self.y, self.type, 'ITEM', False)
+
+        NewItem.prefix = self.prefix
+        NewItem.suffix = self.suffix
         NewItem.material = self.material
         NewItem.size = self.size
         NewItem.attack = self.attack
         NewItem.ranged = self.ranged
+        NewItem.Str = self.Str
+        NewItem.Dex = self.Dex
+        NewItem.End = self.End
+        NewItem.Wit = self.Wit
+        NewItem.Ego = self.Ego
         NewItem.DefenseValue = self.DefenseValue
         NewItem.ProtectionValue = self.ProtectionValue
         NewItem.StrScaling = self.StrScaling

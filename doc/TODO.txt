@@ -2,11 +2,13 @@ FIX
 ===
 * fix APPLY / TOOL
 * fix fullscreen sometimes broken before player does any move
+* rework AttackSPCost
+* fix splitting magic tiems not properly applying prefixes and suffixes
 
 TODO
 ====
 * release with pyinstaller, cx_Freeze, or something?
-* replace AP cost od pick up with SP cost
+* replace AP cost of pick up with SP cost?
 * tutorial
 * AI
    item use
