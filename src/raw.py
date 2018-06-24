@@ -69,6 +69,16 @@ Bite = {
 'flags': ['NATURAL']
 }
 
+Beak = {
+'verb': 'peck&S',
+'ToHitBonus': 1,
+'DiceNumber': 1,
+'DiceValue': 4,
+'DamageBonus': 1,
+'DamageType': 'PIERCE',
+'flags': ['NATURAL']
+}
+
 Kick = {
 'verb': 'kick&S',
 'DiceNumber': 1,
@@ -81,6 +91,14 @@ Buffet = {
 'ToHitBonus': -1,
 'DiceNumber': 2,
 'DiceValue': 2,
+'flags': ['NATURAL']
+}
+
+AcidSlime = {
+'verb': 'slime&S',
+'DiceNumber': 3,
+'DiceValue': 4,
+'DamageType': 'ACID',
 'flags': ['NATURAL']
 }
 
@@ -3152,18 +3170,38 @@ Player = {
 'char': '@',
 'color': libtcod.white,
 'name': 'Player',
-'Str': 2,
-'Dex': 2,
-'End': 2,
+'Str': 0,
+'Dex': 0,
+'End': 0,
 'Wit': 0,
 'Ego': 0,
 'speed': 1.0,
 'sight': 0,
 'sex': 'MOF',
 #'intrinsics': [],
-'inventory': [ShortSword, RoundShield, LeatherArmor, HealPotion, Bandage, WyrdLight],
+'inventory': [ShortSword, Torch, HealPotion],
 'flags': ['HUMANOID', 'AVATAR', 'UNIQUE'],
 'frequency': 0
+}
+
+Ooze = {
+'char': 'j',
+'color': libtcod.light_green,
+'name': 'cave ooze',
+'Str': 0,
+'Dex': -2,
+'End': 0,
+'Wit': -20,
+'Ego': -20,
+'speed': 0.8,
+'size': -1,
+'sight': 2,
+'sex': 'UNDEFINED',
+'diet': ['BONE', 'CLOTH', 'FLESH', 'IRON', 'LEATHER', 'PAPER', 'PLANT', 'WATER', 'WOOD'],
+'intrinsics': [('IMMUNE_ACID', 1), ('IMMUNE_MIND', 1), ('RESIST_BLUNT', 5),
+               ('RESIST_CHOKE', 15), ('BLOODLESS', 1), ('VULN_GLASS', 2)],
+'flags': ['SLIME', 'AI_DIJKSTRA'],
+'frequency': 200
 }
 
 KoboldForager = {
@@ -3188,7 +3226,7 @@ KoboldHunter = {
 'char': 'k',
 'color': libtcod.darker_orange,
 'name': 'kobold hunter',
-'Str': 1,
+'Str': 0,
 'Dex': 3,
 'End': -3,
 'Wit': 1,
@@ -3210,7 +3248,7 @@ KoboldFisher = {
 'name': 'kobold fisher',
 'Str': 0,
 'Dex': 3,
-'End': -2,
+'End': -3,
 'Wit': 1,
 'Ego': 0,
 'speed': 1,
@@ -3220,6 +3258,7 @@ KoboldFisher = {
 'inventory': [Spear],
 'flags': ['HUMANOID'],
 'mutations': ['MUTATION_CLAWS'],
+'DL': 2,
 'frequency': 600
 }
 
@@ -3228,8 +3267,8 @@ KoboldMiner = {
 'color': libtcod.dark_grey,
 'name': 'kobold miner',
 'Str': 1,
-'Dex': 2,
-'End': -2,
+'Dex': 1,
+'End': -1,
 'Wit': 1,
 'Ego': 0,
 'speed': 1,
@@ -3280,6 +3319,48 @@ KoboldWhelp = {
 'frequency': 300
 }
 
+Kea = {
+'char': 'K',
+'color': libtcod.red,
+'name': 'kea',
+'Str': 0,
+'Dex': 0,
+'End': -8,
+'Wit': -8,
+'Ego': -8,
+'size': -2,
+'flags': ['BIRD', 'USE_HEAD', 'USE_NATURAL', 'FLY'],
+'frequency': 800
+}
+
+Kestrel = {
+'char': 'K',
+'color': libtcod.blue,
+'name': 'kestrel',
+'Str': 0,
+'Dex': 0,
+'End': -8,
+'Wit': -8,
+'Ego': -8,
+'speed': 1.2,
+'size': -2,
+'flags': ['BIRD', 'USE_HEAD', 'FLY'],
+'frequency': 600
+}
+
+Kiwi = {
+'char': 'K',
+'color': libtcod.darker_orange,
+'name': 'kiwi',
+'Str': 0,
+'Dex': 0,
+'End': -8,
+'Wit': -8,
+'Ego': -8,
+'size': -2,
+'flags': ['BIRD', 'USE_HEAD']
+}
+
 Orc = {
 'char': 'o',
 'color': libtcod.desaturated_green,
@@ -3291,7 +3372,8 @@ Orc = {
 'Ego': 0,
 'sex': 'MOF',
 'inventory': [LongSword, KiteShield, ChainArmor, LowBoot],
-'flags': ['HUMANOID']
+'flags': ['HUMANOID'],
+'DL': 2
 }
 
 Ogre = {
@@ -3310,6 +3392,20 @@ Ogre = {
 'flags': ['HUMANOID'],
 'DL': 5,
 'frequency': 200
+}
+
+Rat = {
+'char': 'r',
+'color': libtcod.darker_orange,
+'name': 'rat',
+'Str': -1,
+'Dex': 1,
+'End': -13,
+'Wit': -10,
+'Ego': -10,
+'size': -2,
+'sex': 'MOF',
+'flags': ['ANIMAL', 'USE_HEAD']
 }
 
 Troll = {
@@ -3343,14 +3439,14 @@ Alien = {
 'sex': 'UNDEFINED',
 'intrinsics': [('VULN_GOLD', 3)],
 'flags': ['ALIEN', 'USE_LEGS', 'AI_DIJKSTRA'],
-'DL': 5,
+'DL': 7,
 'frequency': 5
 }
 
 BlackKnight = {
 'char': 'K',
 'color': libtcod.darkest_grey,
-'name': 'black knight',
+'name': 'owl knight',
 'Str': 4,
 'Dex': 4,
 'End': 4,
@@ -3394,9 +3490,19 @@ Head = {
 'place': 2,
 'size': -2,
 'eyes': 2,
-'StrScaling': 'C', # No, had is not really that good for attacking.
+'StrScaling': 'C', # No, head is not really that good for attacking.
 'DexScaling': 'C',
 'attack': Bite,
+'flags': ['HEAD', 'VITAL']
+}
+
+BirdHead = {
+'name': 'head',
+'cover': 40,
+'place': 2,
+'size': -2,
+'eyes': 2,
+'attack': Beak,
 'flags': ['HEAD', 'VITAL']
 }
 
@@ -3408,6 +3514,7 @@ Torso = {
 SlimeTorso = {
 'name': 'blob',
 'eyes': 1,
+'attack': AcidSlime,
 'flags': ['TORSO', 'VITAL', 'CANNOT_SEVER', 'GRASP']
 }
 
@@ -5806,14 +5913,19 @@ SpellList = [
 # Monsters:
 # ---------
 MobList = [
+Ooze,
 KoboldForager,
 KoboldFisher,
 KoboldHunter,
 KoboldMiner,
 KoboldWarrior,
 KoboldWhelp,
+Kea,
+Kestrel,
+Kiwi,
 Orc,
 Ogre,
+Rat,
 Troll,
 Alien
 ]
@@ -5853,7 +5965,7 @@ Paw
 ]
 
 BirdList = [
-Head,
+BirdHead,
 AnimalTorso,
 Wing,
 Wing,

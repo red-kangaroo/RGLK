@@ -2,18 +2,26 @@ FIX
 ===
 * fix APPLY / TOOL
 * fix fullscreen sometimes broken before player does any move
-* rework AttackSPCost
-* fix splitting magic tiems not properly applying prefixes and suffixes
+* armor is too strong?
 
 TODO
 ====
 * release with pyinstaller, cx_Freeze, or something?
 * replace AP cost of pick up with SP cost?
 * tutorial
+* monsters
+   respawning
+
+   spiders + poison
+   more rats
+   keter as powerful bird-people?
+* sleep and go commands
+* guaranteed healing potion on first floor?
 * AI
    item use
    guarding, wandering, hunting
    coolness - material vulnerabilities
+
    aiBattlePrep()
    aiDoUrgent()
    aiUseInventory()
@@ -31,7 +39,6 @@ TODO
    IMMUNE_GAS
    IMMUNE_DISEASE
    RESIST_SLEEP insomnia
-   RESIST_CHOKE unbreathing
    RESIST_POLY unchanging
    RESIST_TELE
    RESIST_CHARM stun, daze and confusion

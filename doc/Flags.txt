@@ -33,7 +33,7 @@ FEATURE            Any dungeon feature (altar, chair, ...)
 
 Type:
 MALE               Those two...
-FEMALE             ...are obvious.
+FEMALE             ...are obvious. Or use MOF.
 NEUTER             Uses "it". Everything that's not MALE, FEMALE or alien.
 UNDEFINED          Uses those weird "xe" pronouns. Not used for political corectness,
                    but because it works as wonder for strange abominations and aliens!

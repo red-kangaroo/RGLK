@@ -292,11 +292,11 @@ def render_UI(Player):
         libtcod.console_set_default_foreground(var.UIPanel, var.TextColor)
 
         # This will one day only work in WizMode:
-        render_bar(1, 56, 18, 'HP', int(math.floor(Player.target.HP)), int(math.floor(Player.target.maxHP)),
+        render_bar(1, 56, 18, 'HP ', int(math.floor(Player.target.HP)), int(math.floor(Player.target.maxHP)),
                    libtcod.dark_red, libtcod.darker_red)
-        render_bar(1, 57, 18, 'MP', int(math.floor(Player.target.MP)), int(math.floor(Player.target.maxMP)),
+        render_bar(1, 57, 18, 'MP ', int(math.floor(Player.target.MP)), int(math.floor(Player.target.maxMP)),
                    libtcod.blue, libtcod.darker_blue)
-        render_bar(1, 58, 18, 'SP', int(math.floor(Player.target.SP)), int(math.floor(Player.target.maxSP)),
+        render_bar(1, 58, 18, 'SP ', int(math.floor(Player.target.SP)), int(math.floor(Player.target.maxSP)),
                    libtcod.dark_green, libtcod.darker_green)
 
     # TODO
@@ -829,7 +829,10 @@ def item_description(item):
 
 def render_bar(x, y, totalWidth, name, value, maxValue, barColor, backColor):
     # Calculate width of bar:
-    barWidth = int(float(value) / maxValue * totalWidth)
+    if maxValue <= 0:
+        barWidth = 0
+    else:
+        barWidth = int(float(value) / maxValue * totalWidth)
 
     libtcod.console_set_default_background(var.UIPanel, backColor)
     libtcod.console_rect(var.UIPanel, x, y, totalWidth, 1, False, libtcod.BKGND_SCREEN)

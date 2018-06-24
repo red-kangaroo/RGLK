@@ -1395,6 +1395,7 @@ def populate(DungeonLevel):
             NewItem = None
 
     # Special bosses:
+    '''
     if DungeonLevel == 2: # A guaranteed kobold miner.
         x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
         y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
@@ -1409,6 +1410,7 @@ def populate(DungeonLevel):
 
             NewMob.x = x
             NewMob.y = y
+    '''
 
 def getRandomEntity(type, DungeonLevel = 0):
     # TODO: Base frequency on DL.

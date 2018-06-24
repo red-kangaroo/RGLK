@@ -105,11 +105,11 @@ def spawn(x, y, BluePrint, type, allowSpecial = True):
             for m in mutations:
                 mutation.gain(m, New)
 
-        if New.hasFlag('AVATAR'):
-            New.givenName = 'Adventurer'
-
         if allowSpecial:
-            if len(inventory) != 0:
+            if New.hasFlag('AVATAR'):
+                New.makePlayer()
+
+            if len(inventory) != 0: # TODO
                 for i in inventory:
                     NewItem = spawn(x, y, i, 'ITEM')
                     New.inventory.append(NewItem)
@@ -675,6 +675,36 @@ class Mob(Entity):
 
         mutation.name_parts(self)
 
+    def makePlayer(self):
+        self.givenName = 'Adventurer'
+
+        # Minor randomization of starting attributes:
+        iteration = 0
+
+        while iteration < 3:
+            mod = random.choice([1, 1, -1])
+            stat = libtcod.random_get_int(0, 1, 5)
+
+            if stat == 1:
+                self.Str += mod
+            elif stat == 2:
+                self.Dex += mod
+            elif stat == 3:
+                self.End += mod
+            elif stat == 4:
+                self.Wit += mod
+            elif stat == 5:
+                self.Ego += mod
+
+            iteration += 1
+
+        # TODO: Random starting inventory.
+
+        self.recalculateAll()
+        self.HP = self.maxHP
+        self.MP = self.maxMP
+        self.SP = self.maxSP
+
     def recalculateAll(self):
         #self.recalculateFOV()
         self.recalculateHealth()
@@ -759,6 +789,7 @@ class Mob(Entity):
     def regainStamina(self):
         if not self.hasFlag('DEAD') and self.SP < self.maxSP:
             toStamina = 1.0
+            #toStamina = 0.5
 
             # Encumberance
             toStamina /= (self.getBurdenState() + 1)
@@ -1294,6 +1325,9 @@ class Mob(Entity):
         return damage
 
     def resistDamage(self, damage, DamageType, PV = None):
+        if damage <= 0:
+            return 0
+
         resistance = 0
 
         # Check resistances and vulnerabilities:
@@ -1304,9 +1338,20 @@ class Mob(Entity):
         if self.hasIntrinsic('FRAGILE'):
             resistance -= self.getIntrinsicPower('FRAGILE')
 
+        print "done %s damage" % damage
+
         # Protection Value adds to basic resistances against physical:
         if DamageType in ['BLUNT', 'SLASH', 'PIERCE'] and PV != None:
-            resistance += PV
+            resistance += var.rand_int_from_float(PV / 10)
+
+            # TODO: Rerolls for armor skills.
+            blocked = libtcod.random_get_int(0, 0, PV)
+            damage -= blocked
+
+            if damage < 0:
+                damage = 0
+
+            print "   after %s PV (max %s): %s damage" % (blocked, PV, damage)
 
         # You take 100 % damage at 0 resistance, -20 % per point of resistance.
         resisted = damage * (0.8 ** resistance)
@@ -1317,7 +1362,7 @@ class Mob(Entity):
 
         resisted = var.rand_int_from_float(max(0, resisted))
 
-        print "a %s damage, after resistances %s" % (damage, resisted)
+        print "   after resistances: %s damage" % resisted
 
         return resisted
 
@@ -1839,6 +1884,8 @@ class Mob(Entity):
 
     def canBreakCurse(self, power = 0):
         # Through undeath of some skills, you may automatically break curses binding you.
+        if self.hasFlag('DEAD'):
+            return True
         if self.hasFlag('AVATAR') and var.WizModeActivated:
             return True
         if self.hasFlag('UNDEAD'):
@@ -2292,6 +2339,8 @@ class Mob(Entity):
             # TODO: Special messages for different creatures and limbs lost.
             ui.message("%s die&S." % self.getName(True), libtcod.red, self)
 
+            self.flags.append('DEAD')
+
             # Drop all equipped and carried items.
             for part in self.bodyparts:
                 item = part.doDeEquip()
@@ -2304,7 +2353,6 @@ class Mob(Entity):
 
             self.flags.remove('MOB')
             self.flags.append('ITEM')
-            self.flags.append('DEAD')
 
             if self.hasFlag('AVATAR'):
                 # TODO: WizMode can prevent death.
@@ -2415,7 +2463,8 @@ class Mob(Entity):
                     tertiaryAttacks.append(i)
 
             elif i.hasFlag('LEG'):
-                if self.hasFlag('USE_LEGS') or self.hasHands(False) == 0:
+                if (self.hasFlag('USE_LEGS') or
+                    (self.hasHands(False) == 0 and not (self.hasFlag('USE_HEAD') or self.hasFlag('USE_NATURAL')))):
                     primaryAttacks.append(i)
                 else:
                     secondaryAttacks.append(i)
@@ -3195,7 +3244,7 @@ class Mob(Entity):
 
                     # TODO: LOCKED flag.
                     if var.getMap()[x][y].hasFlag('SECRET'):
-                        ui.message("%s discover&S a %s!" % (self.getName(True), var.getMap()[x][y].getName()),
+                        ui.message("%s discover&S a secret door!" % self.getName(True), # % (self.getName(True), var.getMap()[x][y].getName()),
                                    libtcod.azure, actor = self)
 
                     ui.message("%s open&S the %s." % (self.getName(True), var.getMap()[x][y].getName()), actor = self)
@@ -4287,6 +4336,12 @@ class Item(Entity):
         return light
 
     def getSPCost(self):
+        return 5 + self.size
+
+        # The stuff below works nicely, but it results in way too high SP cost
+        # for weapons with high StrScaling and low DexScaling. They need to be
+        # useable, so we'll use a simpler SP cost for now. Maybe revise later?
+        '''
         base = 5
         # Stamina cost of attacks is based on their scaling, as StrScaling attacks
         # are supposed to use the weight of the weapon, requiring heavy blow and
@@ -4309,6 +4364,7 @@ class Item(Entity):
             return max(2, int(math.floor(base)))
         else:
             return max(2, int(math.ceil(base)))
+        '''
 
     def getMPCost(self):
         # TODO: For magical weapons and shields blocking magic.
