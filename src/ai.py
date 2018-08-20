@@ -331,7 +331,7 @@ def handleKeys(Player):
                     ui.message("You level-teleport.", libtcod.chartreuse)
                     return
                 else:
-                    ui.message("You cannot teleport furhter up!", libtcod.chartreuse)
+                    ui.message("You cannot teleport further up!", libtcod.chartreuse)
                     return
             elif dz < 0:
                 if var.DungeonLevel + 1 <= var.FloorMaxNumber:
@@ -360,7 +360,7 @@ def handleKeys(Player):
                     ui.message("You level-teleport.", libtcod.chartreuse)
                     return
                 else:
-                    ui.message("You cannot teleport furhter down!", libtcod.chartreuse)
+                    ui.message("You cannot teleport further down!", libtcod.chartreuse)
                     return
 
             return # Just to be sure we'll have no fallthrough.

@@ -2726,6 +2726,7 @@ BlueDress = {
 'char': ']',
 'color': libtcod.blue,
 'name': 'blue dress',
+'plural': 'blue dresses',
 'material': 'CLOTH',
 'size': -1,
 'DV': 0,
@@ -2739,6 +2740,7 @@ GreenDress = {
 'char': ']',
 'color': libtcod.dark_green,
 'name': 'green dress',
+'plural': 'green dresses',
 'material': 'CLOTH',
 'size': -1,
 'DV': 0,
@@ -2752,6 +2754,7 @@ GrayDress = {
 'char': ']',
 'color': libtcod.grey,
 'name': 'gray dress',
+'plural': 'gray dresses',
 'material': 'CLOTH',
 'size': -1,
 'DV': 0,
@@ -2765,6 +2768,7 @@ RedDress = {
 'char': ']',
 'color': libtcod.dark_red,
 'name': 'red dress',
+'plural': 'red dresses',
 'material': 'CLOTH',
 'size': -1,
 'DV': 0,
@@ -2778,6 +2782,8 @@ RedDress = {
 # zombie hide armor
 # troll hide armor
 # dragon scale mail
+# bone breastplate
+# wyrd wrappings
 # fur cloak
 # cloak of invisibility
 # cloak of protection
@@ -2961,7 +2967,72 @@ MutationPotion = {
 'ranged': MisThrown, # TODO: Splash.
 'flags': ['POTION', 'MUTATION'],
 'coolness': 0,
-'frequency': 50
+'frequency': 5
+}
+
+StrengthPotion = {
+'char': '!',
+'color': libtcod.magenta,
+'name': 'potion',
+'suffix': 'of strength',
+'material': 'WATER',
+'size': -2,
+'ranged': MisThrown, # TODO: Splash.
+'flags': ['POTION', 'STRENGTH'],
+'coolness': 20,
+'frequency': 5
+}
+
+DexterityPotion = {
+'char': '!',
+'color': libtcod.magenta,
+'name': 'potion',
+'suffix': 'of dexterity',
+'material': 'WATER',
+'size': -2,
+'ranged': MisThrown, # TODO: Splash.
+'flags': ['POTION', 'DEXTERITY'],
+'coolness': 20,
+'frequency': 5
+}
+
+EndurancePotion = {
+'char': '!',
+'color': libtcod.magenta,
+'name': 'potion',
+'suffix': 'of endurance',
+'material': 'WATER',
+'size': -2,
+'ranged': MisThrown, # TODO: Splash.
+'flags': ['POTION', 'ENDURANCE'],
+'coolness': 20,
+'frequency': 5
+}
+
+WitsPotion = {
+'char': '!',
+'color': libtcod.magenta,
+'name': 'potion',
+'suffix': 'of intellect',
+'material': 'WATER',
+'size': -2,
+'ranged': MisThrown, # TODO: Splash.
+'flags': ['POTION', 'WITS'],
+'coolness': 20,
+'frequency': 5
+}
+
+EgoPotion = {
+'char': '!',
+'color': libtcod.magenta,
+'name': 'potion',
+'suffix': 'of beauty',
+'material': 'WATER',
+'size': -2,
+'ranged': MisThrown, # TODO: Splash.
+'flags': ['POTION', 'EGO'],
+'coolness': 20,
+'frequency': 5
 }
 
 # Tools:
@@ -5669,6 +5740,11 @@ Berry,
 # Potions:
 HealPotion,
 MutationPotion,
+StrengthPotion,
+DexterityPotion,
+EndurancePotion,
+WitsPotion,
+EgoPotion,
 # Tools:
 Bandage,
 # Gems:

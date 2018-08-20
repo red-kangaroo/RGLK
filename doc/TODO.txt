@@ -15,6 +15,8 @@ TODO
    spiders + poison
    more rats
    keter as powerful bird-people?
+* potions
+   empowerement - random stats
 * sleep and go commands
 * guaranteed healing potion on first floor?
 * AI

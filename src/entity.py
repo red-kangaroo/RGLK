@@ -1803,6 +1803,8 @@ class Mob(Entity):
                 toUse.power = power
             elif toUse.power == power:
                 toUse.power += 1
+
+            self.recalculateAll()
         else:
             NewInt = intrinsic.Intrinsic(type, duration, power)
             self.intrinsics.append(NewInt)
@@ -1815,6 +1817,8 @@ class Mob(Entity):
             # TODO: Maybe not for DEAD?
             ui.message(self.getName(True) + NewInt.begin, color, actor = self)
 
+            self.recalculateAll()
+
     def removeIntrinsic(self, intrinsic, power = None):
         for i in self.intrinsics:
             if i.type == intrinsic:
@@ -1825,7 +1829,9 @@ class Mob(Entity):
                         ui.message(self.getName(True) + i.end, actor = self)
                 else:
                     i.power -= power # If this results in negative power, it will
-                return True          # be removed by the next handling routine.
+                                     # be removed by the next handling routine.
+                self.recalculateAll()
+                return True
 
         return False
 
@@ -1836,6 +1842,8 @@ class Mob(Entity):
 
                 if i.type != None and not self.hasFlag('DEAD'):
                     ui.message(self.getName(True) + i.end, actor = self)
+
+                self.recalculateAll()
 
         for item in self.getEquipment():
             if not item.hasFlag('DEAD') and not item.hasFlag('BODY_PART'):
@@ -4642,6 +4650,151 @@ class Item(Entity):
                     mutationNo += 1
 
                 effect = "&SUBC feel&S weird."
+
+            elif self.hasFlag('STRENGTH'):
+                effect = "&SUBC feel&S &POSS muscles grow."
+
+                if self.beautitude >= 0:
+                    Eater.Str += 1
+
+                if self.beautitude > 0:
+                    duration = 200
+
+                    if Eater.hasIntrinsic('DEBUFF_STRENGTH'):
+                        Eater.removeIntrinsic('DEBUFF_STRENGTH')
+
+                elif self.beautitude == 0:
+                    duration = var.rand_dice(1, 100, 50)
+                else:
+                    duration = var.rand_dice(1, 100)
+
+                    if Eater.hasIntrinsic('BUFF_STRENGTH'):
+                        Eater.removeIntrinsic('BUFF_STRENGTH')
+
+                toBuff = self.enchantment + self.beautitude
+
+                if toBuff > 0:
+                    Eater.addIntrinsic('BUFF_STRENGTH', duration, toBuff)
+                elif toBuff < 0:
+                    Eater.addIntrinsic('DEBUFF_STRENGTH', duration, -toBuff)
+
+                Eater.recalculateAll()
+
+            elif self.hasFlag('DEXTERITY'):
+                effect = "&SUBC feel&S &POSS joints grow flexible."
+
+                if self.beautitude >= 0:
+                    Eater.Dex += 1
+
+                if self.beautitude > 0:
+                    duration = 200
+
+                    if Eater.hasIntrinsic('DEBUFF_DEXTERITY'):
+                        Eater.removeIntrinsic('DEBUFF_DEXTERITY')
+
+                elif self.beautitude == 0:
+                    duration = var.rand_dice(1, 100, 50)
+                else:
+                    duration = var.rand_dice(1, 100)
+
+                    if Eater.hasIntrinsic('BUFF_DEXTERITY'):
+                        Eater.removeIntrinsic('BUFF_DEXTERITY')
+
+                toBuff = self.enchantment + self.beautitude
+
+                if toBuff > 0:
+                    Eater.addIntrinsic('BUFF_DEXTERITY', duration, toBuff)
+                elif toBuff < 0:
+                    Eater.addIntrinsic('DEBUFF_DEXTERITY', duration, -toBuff)
+
+                Eater.recalculateAll()
+
+            elif self.hasFlag('ENDURANCE'):
+                effect = "&SUBC feel&S &POSS bulk grow."
+
+                if self.beautitude >= 0:
+                    Eater.End += 1
+
+                if self.beautitude > 0:
+                    duration = 200
+
+                    if Eater.hasIntrinsic('DEBUFF_ENDURANCE'):
+                        Eater.removeIntrinsic('DEBUFF_ENDURANCE')
+
+                elif self.beautitude == 0:
+                    duration = var.rand_dice(1, 100, 50)
+                else:
+                    duration = var.rand_dice(1, 100)
+
+                    if Eater.hasIntrinsic('BUFF_ENDURANCE'):
+                        Eater.removeIntrinsic('BUFF_ENDURANCE')
+
+                toBuff = self.enchantment + self.beautitude
+
+                if toBuff > 0:
+                    Eater.addIntrinsic('BUFF_ENDURANCE', duration, toBuff)
+                elif toBuff < 0:
+                    Eater.addIntrinsic('DEBUFF_ENDURANCE', duration, -toBuff)
+
+                Eater.recalculateAll()
+
+            elif self.hasFlag('WITS'):
+                effect = "&SUBC feel&S &POSS mind sharpen."
+
+                if self.beautitude >= 0:
+                    Eater.Wit += 1
+
+                if self.beautitude > 0:
+                    duration = 200
+
+                    if Eater.hasIntrinsic('DEBUFF_WITS'):
+                        Eater.removeIntrinsic('DEBUFF_WITS')
+
+                elif self.beautitude == 0:
+                    duration = var.rand_dice(1, 100, 50)
+                else:
+                    duration = var.rand_dice(1, 100)
+
+                    if Eater.hasIntrinsic('BUFF_WITS'):
+                        Eater.removeIntrinsic('BUFF_WITS')
+
+                toBuff = self.enchantment + self.beautitude
+
+                if toBuff > 0:
+                    Eater.addIntrinsic('BUFF_WITS', duration, toBuff)
+                elif toBuff < 0:
+                    Eater.addIntrinsic('DEBUFF_WITS', duration, -toBuff)
+
+                Eater.recalculateAll()
+
+            elif self.hasFlag('EGO'):
+                effect = "&SUBC feel&S &POSS ego grow."
+
+                if self.beautitude >= 0:
+                    Eater.Ego += 1
+
+                if self.beautitude > 0:
+                    duration = 200
+
+                    if Eater.hasIntrinsic('DEBUFF_EGO'):
+                        Eater.removeIntrinsic('DEBUFF_EGO')
+
+                elif self.beautitude == 0:
+                    duration = var.rand_dice(1, 100, 50)
+                else:
+                    duration = var.rand_dice(1, 100)
+
+                    if Eater.hasIntrinsic('BUFF_EGO'):
+                        Eater.removeIntrinsic('BUFF_EGO')
+
+                toBuff = self.enchantment + self.beautitude
+
+                if toBuff > 0:
+                    Eater.addIntrinsic('BUFF_EGO', duration, toBuff)
+                elif toBuff < 0:
+                    Eater.addIntrinsic('DEBUFF_EGO', duration, -toBuff)
+
+                Eater.recalculateAll()
 
             elif self.hasFlag('FOO'):
                 pass
