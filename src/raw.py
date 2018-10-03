@@ -4368,6 +4368,12 @@ Whirl = {
 'height': 7
 }
 
+Leaves = {
+'file': 'rooms/leaves',
+'width': 9,
+'height': 9
+}
+
 # Four-way junctions.
 Foursome1 = {
 'file': 'rooms/foursome1',
@@ -4424,6 +4430,16 @@ Secret4 = {
 '@': (MagicBox, None, None, None),
 'T': (RockFloor, None, Table, None),
 'c': (RockFloor, None, Chair, None)
+}
+
+# Storage rooms (with monsters).
+Storage1 = {
+'file': 'rooms/storage1',
+'width': 10,
+'height': 8,
+'r': (RockFloor, None, 'RANDOM_ANY', None),
+'s': (RockFloor, None, 'RANDOM_SPECIAL', None),
+'T': (RockFloor, None, None, Troll)
 }
 
 # Barracks.
@@ -4617,6 +4633,12 @@ Pillars10 = {
 'height': 9
 }
 
+Pillars11 = {
+'file': 'rooms/pillars11',
+'width': 16,
+'height': 9
+}
+
 # Pool rooms.
 Pool1a = {
 'file': 'rooms/pool1',
@@ -4800,6 +4822,14 @@ Vault5 = {
 'X': (RockWall, None, None, None),
 '+': (ClosedGoldDoor, ['BLOCKED'], None, None),
 'M': (GoldFloor, None, 'RANDOM_ANY', 'RANDOM_ANY')
+}
+
+# Gardens.
+Alley = {
+'file': 'rooms/alley',
+'width': 13,
+'height': 7,
+'T': (LeafyTree, None, None, None)
 }
 
 # the Surface:
@@ -6085,6 +6115,7 @@ DestroyedTerrainList = {
 # Prefab rooms:
 # -------------
 RoomList = [
+Alley,
 Barracks1,
 Barracks2,
 Cage1,
@@ -6111,6 +6142,7 @@ Guard2,
 Guard3,
 Guard4,
 Guard5,
+Leaves,
 LetterS,
 LetterX,
 Library1,
@@ -6129,6 +6161,7 @@ Pillars9a,
 Pillars9b,
 Pillars9c,
 Pillars10,
+Pillars11,
 Pool1a,
 Pool1b,
 Pool1c,
@@ -6144,6 +6177,7 @@ Secret4,
 SmallRooms1,
 SmallRooms2,
 SmallRooms3,
+Storage1,
 TJunction,
 Vault1,
 Vault2,

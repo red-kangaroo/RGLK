@@ -2,10 +2,13 @@ FIX
 ===
 * fix APPLY / TOOL
 * fix fullscreen sometimes broken before player does any move
-* armor is too strong?
 
 TODO
 ====
+* sleep and go commands
+* dungeon generation with rooms + A* corridors?
+* guarantee some buff potions?
+
 * release with pyinstaller, cx_Freeze, or something?
 * replace AP cost of pick up with SP cost?
 * tutorial
@@ -17,7 +20,6 @@ TODO
    keter as powerful bird-people?
 * potions
    empowerement - random stats
-* sleep and go commands
 * guaranteed healing potion on first floor?
 * AI
    item use

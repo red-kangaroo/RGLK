@@ -1,4 +1,19 @@
-# Recondite Gaol of the Lachrymose Knights
+```
+
+ ▄▀▀▄▀▀▀▄ econdite
+█   █   █  ▄▀▀▀▀▄ aol
+▐  █▀▀█▀  █        of the
+ ▄▀    █  █    ▀▄▄  ▄▀▀▀▀▄ achrymose
+█     █   █     █ ██    █       ▄▀▀▄ █ nights
+▐     ▐   ▐▀▄▄▄▄▀ ▐▐    █      █  █ ▄▀
+          ▐            █       ▐  █▀▄  
+                     ▄▀▄▄▄▄▄▄▀   █   █
+                     █         ▄▀   █  
+                     ▐         █    ▐  
+                     ▐         ▐       
+                               ▐       
+                               
+```
 
 Simple roguelike in python + libtcod.
 
