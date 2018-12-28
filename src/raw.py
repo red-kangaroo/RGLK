@@ -2953,8 +2953,7 @@ HealPotion = {
 'size': -2,
 'ranged': MisThrown, # TODO: Splash.
 'flags': ['POTION', 'HEAL'],
-'coolness': 20, # TODO
-'frequency': 500
+'coolness': 20 # TODO
 }
 
 MutationPotion = {
@@ -3250,7 +3249,7 @@ Player = {
 'sight': 0,
 'sex': 'MOF',
 #'intrinsics': [],
-'inventory': [ShortSword, Torch, HealPotion],
+'inventory': [Knife, Torch, HealPotion],
 'flags': ['HUMANOID', 'AVATAR', 'UNIQUE'],
 'frequency': 0
 }
@@ -3288,7 +3287,7 @@ KoboldForager = {
 'sight': 5,
 'size': -1,
 'sex': 'MOF',
-'flags': ['HUMANOID', 'AI_SCAVENGER'],
+'flags': ['HUMANOID', 'AI_KITE', 'AI_SCAVENGER'],
 'mutations': ['MUTATION_CLAWS'],
 'frequency': 600
 }
@@ -4439,7 +4438,7 @@ Storage1 = {
 'height': 8,
 'r': (RockFloor, None, 'RANDOM_ANY', None),
 's': (RockFloor, None, 'RANDOM_SPECIAL', None),
-'T': (RockFloor, None, None, Troll)
+'T': (RockFloor, None, None, Ogre)
 }
 
 # Barracks.

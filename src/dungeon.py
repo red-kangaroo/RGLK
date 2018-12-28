@@ -1381,7 +1381,11 @@ def populate(DungeonLevel):
             x = libtcod.random_get_int(0, 1, var.MapWidth - 2)
             y = libtcod.random_get_int(0, 1, var.MapHeight - 2)
 
-            which = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
+            if ItemNo == 0:
+                which = raw.HealPotion
+            else:
+                which = var.rand_weighted(getRandomEntity('ITEM', DungeonLevel))
+
             NewItem = entity.spawn(x, y, which, 'ITEM')
 
             if NewItem.isBlocked(x, y, DungeonLevel):

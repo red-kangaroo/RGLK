@@ -8,7 +8,7 @@ TODO
 * sleep and go commands
 * dungeon generation with rooms + A* corridors?
 * guarantee some buff potions?
-
+* teleportation
 * release with pyinstaller, cx_Freeze, or something?
 * replace AP cost of pick up with SP cost?
 * tutorial
@@ -17,7 +17,7 @@ TODO
 
    spiders + poison
    more rats
-   keter as powerful bird-people?
+   kenku as powerful bird-people?
 * potions
    empowerement - random stats
 * guaranteed healing potion on first floor?
