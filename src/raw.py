@@ -3248,7 +3248,7 @@ Player = {
 'speed': 1.0,
 'sight': 0,
 'sex': 'MOF',
-#'intrinsics': [],
+#'intrinsics': [('LEVITATION', 3)],
 'inventory': [Knife, Torch, HealPotion],
 'flags': ['HUMANOID', 'AVATAR', 'UNIQUE'],
 'frequency': 0

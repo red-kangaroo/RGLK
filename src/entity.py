@@ -3143,6 +3143,24 @@ class Mob(Entity):
             ui.message("%s leap&S." % self.getName(True), actor = self)
             self.move(dx * 2, dy * 2)
             moved = True
+        elif (self.isFlying() and not var.Maps[var.DungeonLevel][nx][ny].BlockMove and
+              not self.isBlocked(nnx, nny, var.DungeonLevel) and
+              libtcod.map_is_in_fov(var.FOVMap, nnx, nny)):
+
+              whom = None
+              for i in var.Entities[var.DungeonLevel]:
+                  if i != self and i.BlockMove and i.x == nx and i.y == ny:
+                      whom = i
+                      break
+
+              if whom != None:
+                  ui.message("%s leap&S over %s." % (self.getName(True), whom.getName()), actor = self)
+                  self.move(dx * 2, dy * 2)
+                  moved = True
+              else: # How did this happen?
+                  ui.message("%s leap&S." % self.getName(True), actor = self)
+                  self.move(dx * 2, dy * 2)
+                  moved = True
         else:
             ui.message("%s balk&S at the leap." % self.getName(True), actor = self)
 

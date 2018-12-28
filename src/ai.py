@@ -207,7 +207,7 @@ def handleKeys(Player):
         if Key.vk == libtcod.KEY_F2:
             var.WizModeTrueSight = not var.WizModeTrueSight
 
-            if var.WizModeNoClip == True:
+            if var.WizModeTrueSight == True:
                 ui.message("True sight activated.", libtcod.chartreuse)
             else:
                 ui.message("True sight deactivated.", libtcod.chartreuse)
@@ -1269,6 +1269,8 @@ def aiPickEquipment(Me, item):
 
     if Me.hasFlag('AI_SCAVENGER'):
         return True
+    elif not Me.hasFlag('HUMANOID'):
+        return False
 
     slot = item.getSlot()
     mySlots = 0
